@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "clean": "yarn clean:web && yarn clean:desktop",
+    "clean:web": "yarn workspace client-web clean",
+    "clean:desktop": "yarn workspace client-desktop clean",
+    "build": "yarn build:web && yarn build:desktop",
+    "build:web": "yarn workspace client-web build",
+    "build:desktop": "yarn workspace client-desktop build",
+    "dev:server": "yarn workspace server dev",
+    "dev:web": "yarn dev:server & yarn workspace client-web dev",
+    "dev:desktop": "yarn dev:web & yarn workspace client-desktop dev",
+    "start": "yarn workspace server start"
+  }
+}

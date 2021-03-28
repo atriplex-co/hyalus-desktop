@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node .",
+    "dev": "nodemon -w src -e js,json ."
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.3",
+    "busboy": "^0.3.1",
+    "express": "^4.17.1",
+    "joi": "^17.3.0",
+    "mongodb": "^3.6.3",
+    "morgan": "^1.10.0",
+    "msgpack-lite": "^0.1.26",
+    "otplib": "^12.0.1",
+    "sharp": "^0.26.2",
+    "utf-8-validate": "^5.0.4",
+    "winston": "^3.3.3",
+    "ws": "^7.4.2"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.7"
+  }
+}

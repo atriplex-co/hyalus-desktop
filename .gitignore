@@ -1,0 +1,8 @@
+node_modules
+yarn-error.log*
+npm-error.log*
+.vscode
+packages/client-web/dist
+packages/client-desktop/dist
+packages/client-desktop/build
+.env

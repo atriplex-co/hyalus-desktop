@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind screens;
+
+@layer base {
+  @import "./fonts/inter-v2-latin.css";
+  @import "./fonts/inconsolata-v20-latin.css";
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
