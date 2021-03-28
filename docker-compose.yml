@@ -1,12 +1,16 @@
-version: '3'
-services: 
+version: "3"
+services:
   mongo:
     image: mongo
+    restart: always
+    volumes:
+      - db:/data/db
   node:
     build: .
-    ports: 
+    restart: always
+    ports:
       - 8080:8080
-    environment: 
+    environment:
       - MONGO=mongodb://mongo
-    depends_on: 
+    depends_on:
       - mongo
