@@ -127,7 +127,8 @@ export default {
         .replace("a week", "1w")
         .replace("a month", "1m")
         .replace("a year", "1y")
-        .replace(" ago", "");
+        .replace(" ago", "")
+        .replace("in ", "");
     },
     async delete() {
       await this.$store.dispatch("deleteMesasge", this.message);

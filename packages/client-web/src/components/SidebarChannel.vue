@@ -21,7 +21,7 @@
           {{ time }}
         </p>
       </div>
-      <p class="truncate text-gray-400">
+      <p class="text-gray-400 truncate">
         {{ subtitle }}
       </p>
     </div>
@@ -80,7 +80,8 @@ export default {
         .replace("a week", "1w")
         .replace("a month", "1m")
         .replace("a year", "1y")
-        .replace(" ago", "");
+        .replace(" ago", "")
+        .replace("in ", "");
     },
   },
   beforeMount() {
