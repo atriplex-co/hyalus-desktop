@@ -32,7 +32,7 @@
     },
     "publish": {
       "provider": "generic",
-      "url": "http://localhost:3000/update"
+      "url": "https://hyalus.xyz/update"
     }
   },
   "scripts": {
