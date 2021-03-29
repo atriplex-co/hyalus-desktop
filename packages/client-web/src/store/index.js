@@ -1365,6 +1365,7 @@ export default new Vuex.Store({
           frameRate: {
             max: 30,
           },
+          deviceId: getters.videoInput,
         },
       });
 
