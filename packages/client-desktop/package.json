@@ -32,7 +32,7 @@
     },
     "publish": {
       "provider": "generic",
-      "url": "https://hyalus.xyz/update"
+      "url": "https://hyalus.xyz/update/"
     }
   },
   "scripts": {

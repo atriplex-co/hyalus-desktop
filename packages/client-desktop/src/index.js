@@ -44,11 +44,12 @@ const openMainWindow = () => {
 app.on("ready", () => {
   nativeTheme.themeSource = "dark";
 
-  if (!process.env.DEV) {
-    autoUpdater.checkForUpdates();
-  } else {
+  if (process.env.DEV) {
     openMainWindow();
+    return;
   }
+
+  autoUpdater.checkForUpdates();
 });
 
 autoUpdater.on("update-available", () => {
