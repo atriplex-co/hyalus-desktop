@@ -48,6 +48,8 @@ app.post(
     //!Remove after beta prerelease.
     //!Remove after beta prerelease.
 
+    req.body.username = req.body.username.toLowerCase();
+
     if (
       await req.deps.db.collection("users").findOne({
         username: req.body.username,
