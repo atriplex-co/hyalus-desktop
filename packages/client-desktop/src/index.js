@@ -3,6 +3,12 @@ const path = require("path");
 const url = require("url");
 const { autoUpdater } = require("electron-updater");
 
+const lock = app.requestSingleInstanceLock();
+
+if (!lock) {
+  app.quit();
+}
+
 app.commandLine.appendSwitch("no-sandbox");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
@@ -12,8 +18,10 @@ app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 //prevent scary messages from flags above.
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
 
+let mainWindow;
+
 const openMainWindow = () => {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
     height: 800,
@@ -27,16 +35,16 @@ const openMainWindow = () => {
   const entryPath = path.join(__dirname, "../build/index.html");
   const entryUrl = `${url.pathToFileURL(entryPath)}#/app`;
 
-  win.loadURL(entryUrl);
-  win.removeMenu();
+  mainWindow.loadURL(entryUrl);
+  mainWindow.removeMenu();
 
-  win.once("ready-to-show", () => {
-    win.show();
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
   });
 
-  win.webContents.on("before-input-event", (e, input) => {
+  mainWindow.webContents.on("before-input-event", (e, input) => {
     if (input.key === "F12") {
-      win.webContents.openDevTools();
+      mainWindow.webContents.openDevTools();
     }
   });
 };
@@ -50,6 +58,12 @@ app.on("ready", () => {
   }
 
   autoUpdater.checkForUpdates();
+});
+
+app.on("second-instance", () => {
+  if (mainWindow) {
+    mainWindow.focus();
+  }
 });
 
 autoUpdater.on("update-available", () => {
