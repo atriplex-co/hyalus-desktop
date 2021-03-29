@@ -15,6 +15,8 @@
     "dev:server": "yarn workspace server dev",
     "dev:web": "yarn dev:server & yarn workspace client-web dev",
     "dev:desktop": "yarn dev:web & yarn workspace client-desktop dev",
-    "start": "yarn workspace server start"
+    "start": "yarn workspace server start",
+    "stop": "yarn workspace server stop",
+    "restart": "yarn workspace server restart"
   }
 }
