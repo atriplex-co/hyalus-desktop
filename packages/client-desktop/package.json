@@ -37,10 +37,10 @@
   },
   "scripts": {
     "clean": "rm -rf build dist",
-    "build": "yarn clean && webpack --progress && electron-builder -wml",
+    "build": "yarn clean && webpack && electron-builder -wml",
     "dev": "yarn dev:main & yarn dev:renderer",
     "dev:main": "DEV=1 nodemon -w src --exec electron .",
-    "dev:renderer": "webpack --progress --mode development --watch",
+    "dev:renderer": "webpack  --mode development --watch",
     "start": "electron ."
   },
   "devDependencies": {

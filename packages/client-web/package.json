@@ -4,14 +4,15 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && webpack --progress",
-    "dev": "yarn clean && webpack --progress --watch --mode development"
+    "build": "yarn clean && webpack",
+    "dev": "yarn clean && webpack --watch --mode development"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/preset-env": "^7.13.12",
     "@tailwindcss/aspect-ratio": "^0.2.0",
     "@tailwindcss/forms": "^0.2.1",
+    "@tailwindcss/jit": "^0.1.17",
     "@tailwindcss/line-clamp": "^0.2.0",
     "@tailwindcss/typography": "^0.4.0",
     "autoprefixer": "^10.2.1",

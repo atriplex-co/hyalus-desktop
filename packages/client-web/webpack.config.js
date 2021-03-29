@@ -1,6 +1,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
+const TerserPlugin = require("terser-webpack-plugin");
+const { ProgressPlugin } = require("webpack");
 
 module.exports = {
   mode: "production",
@@ -34,7 +36,7 @@ module.exports = {
             options: {
               postcssOptions: {
                 plugins: {
-                  tailwindcss: {
+                  "@tailwindcss/jit": {
                     config: path.join(__dirname, "tailwind.config.js"),
                   },
                   autoprefixer: {},
@@ -64,6 +66,26 @@ module.exports = {
       title: "Hyalus",
       minify: true,
     }),
+    new ProgressPlugin(),
   ],
   externals: ["path", "crypto", "os", "electron"],
+  cache: {
+    type: "filesystem",
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
+  snapshot: {
+    managedPaths: [path.join(__dirname, "node_modules")],
+  },
+  optimization: {
+    minimizer: [
+      new TerserPlugin({
+        parallel: true,
+        terserOptions: {
+          compress: false,
+        },
+      }),
+    ],
+  },
 };
