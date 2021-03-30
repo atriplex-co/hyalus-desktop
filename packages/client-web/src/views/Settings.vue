@@ -151,9 +151,13 @@
 
       <!-- Notifications settings -->
       <div class="flex flex-col" v-if="view === 'notifications'">
-          <div class="flex items-center justify-between h-12">
-              <p class="font-bold">Make sound on new message</p>
-              <Toggle v-model="soundNotification" :key="soundNotification" @click="this.$forceUpdate();"/>
+        <div class="flex items-center justify-between h-12">
+            <p class="font-bold">Make sound on new message</p>
+            <Toggle v-model="soundNotification" :key="soundNotification"/>
+        </div>
+        <div class="flex items-center justify-between h-12">
+              <p class="font-bold">Send push notifications</p>
+              <Toggle v-model="pushNotification" :key="pushNotification"/>
           </div>
         <div class="pt-16"></div>
       </div>
@@ -244,7 +248,27 @@ export default {
             localStorage.setItem("soundNotification", on);
             //this.soundNotification = on;
           }
-        }
+        },
+        pushNotification: {
+          get() {
+            if (localStorage.getItem("pushNotification") == "true") {
+              return true
+            } else {
+              return false
+            }
+          },
+          set(on) { 
+            if (!on) {localStorage.setItem("pushNotification", on); return}
+             Notification.requestPermission()
+                .then(function(notifperm) {
+                    if (notifperm=="granted") {
+                        localStorage.setItem("pushNotification", on);
+                    } else {
+                        alert("Please allow notifications to receive push notifications")
+                    }
+             })
+          }
+        },
     },
     methods: {
         async logout() {

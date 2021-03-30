@@ -12,9 +12,14 @@
 </template>
 
 <script>
-export default {
-  props: {
-    value: Boolean,
-  },
-};
+  export default {
+    props: {
+      value: Boolean,
+    },
+    methods: {
+      invertValue() {
+        this.value = !value;
+      },
+  }
+  };
 </script>
