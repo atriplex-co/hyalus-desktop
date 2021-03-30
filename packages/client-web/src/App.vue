@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col h-screen antialiased text-white bg-gray-900"
+    class="flex flex-col h-screen min-h-0 antialiased text-white bg-gray-900"
   >
     <BetaBanner v-if="!betaBanner" />
     <div class="flex-1 min-h-0">
