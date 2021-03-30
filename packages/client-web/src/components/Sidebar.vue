@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col w-full h-full max-w-xs border-r border-gray-750 bg-gray-850"
+    class="flex flex-col w-full h-full max-w-xs min-h-0 border-r border-gray-750 bg-gray-850"
   >
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
       <div class="flex items-center flex-1 ">
@@ -29,7 +29,17 @@
         </router-link>
       </div>
     </div>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col flex-1 h-full overflow-auto">
+      <SidebarChannel
+        v-for="channel in channels"
+        v-bind:key="channel.id"
+        :channel="channel"
+      />
+      <SidebarChannel
+        v-for="channel in channels"
+        v-bind:key="channel.id"
+        :channel="channel"
+      />
       <SidebarChannel
         v-for="channel in channels"
         v-bind:key="channel.id"
