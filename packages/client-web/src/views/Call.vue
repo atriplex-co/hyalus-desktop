@@ -9,11 +9,11 @@
         <VoiceUser v-for="user in users" v-bind:key="user.id" :user="user" />
       </div>
       <div
-        class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800 cursor-pointer"
+        class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800"
       >
         <div @click="toggleAudio">
           <MicrophoneIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': audioEnabled,
               'text-gray-400 border border-gray-600': !audioEnabled,
@@ -22,7 +22,7 @@
         </div>
         <div @click="toggleVideo">
           <VideoIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': videoEnabled,
               'text-gray-400 border border-gray-600': !videoEnabled,
@@ -31,7 +31,7 @@
         </div>
         <div @click="toggleDisplay">
           <DisplayIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': displayEnabled,
               'text-gray-400 border border-gray-600': !displayEnabled,
