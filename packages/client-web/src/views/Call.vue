@@ -3,7 +3,7 @@
     <Sidebar />
     <div class="flex flex-col flex-1" v-if="channel && voice">
       <div class="flex-1 overflow-auto">
-        <p class="p-2 text-sm bg-gray-800">
+        <p class="px-4 py-2 text-sm bg-gray-800">
           While calls are fairly stable, the UI is not finished yet.
         </p>
         <VoiceUser v-for="user in users" v-bind:key="user.id" :user="user" />
