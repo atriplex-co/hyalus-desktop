@@ -247,7 +247,7 @@ export default {
     }
 
     if (this.channel) {
-      document.title = `Hyalus - ${this.channel.name}`;
+      document.title = `Hyalus \u2022 ${this.channel.name}`;
     } else {
       document.title = "Hyalus";
     }
