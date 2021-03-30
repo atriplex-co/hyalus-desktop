@@ -36,7 +36,7 @@ module.exports = {
             options: {
               postcssOptions: {
                 plugins: {
-                  "@tailwindcss/jit": {
+                  tailwindcss: {
                     config: path.join(__dirname, "tailwind.config.js"),
                   },
                   autoprefixer: {},
