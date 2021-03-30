@@ -104,14 +104,17 @@
           v-model="message"
           @input="messageInput"
           @keydown="messageKeydown"
+          ref="msgBox"
         />
         <div class="flex space-x-2 text-gray-400">
           <PaperclipIcon
             class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
           />
-          <AirplaneIcon
-            class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-          />
+          <div @click="sendMessage">
+            <AirplaneIcon
+              class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+            />
+          </div>
         </div>
       </div>
       <GroupNameModal
@@ -173,26 +176,28 @@ export default {
     },
   },
   methods: {
-    messageInput(e) {
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
+    messageInput() {
+      this.$refs.msgBox.style.height = "auto";
+      this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
     },
-    async messageKeydown(e) {
+    messageKeydown(e) {
       if (e.code === "Enter" && !e.shiftKey) {
         e.preventDefault();
-
-        if (!this.message) {
-          return;
-        }
-
-        await this.$store.dispatch("sendMessage", {
-          channel: this.channel.id,
-          body: this.message.trim(),
-        });
-
-        this.message = "";
-        setTimeout(() => this.messageInput(e), 1);
+        this.sendMessage();
       }
+    },
+    async sendMessage() {
+      if (!this.message) {
+        return;
+      }
+
+      await this.$store.dispatch("sendMessage", {
+        channel: this.channel.id,
+        body: this.message.trim(),
+      });
+
+      this.message = "";
+      setTimeout(() => this.messageInput(), 1);
     },
     setAvatar() {
       if (this.channel.admin) {
