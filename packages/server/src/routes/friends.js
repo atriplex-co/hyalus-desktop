@@ -66,6 +66,8 @@ app.post(
     })
   ),
   async (req, res) => {
+    req.body.username = req.body.username.toLowerCase();
+
     if (req.body.username === req.user.username) {
       res.status(400).json({
         error: "You can't friend yourself",
