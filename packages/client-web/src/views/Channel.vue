@@ -105,18 +105,18 @@
           v-model="message"
           @input="messageInput"
           @keydown="messageKeydown"
-          id="messagebox"
+          ref="msgBox"
         />
         <!--attachment button-->
         <div class="flex space-x-2 text-gray-400">
           <PaperclipIcon
             class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
           />
-          <!--Send button-->
-          <AirplaneIcon
-            class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-            @click='messageKeydown(sendMessage(this))'
-          />
+          <div @click="sendMessage">
+            <AirplaneIcon
+              class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+            />
+          </div>
         </div>
       </div>
       <GroupNameModal
@@ -178,24 +178,28 @@ export default {
     },
   },
   methods: {
-    messageInput(e) {
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
+    messageInput() {
+      this.$refs.msgBox.style.height = "auto";
+      this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
     },
-    async messageKeydown(e) {
+    messageKeydown(e) {
       if (e.code === "Enter" && !e.shiftKey) {
         e.preventDefault();
-
-        if (this.message) {
-          return;
-        }
-
-        sendMessage(this.$store, this.channel.id, this.message.trim())
-
-        '#messagebox'.message = "";
-        setTimeout(() => this.messageInput(e), 1);
-
+        this.sendMessage();
       }
+    },
+    async sendMessage() {
+      if (!this.message) {
+        return;
+      }
+
+      await this.$store.dispatch("sendMessage", {
+        channel: this.channel.id,
+        body: this.message.trim(),
+      });
+
+      this.message = "";
+      setTimeout(() => this.messageInput(), 1);
     },
     //sendMessaage takes this.$store, a channelID, and a raw message as input
     // The message is sent as-is, so if you want any formatting (like .trim()) then that

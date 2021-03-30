@@ -8,3 +8,4 @@ packages/client-desktop/build
 .env
 packages/client-desktop/package-lock.json
 buildconfig
+package-lock.json
