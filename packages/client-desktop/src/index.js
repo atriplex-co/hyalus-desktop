@@ -1,7 +1,8 @@
-const { app, BrowserWindow, nativeTheme } = require("electron");
+const { app, BrowserWindow, nativeTheme, Tray, Menu } = require("electron");
 const path = require("path");
 const url = require("url");
 const { autoUpdater } = require("electron-updater");
+const { version } = require("../package");
 
 const lock = app.requestSingleInstanceLock();
 
@@ -19,8 +20,10 @@ app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
 
 let mainWindow;
+let quitting;
+let tray;
 
-const openMainWindow = () => {
+const start = () => {
   mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
@@ -47,13 +50,52 @@ const openMainWindow = () => {
       mainWindow.webContents.openDevTools();
     }
   });
+
+  mainWindow.on("close", (e) => {
+    if (!quitting) {
+      e.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
+  tray = new Tray(path.join(__dirname, "../resources/icon.png"));
+
+  tray.setToolTip(`Hyalus ${version}`);
+
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: "Open",
+        click() {
+          mainWindow.show();
+        },
+      },
+      {
+        label: "Restart",
+        click() {
+          app.relaunch();
+          app.quit();
+        },
+      },
+      {
+        label: "Quit",
+        click() {
+          app.quit();
+        },
+      },
+    ])
+  );
+
+  tray.on("click", () => {
+    mainWindow.show();
+  });
 };
 
 app.on("ready", () => {
   nativeTheme.themeSource = "dark";
 
   if (process.env.DEV) {
-    openMainWindow();
+    start();
     return;
   }
 
@@ -66,6 +108,10 @@ app.on("second-instance", () => {
   }
 });
 
+app.on("before-quit", () => {
+  quitting = true;
+});
+
 autoUpdater.on("update-available", () => {
   autoUpdater.downloadUpdate();
 });
@@ -75,5 +121,5 @@ autoUpdater.on("update-downloaded", () => {
 });
 
 autoUpdater.on("update-not-available", () => {
-  openMainWindow();
+  start();
 });
