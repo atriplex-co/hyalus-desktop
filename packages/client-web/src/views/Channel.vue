@@ -214,7 +214,9 @@ export default {
       }
 
       if (!this.$store.getters.localStream("audio")) {
-        this.$store.dispatch("toggleAudio");
+        this.$store.dispatch("toggleAudio", {
+          silent: true,
+        });
       }
 
       this.$router.push(`/channels/${this.channel.id}/call`);
@@ -223,7 +225,9 @@ export default {
       this.voiceJoin();
 
       if (!this.$store.getters.localStream("video")) {
-        this.$store.dispatch("toggleVideo");
+        this.$store.dispatch("toggleVideo", {
+          silent: true,
+        });
       }
     },
     messagesScroll({ target }) {

@@ -6,6 +6,8 @@ import msgpack from "msgpack-lite";
 import sndNotification from "../sounds/notification_simple-01.ogg";
 import sndStateUp from "../sounds/state-change_confirm-up.ogg";
 import sndStateDown from "../sounds/state-change_confirm-down.ogg";
+import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
+import sndNavForward from "../sounds/navigation_forward-selection.ogg";
 import router from "../router";
 
 Vue.use(Vuex);
@@ -1331,9 +1333,16 @@ export default new Vuex.Store({
         delete: true,
       });
     },
-    async toggleAudio({ getters, commit, dispatch }) {
+    async toggleAudio({ getters, commit, dispatch }, params) {
       if (getters.localStream("audio")) {
         dispatch("stopLocalStream", "audio");
+
+        if (!params?.silent) {
+          try {
+            new Audio(sndNavBackward).play();
+          } catch {}
+        }
+
         return;
       }
 
@@ -1347,10 +1356,23 @@ export default new Vuex.Store({
         type: "audio",
         track: stream.getTracks()[0],
       });
+
+      if (!params?.silent) {
+        try {
+          new Audio(sndNavForward).play();
+        } catch {}
+      }
     },
-    async toggleVideo({ getters, commit, dispatch }) {
+    async toggleVideo({ getters, commit, dispatch }, params) {
       if (getters.localStream("video")) {
         dispatch("stopLocalStream", "video");
+
+        if (!params?.silent) {
+          try {
+            new Audio(sndNavBackward).play();
+          } catch {}
+        }
+
         return;
       }
 
@@ -1373,11 +1395,23 @@ export default new Vuex.Store({
         type: "video",
         track: stream.getTracks()[0],
       });
+
+      if (!params?.silent) {
+        try {
+          new Audio(sndNavForward).play();
+        } catch {}
+      }
     },
     async toggleDisplay({ getters, commit, dispatch }, params) {
       if (getters.localStream("displayVideo")) {
         dispatch("stopLocalStream", "displayVideo");
         dispatch("stopLocalStream", "displayAudio");
+
+        if (!params?.silent) {
+          try {
+            new Audio(sndNavBackward).play();
+          } catch {}
+        }
 
         return;
       }
@@ -1465,6 +1499,12 @@ export default new Vuex.Store({
           });
         }
       });
+
+      if (!params?.silent) {
+        try {
+          new Audio(sndNavForward).play();
+        } catch {}
+      }
     },
   },
 });
