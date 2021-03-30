@@ -153,18 +153,13 @@
     <!-- Notifications settings -->
     <div class="flex flex-col" v-if="view === 'notifications'">
         <div class="flex items-center justify-between h-12">
-            <p class="font-bold">Make sound on new message</p>
+            <p class="font-bold items-center">Make sound on new message</p>
             <Toggle v-model="soundNotification" />
         </div>
+       <div class="pt-16"></div>
     </div>
-    <div class="pt-16"></div>
 </div>
 
-<SetNameModal v-if="setNameModal" @close="setNameModal = false" />
-<SetUsernameModal v-if="setUsernameModal" @close="setUsernameModal = false" />
-<SetPasswordModal v-if="setPasswordModal" @close="setPasswordModal = false" />
-<TotpEnableModal v-if="totpEnableModal" @close="totpEnableModal = false" />
-<TotpDisableModal v-if="totpDisableModal" @close="totpDisableModal = false" />
 </div>
 </template>
 
@@ -193,7 +188,7 @@ export default {
             return this.$store.getters.user;
         },
         audioOutput() {
-            const device = this.audioOutputDevices ? .find(
+            const device = this.audioOutputDevices?.find(
                 (d) => d.deviceId === this.$store.getters.audioOutput
             );
 
@@ -204,7 +199,7 @@ export default {
             );
         },
         audioInput() {
-            const device = this.audioInputDevices ? .find(
+            const device = this.audioInputDevices?.find(
                 (d) => d.deviceId === this.$store.getters.audioInput
             );
 
@@ -215,7 +210,7 @@ export default {
             );
         },
         videoInput() {
-            const device = this.videoInputDevices ? .find(
+            const device = this.videoInputDevices?.find(
                 (d) => d.deviceId === this.$store.getters.videoInput
             );
 
@@ -254,6 +249,9 @@ export default {
         },
         setVideoInput(id) {
             this.$store.dispatch("setVideoInput", id);
+        },
+        soundNotification(on) {
+            this.$store.dispatch("soundNotification", on);
         },
     },
     async mounted() {

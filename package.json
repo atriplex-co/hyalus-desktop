@@ -18,5 +18,11 @@
     "start": "yarn workspace server start",
     "stop": "yarn workspace server stop",
     "restart": "yarn workspace server restart"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^5.3.1"
+  },
+  "dependencies": {
+    "vue-loader": "^15.9.6"
   }
 }
