@@ -122,6 +122,7 @@ app.on("ready", () => {
 
 app.on("second-instance", () => {
   if (mainWindow) {
+    mainWindow.restore();
     mainWindow.focus();
   }
 });
