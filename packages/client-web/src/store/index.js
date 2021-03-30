@@ -726,7 +726,7 @@ export default new Vuex.Store({
               }
             }
 
-            if (playSound === true && state.soundNotification != true) {
+            if (playSound === true && localStorage.getItem("soundNotification") == "true") {
               try {
                 new Audio(sndNotification).play();
               } catch {}

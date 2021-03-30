@@ -7,3 +7,4 @@ packages/client-desktop/dist
 packages/client-desktop/build
 .env
 packages/client-desktop/package-lock.json
+buildconfig

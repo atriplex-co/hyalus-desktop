@@ -152,8 +152,8 @@
       <!-- Notifications settings -->
       <div class="flex flex-col" v-if="view === 'notifications'">
           <div class="flex items-center justify-between h-12">
-              <p class="font-bold items-center">Make sound on new message</p>
-              <Toggle v-model="soundNotification" id="soundswitch" />
+              <p class="font-bold">Make sound on new message</p>
+              <Toggle v-model="soundNotification" :key="soundNotification" @click="this.$forceUpdate();"/>
           </div>
         <div class="pt-16"></div>
       </div>
@@ -181,7 +181,6 @@ export default {
             setPasswordModal: false,
             totpEnableModal: false,
             totpDisableModal: false,
-            soundNotification: false,
         };
     },
     computed: {
@@ -235,11 +234,15 @@ export default {
         },
         soundNotification: {
           get() {
-            return localStorage.getItem("soundNotification")
+            if (localStorage.getItem("soundNotification") == "true") {
+              return true
+            } else {
+              return false
+            }
           },
           set(on) { 
             localStorage.setItem("soundNotification", on);
-            this.soundNotification = on;
+            //this.soundNotification = on;
           }
         }
     },
