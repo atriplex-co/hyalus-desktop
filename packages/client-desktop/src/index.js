@@ -49,6 +49,10 @@ const start = () => {
     if (input.key === "F12") {
       mainWindow.webContents.openDevTools();
     }
+
+    if (input.key === "F5") {
+      mainWindow.reload();
+    }
   });
 
   mainWindow.on("close", (e) => {
