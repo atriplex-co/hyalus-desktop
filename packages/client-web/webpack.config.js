@@ -63,8 +63,7 @@ module.exports = {
   plugins: [
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
-      title: "Hyalus",
-      minify: true,
+      template: path.join(__dirname, "src/index.html"),
     }),
     new ProgressPlugin(),
   ],
