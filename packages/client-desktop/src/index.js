@@ -76,6 +76,12 @@ const start = () => {
     }
   });
 
+  setTimeout(() => {
+    if (mainWindow) {
+      mainWindow.webContents.session.flushStorageData();
+    }
+  }, 1000 * 5); //5s
+
   tray = new Tray(path.join(__dirname, "../resources/icon.png"));
 
   tray.setToolTip(`Hyalus ${version}`);
