@@ -1339,9 +1339,6 @@ export default new Vuex.Store({
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
           deviceId: getters.audioInput,
         },
       });
@@ -1359,6 +1356,9 @@ export default new Vuex.Store({
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
+          width: {
+            max: 1280,
+          },
           height: {
             max: 720,
           },
@@ -1374,7 +1374,7 @@ export default new Vuex.Store({
         track: stream.getTracks()[0],
       });
     },
-    async toggleDisplay({ getters, commit, dispatch }) {
+    async toggleDisplay({ getters, commit, dispatch }, params) {
       if (getters.localStream("displayVideo")) {
         dispatch("stopLocalStream", "displayVideo");
         dispatch("stopLocalStream", "displayAudio");
@@ -1382,21 +1382,73 @@ export default new Vuex.Store({
         return;
       }
 
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          height: {
-            max: 720,
+      let stream;
+
+      if (params) {
+        console.log({ params });
+
+        if (params.audio) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                mandatory: {
+                  chromeMediaSource: "desktop",
+                  chromeMediaSourceId: params.sourceId,
+                  maxWidth: 1280,
+                  maxHeight: 720,
+                  maxFrameRate: 30,
+                },
+              },
+              audio: {
+                mandatory: {
+                  chromeMediaSource: "desktop",
+                  chromeMediaSourceId: params.sourceId,
+                },
+              },
+            });
+          } catch (e) {
+            console.log("Failed to get audio from desktopCapturer");
+            console.log(e);
+          }
+        }
+
+        //either we failed to get audio or the user didn't want it.
+        if (!stream) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              mandatory: {
+                chromeMediaSource: "desktop",
+                chromeMediaSourceId: params.sourceId,
+                maxWidth: 1280,
+                maxHeight: 720,
+                maxFrameRate: 30,
+              },
+            },
+          });
+        }
+      } else {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: {
+              max: 1280,
+            },
+            height: {
+              max: 720,
+            },
+            frameRate: {
+              max: 30,
+            },
           },
-          frameRate: {
-            max: 30,
-          },
-        },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      });
+          audio: true,
+        });
+      }
+
+      const el = document.createElement("video");
+      el.srcObject = stream;
+      el.controls = true;
+      el.play();
+
+      document.body.appendChild(el);
 
       stream.getTracks().map((track) => {
         if (track.kind === "video") {

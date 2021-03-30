@@ -19,9 +19,11 @@ if (!lock) {
 
 app.commandLine.appendSwitch("no-sandbox");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
-app.commandLine.appendSwitch("enable-gpu-rasterization");
-app.commandLine.appendSwitch("enable-accelerated-video");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
+app.commandLine.appendSwitch("enable-media-foundation-video-capture");
+app.commandLine.appendSwitch("zero-copy-video-capture");
+app.commandLine.appendSwitch("enable-accelerated-video-decode");
+app.commandLine.appendSwitch("enable-accelerated-video-encode");
 
 //prevent scary messages from flags above.
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;

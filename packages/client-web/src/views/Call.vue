@@ -97,7 +97,7 @@ export default {
       this.$store.dispatch("toggleVideo");
     },
     toggleDisplay() {
-      if (typeof process !== "undefined" && !this.voice.displayVideo) {
+      if (typeof process !== "undefined" && !this.displayEnabled) {
         this.screenshareModal = true;
         return;
       }
