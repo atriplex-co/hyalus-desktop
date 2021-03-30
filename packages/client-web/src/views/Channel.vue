@@ -201,17 +201,6 @@ export default {
       this.message = "";
       setTimeout(() => this.messageInput(), 1);
     },
-    //sendMessaage takes this.$store, a channelID, and a raw message as input
-    // The message is sent as-is, so if you want any formatting (like .trim()) then that
-    // must be done ahead of time.
-    async sendMessage(store, channelid, body) {
-       await store.dispatch("sendMessage", {
-          channel: channelid,
-          body: body,
-        });
-
-    
-    },
     setAvatar() {
       if (this.channel.admin) {
         this.$store.dispatch("setGroupAvatar", this.channel.id);
