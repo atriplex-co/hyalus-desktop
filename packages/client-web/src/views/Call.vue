@@ -3,17 +3,17 @@
     <Sidebar />
     <div class="flex flex-col flex-1" v-if="channel && voice">
       <div class="flex-1 overflow-auto">
-        <p class="p-2 text-sm bg-gray-800">
+        <p class="px-4 py-2 text-sm bg-gray-800">
           While calls are fairly stable, the UI is not finished yet.
         </p>
         <VoiceUser v-for="user in users" v-bind:key="user.id" :user="user" />
       </div>
       <div
-        class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800 cursor-pointer"
+        class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800"
       >
         <div @click="toggleAudio">
           <MicrophoneIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': audioEnabled,
               'text-gray-400 border border-gray-600': !audioEnabled,
@@ -22,7 +22,7 @@
         </div>
         <div @click="toggleVideo">
           <VideoIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': videoEnabled,
               'text-gray-400 border border-gray-600': !videoEnabled,
@@ -31,7 +31,7 @@
         </div>
         <div @click="toggleDisplay">
           <DisplayIcon
-            class="w-12 h-12 p-3 rounded-full"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer"
             :class="{
               'text-white bg-gray-600': displayEnabled,
               'text-gray-400 border border-gray-600': !displayEnabled,
@@ -97,7 +97,7 @@ export default {
       this.$store.dispatch("toggleVideo");
     },
     toggleDisplay() {
-      if (typeof process !== "undefined" && !this.voice.displayVideo) {
+      if (typeof process !== "undefined" && !this.displayEnabled) {
         this.screenshareModal = true;
         return;
       }
@@ -109,6 +109,16 @@ export default {
     if (!this.channel || !this.voice) {
       this.$router.push(`/channels/${this.$route.params.channel}`);
     }
+  },
+  updated() {
+    if (this.channel) {
+      document.title = `Hyalus \u2022 ${this.channel.name}`;
+    } else {
+      document.title = "Hyalus";
+    }
+  },
+  beforeDestroy() {
+    document.title = "Hyalus";
   },
   components: {
     Sidebar: () => import("../components/Sidebar"),

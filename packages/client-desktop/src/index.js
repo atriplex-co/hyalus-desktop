@@ -17,11 +17,15 @@ if (!lock) {
   app.quit();
 }
 
+nativeTheme.themeSource = "dark";
+
 app.commandLine.appendSwitch("no-sandbox");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
-app.commandLine.appendSwitch("enable-gpu-rasterization");
-app.commandLine.appendSwitch("enable-accelerated-video");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
+app.commandLine.appendSwitch("enable-media-foundation-video-capture");
+app.commandLine.appendSwitch("zero-copy-video-capture");
+app.commandLine.appendSwitch("enable-accelerated-video-decode");
+app.commandLine.appendSwitch("enable-accelerated-video-encode");
 
 //prevent scary messages from flags above.
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
@@ -74,6 +78,12 @@ const start = () => {
     }
   });
 
+  setTimeout(() => {
+    if (mainWindow) {
+      mainWindow.webContents.session.flushStorageData();
+    }
+  }, 1000 * 5); //5s
+
   tray = new Tray(path.join(__dirname, "../resources/icon.png"));
 
   tray.setToolTip(`Hyalus ${version}`);
@@ -90,13 +100,13 @@ const start = () => {
         label: "Restart",
         click() {
           app.relaunch();
-          app.quit();
+          app.exit();
         },
       },
       {
         label: "Quit",
         click() {
-          app.quit();
+          app.exit();
         },
       },
     ])
@@ -108,11 +118,8 @@ const start = () => {
 };
 
 app.on("ready", () => {
-  nativeTheme.themeSource = "dark";
-
   if (process.env.DEV) {
-    start();
-    return;
+    return start();
   }
 
   autoUpdater.checkForUpdates();
@@ -120,12 +127,8 @@ app.on("ready", () => {
 
 app.on("second-instance", () => {
   if (mainWindow) {
-    mainWindow.focus();
+    mainWindow.show();
   }
-});
-
-app.on("before-quit", () => {
-  quitting = true;
 });
 
 autoUpdater.on("update-available", () => {
@@ -133,12 +136,10 @@ autoUpdater.on("update-available", () => {
 });
 
 autoUpdater.on("update-downloaded", () => {
-  autoUpdater.quitAndInstall();
+  autoUpdater.quitAndInstall(true, true);
 });
 
-autoUpdater.on("update-not-available", () => {
-  start();
-});
+autoUpdater.on("update-not-available", start);
 
 ipcMain.on("close", () => {
   mainWindow.close();
