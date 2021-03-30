@@ -17,6 +17,8 @@ if (!lock) {
   app.quit();
 }
 
+nativeTheme.themeSource = "dark";
+
 app.commandLine.appendSwitch("no-sandbox");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
@@ -116,11 +118,8 @@ const start = () => {
 };
 
 app.on("ready", () => {
-  nativeTheme.themeSource = "dark";
-
   if (process.env.DEV) {
-    start();
-    return;
+    return start();
   }
 
   autoUpdater.checkForUpdates();
@@ -132,21 +131,15 @@ app.on("second-instance", () => {
   }
 });
 
-app.on("before-quit", () => {
-  quitting = true;
-});
-
 autoUpdater.on("update-available", () => {
   autoUpdater.downloadUpdate();
 });
 
 autoUpdater.on("update-downloaded", () => {
-  autoUpdater.quitAndInstall();
+  autoUpdater.quitAndInstall(true, true);
 });
 
-autoUpdater.on("update-not-available", () => {
-  start();
-});
+autoUpdater.on("update-not-available", start);
 
 ipcMain.on("close", () => {
   mainWindow.close();
