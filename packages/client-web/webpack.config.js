@@ -36,7 +36,7 @@ module.exports = {
             options: {
               postcssOptions: {
                 plugins: {
-                  "@tailwindcss/jit": {
+                  tailwindcss: {
                     config: path.join(__dirname, "tailwind.config.js"),
                   },
                   autoprefixer: {},
@@ -63,8 +63,7 @@ module.exports = {
   plugins: [
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
-      title: "Hyalus",
-      minify: true,
+      template: path.join(__dirname, "src/index.html"),
     }),
     new ProgressPlugin(),
   ],

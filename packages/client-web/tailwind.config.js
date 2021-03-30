@@ -3,7 +3,7 @@ const colors = require("tailwindcss/colors");
 
 module.exports = {
   purge: [`${path.join(__dirname, "src")}/**/*.vue`],
-  darkMode: "class", // or 'media' or 'class'
+  darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {
       colors: {
@@ -38,7 +38,7 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    require("@tailwindcss/aspect-ratio"),
+    // require("@tailwindcss/aspect-ratio"),
     // require("@tailwindcss/typography"),
     // require("@tailwindcss/forms"),
     // require("@tailwindcss/line-clamp"),

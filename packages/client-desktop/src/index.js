@@ -1,4 +1,11 @@
-const { app, BrowserWindow, nativeTheme, Tray, Menu } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  Tray,
+  Menu,
+  ipcMain,
+} = require("electron");
 const path = require("path");
 const url = require("url");
 const { autoUpdater } = require("electron-updater");
@@ -33,6 +40,7 @@ const start = () => {
       contextIsolation: false,
       experimentalFeatures: true,
     },
+    frame: false,
   });
 
   const entryPath = path.join(__dirname, "../build/index.html");
@@ -46,8 +54,16 @@ const start = () => {
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
+    if (input.type !== "keyDown") {
+      return;
+    }
+
     if (input.key === "F12") {
       mainWindow.webContents.openDevTools();
+    }
+
+    if (input.key === "F5") {
+      mainWindow.reload();
     }
   });
 
@@ -122,4 +138,8 @@ autoUpdater.on("update-downloaded", () => {
 
 autoUpdater.on("update-not-available", () => {
   start();
+});
+
+ipcMain.on("close", () => {
+  mainWindow.close();
 });
