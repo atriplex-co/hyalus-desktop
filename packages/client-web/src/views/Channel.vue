@@ -97,6 +97,7 @@
         class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
         v-if="channel.writable"
       >
+        <!-- textttbox -->
         <textarea
           rows="1"
           placeholder="Send a message"
@@ -104,13 +105,17 @@
           v-model="message"
           @input="messageInput"
           @keydown="messageKeydown"
+          id="messagebox"
         />
+        <!--attachment button-->
         <div class="flex space-x-2 text-gray-400">
           <PaperclipIcon
             class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
           />
+          <!--Send button-->
           <AirplaneIcon
             class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+            @click='messageKeydown(sendMessage(this))'
           />
         </div>
       </div>
@@ -181,18 +186,27 @@ export default {
       if (e.code === "Enter" && !e.shiftKey) {
         e.preventDefault();
 
-        if (!this.message) {
+        if (this.message) {
           return;
         }
 
-        await this.$store.dispatch("sendMessage", {
-          channel: this.channel.id,
-          body: this.message.trim(),
+        sendMessage(this.$store, this.channel.id, this.message.trim())
+
+        '#messagebox'.message = "";
+        setTimeout(() => this.messageInput(e), 1);
+
+      }
+    },
+    //sendMessaage takes this.$store, a channelID, and a raw message as input
+    // The message is sent as-is, so if you want any formatting (like .trim()) then that
+    // must be done ahead of time.
+    async sendMessage(store, channelid, body) {
+       await store.dispatch("sendMessage", {
+          channel: channelid,
+          body: body,
         });
 
-        this.message = "";
-        setTimeout(() => this.messageInput(e), 1);
-      }
+    
     },
     setAvatar() {
       if (this.channel.admin) {
