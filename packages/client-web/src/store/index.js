@@ -1477,13 +1477,6 @@ export default new Vuex.Store({
         });
       }
 
-      const el = document.createElement("video");
-      el.srcObject = stream;
-      el.controls = true;
-      el.play();
-
-      document.body.appendChild(el);
-
       stream.getTracks().map((track) => {
         if (track.kind === "video") {
           dispatch("startLocalStream", {
