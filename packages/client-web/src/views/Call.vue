@@ -110,6 +110,16 @@ export default {
       this.$router.push(`/channels/${this.$route.params.channel}`);
     }
   },
+  updated() {
+    if (this.channel) {
+      document.title = `Hyalus \u2022 ${this.channel.name}`;
+    } else {
+      document.title = "Hyalus";
+    }
+  },
+  beforeDestroy() {
+    document.title = "Hyalus";
+  },
   components: {
     Sidebar: () => import("../components/Sidebar"),
     ErrorIcon: () => import("../icons/Error"),
