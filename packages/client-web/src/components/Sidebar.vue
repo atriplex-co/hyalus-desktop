@@ -35,16 +35,6 @@
         v-bind:key="channel.id"
         :channel="channel"
       />
-      <SidebarChannel
-        v-for="channel in channels"
-        v-bind:key="channel.id"
-        :channel="channel"
-      />
-      <SidebarChannel
-        v-for="channel in channels"
-        v-bind:key="channel.id"
-        :channel="channel"
-      />
     </div>
   </div>
 </template>
