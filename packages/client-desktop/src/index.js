@@ -92,13 +92,13 @@ const start = () => {
         label: "Restart",
         click() {
           app.relaunch();
-          app.quit();
+          app.exit();
         },
       },
       {
         label: "Quit",
         click() {
-          app.quit();
+          app.exit();
         },
       },
     ])
