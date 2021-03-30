@@ -1,4 +1,11 @@
-const { app, BrowserWindow, nativeTheme, Tray, Menu } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  Tray,
+  Menu,
+  ipcMain,
+} = require("electron");
 const path = require("path");
 const url = require("url");
 const { autoUpdater } = require("electron-updater");
@@ -131,4 +138,8 @@ autoUpdater.on("update-downloaded", () => {
 
 autoUpdater.on("update-not-available", () => {
   start();
+});
+
+ipcMain.on("close", () => {
+  mainWindow.close();
 });

@@ -1,21 +1,22 @@
 <template>
-  <div
-    class="flex items-center justify-between text-sm border-b border-gray-800"
-  >
-    <div class="flex items-center px-2 space-x-2 select-none">
+  <div class="flex text-sm border-b border-gray-800">
+    <div class="flex items-center flex-1 px-2 space-x-2 select-none draggable">
       <img class="w-4 h-4" src="../images/icon.webp" />
       <p class="">{{ title }}</p>
     </div>
-    <div class="flex-1 draggable"></div>
     <div class="flex">
-      <LetterXIcon
-        class="w-8 h-8 p-2 text-gray-400 transition hover:bg-gray-800 hover:text-gray-200"
-      />
+      <div @click="close">
+        <LetterXIcon
+          class="w-8 h-8 p-2 text-gray-400 transition hover:bg-gray-800 hover:text-gray-200"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { ipcRenderer } from "electron";
+
 export default {
   data() {
     return {
@@ -25,6 +26,9 @@ export default {
   methods: {
     updateTitle() {
       this.title = document.title;
+    },
+    close() {
+      ipcRenderer.send("close");
     },
   },
   mounted() {
