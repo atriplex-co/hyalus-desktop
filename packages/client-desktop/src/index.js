@@ -46,6 +46,10 @@ const start = () => {
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
+    if (input.type !== "keyDown") {
+      return;
+    }
+
     if (input.key === "F12") {
       mainWindow.webContents.openDevTools();
     }
