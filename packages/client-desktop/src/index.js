@@ -33,6 +33,7 @@ const start = () => {
       contextIsolation: false,
       experimentalFeatures: true,
     },
+    frame: false,
   });
 
   const entryPath = path.join(__dirname, "../build/index.html");
