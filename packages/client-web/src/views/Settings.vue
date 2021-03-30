@@ -148,16 +148,17 @@
             </div>
         </div>
         <div class="pt-16"></div>
+
+      <!-- Notifications settings -->
+      <div class="flex flex-col" v-if="view === 'notifications'">
+          <div class="flex items-center justify-between h-12">
+              <p class="font-bold items-center">Make sound on new message</p>
+              <Toggle v-model="soundNotification" id="soundswitch" />
+          </div>
+        <div class="pt-16"></div>
+      </div>
     </div>
 
-    <!-- Notifications settings -->
-    <div class="flex flex-col" v-if="view === 'notifications'">
-        <div class="flex items-center justify-between h-12">
-            <p class="font-bold items-center">Make sound on new message</p>
-            <Toggle v-model="soundNotification" />
-        </div>
-       <div class="pt-16"></div>
-    </div>
 </div>
 
 </div>
@@ -180,7 +181,7 @@ export default {
             setPasswordModal: false,
             totpEnableModal: false,
             totpDisableModal: false,
-            soundNotification: true,
+            soundNotification: false,
         };
     },
     computed: {
@@ -232,6 +233,15 @@ export default {
                 }
             },
         },
+        soundNotification: {
+          get() {
+            return localStorage.getItem("soundNotification")
+          },
+          set(on) { 
+            localStorage.setItem("soundNotification", on);
+            this.soundNotification = on;
+          }
+        }
     },
     methods: {
         async logout() {
@@ -249,9 +259,6 @@ export default {
         },
         setVideoInput(id) {
             this.$store.dispatch("setVideoInput", id);
-        },
-        soundNotification(on) {
-            this.$store.dispatch("soundNotification", on);
         },
     },
     async mounted() {

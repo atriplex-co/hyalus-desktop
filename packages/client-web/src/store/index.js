@@ -29,6 +29,8 @@ export default new Vuex.Store({
     totpLoginTicket: null,
     symKey: null,
     baseUrl: null,
+    soundNotification: localStorage.getItem("soundNotification"),
+
   },
   getters: {
     config: (state) => state.config,
@@ -724,7 +726,7 @@ export default new Vuex.Store({
               }
             }
 
-            if (playSound) {
+            if (playSound === true && state.soundNotification != true) {
               try {
                 new Audio(sndNotification).play();
               } catch {}
