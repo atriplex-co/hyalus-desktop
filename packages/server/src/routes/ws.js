@@ -37,6 +37,8 @@ const setup = () => {
         return ws.close();
       }
 
+      console.log(msg);
+
       const knownTypes = [
         "keepalive",
         "start",
@@ -44,6 +46,7 @@ const setup = () => {
         "voiceLeave",
         "voiceStreamOffer",
         "voiceStreamAnswer",
+        "voiceStreamIce",
         "voiceStreamEnd",
         //TODO: implement voice stream pause/resume.
         // "voiceStreamResume",
