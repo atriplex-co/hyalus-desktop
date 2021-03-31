@@ -4,21 +4,21 @@
       <p class="text-2xl font-bold">Download the app</p>
       <div class="flex space-x-10 text-gray-400">
         <a
-          href="/update/HyalusDesktop-win32.exe"
+          href="https://github.com/hyalusapp/hyalus/releases/latest/download/HyalusDesktop-win32.exe"
           target="_blank"
           ref="noreferrer noopener"
         >
           <WindowsIcon class="w-20 h-20 transition hover:text-gray-200" />
         </a>
         <a
-          href="/update/HyalusDesktop-osx.zip"
+          href="https://github.com/hyalusapp/hyalus/releases/latest/download/HyalusDesktop-osx.zip"
           target="_blank"
           ref="noreferrer noopener"
         >
           <AppleIcon class="w-20 h-20 transition hover:text-gray-200" />
         </a>
         <a
-          href="/update/HyalusDesktop-linux.AppImage"
+          href="https://github.com/hyalusapp/hyalus/releases/latest/download/HyalusDesktop-linux.AppImage"
           target="_blank"
           ref="noreferrer noopener"
         >
