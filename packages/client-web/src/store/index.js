@@ -12,6 +12,24 @@ import router from "../router";
 
 Vue.use(Vuex);
 
+const iceServers = [
+  {
+    urls: ["stun:stun.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun1.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun2.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun3.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun4.l.google.com:19302"],
+  },
+];
+
 export default new Vuex.Store({
   state: {
     user: null,
@@ -1095,7 +1113,9 @@ export default new Vuex.Store({
         getters.privateKey
       );
 
-      const peer = new RTCPeerConnection();
+      const peer = new RTCPeerConnection({
+        iceServers,
+      });
 
       peer.onicecandidate = ({ candidate }) => {
         if (!candidate) {
@@ -1267,7 +1287,9 @@ export default new Vuex.Store({
       const stream = getters.localStream(data.type);
       const channel = getters.channelById(getters.voice.channel);
       const user = channel.users.find((user) => user.id === data.user);
-      const peer = new RTCPeerConnection();
+      const peer = new RTCPeerConnection({
+        iceServers,
+      });
 
       peer.onicecandidate = ({ candidate }) => {
         if (!candidate) {
