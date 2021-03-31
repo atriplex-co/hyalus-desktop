@@ -49,6 +49,7 @@ const setup = () => {
         //TODO: implement voice stream pause/resume.
         // "voiceStreamResume",
         // "voiceStreamPause",
+        "messageTyping",
       ];
 
       if (!knownTypes.find((t) => t === msg.t)) {

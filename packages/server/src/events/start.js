@@ -126,6 +126,16 @@ module.exports = async (ws, msg) => {
           w.session.user.equals(user._id)
       );
 
+      const typingChannel = await ws.deps.redis.get(
+        `typing_channel:${user._id}`
+      );
+
+      let lastTyping;
+
+      if (channel._id.equals(typingChannel)) {
+        lastTyping = await ws.deps.redis.get(`typing_time:${user._id}`);
+      }
+
       users.push({
         id: user._id.toString(),
         name: user.name,
@@ -134,6 +144,7 @@ module.exports = async (ws, msg) => {
         publicKey: user.publicKey.buffer,
         removed: channelUserMeta.removed,
         voiceConnected: Boolean(voiceWs),
+        lastTyping: lastTyping ? Number(lastTyping) : 0,
       });
     }
 
