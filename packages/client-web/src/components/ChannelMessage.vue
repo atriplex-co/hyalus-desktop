@@ -2,14 +2,18 @@
   <div class="max-w-lg p-2 mx-auto text-sm text-gray-200" v-if="message.event">
     {{ message.event }}
   </div>
-  <div class="flex items-end space-x-2" v-else>
-    <UserAvatar
+  <div class="flex items-end space-x-2" v-else :class="{
+        'justify-end': sentByMe,
+        'justify-start': !sentByMe,
+      }">
+    <UserAvatar v-if="!sentByMe"
       class="w-8 h-8 rounded-full"
       :id="sender.avatar"
       :class="{
         'opacity-0': !lastFromSender,
       }"
     />
+    <!--Message body-->
     <div
       class="max-w-md p-2 rounded-md"
       :class="{
@@ -31,6 +35,19 @@
         {{ time }}
       </p>
     </div>
+    <!--
+    You might be saying yourself right now
+    "it seems really dumb to add the user avatar twice"
+    And you'd be right
+    but I am refusing to dedicate any more time in my life to this one feature
+    -->
+    <UserAvatar v-if="sentByMe"
+      class="w-8 h-8 rounded-full"
+      :id="sender.avatar"
+      :class="{
+        'opacity-0': !lastFromSender,
+      }"
+    />
   </div>
 </template>
 
