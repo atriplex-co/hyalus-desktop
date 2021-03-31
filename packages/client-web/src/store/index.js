@@ -31,6 +31,7 @@ export default new Vuex.Store({
     totpLoginTicket: null,
     symKey: null,
     baseUrl: null,
+    ready: false,
   },
   getters: {
     config: (state) => state.config,
@@ -59,6 +60,7 @@ export default new Vuex.Store({
       state.voice.localStreams.find((s) => s.type === type).peers[user],
     remoteStream: (state) => (user, type) =>
       state.voice.remoteStreams.find((s) => s.user === user && s.type === type),
+    ready: (state) => state.ready,
   },
   mutations: {
     setUser(state, user) {
@@ -371,6 +373,9 @@ export default new Vuex.Store({
         state.voice.remoteStreams.push(merged);
       }
     },
+    setReady(state, ready) {
+      state.ready = ready;
+    },
   },
   actions: {
     async register({ commit, dispatch }, data) {
@@ -560,41 +565,7 @@ export default new Vuex.Store({
       commit("setToken", token);
 
       if (token) {
-        try {
-          const { data: user } = await axios.get("/api/me");
-          const { data: friends } = await axios.get("/api/friends");
-          const { data: channels } = await axios.get("/api/channels");
-
-          commit("setUser", user);
-
-          for (const friend of friends) {
-            commit("setFriend", friend);
-          }
-
-          for (const channel of channels) {
-            commit("setChannel", channel);
-
-            for (const channelUser of channel.users) {
-              commit("setChannelUser", {
-                channel: channel.id,
-                ...channelUser,
-              });
-            }
-
-            if (channel.lastMessage) {
-              commit("setMessage", {
-                channel: channel.id,
-                ...channel.lastMessage,
-              });
-            }
-          }
-
-          dispatch("wsConnect");
-        } catch (e) {
-          console.log(e);
-          console.log("Attempting reset (refresh error)");
-          dispatch("reset");
-        }
+        dispatch("wsConnect");
       }
     },
     async logout({ dispatch }) {
@@ -637,16 +608,16 @@ export default new Vuex.Store({
             });
           }, data.d.keepalive);
 
-          ws.keepaliveChecker = setInterval(() => {
-            if (ws.lastKeepalive < Date.now - data.d.keepalive * 2) {
+          ws.idleTimeout = setInterval(() => {
+            if (Date.now() - ws.lastKeepalive > data.d.keepalive * 2) {
               ws.close();
             }
-          }, data.d.keepalive);
+          }, 1000);
 
           ws.lastKeepalive = Date.now();
 
           ws.send({
-            t: "auth",
+            t: "start",
             d: {
               token: getters.token,
             },
@@ -658,9 +629,30 @@ export default new Vuex.Store({
         }
 
         if (data.t === "close") {
-          if (data.d.reason === "invalid-auth") {
+          if (data.d.reset) {
             dispatch("reset");
           }
+        }
+
+        if (data.t === "ready") {
+          commit("setUser", data.d.user);
+
+          data.d.friends.map((friend) => {
+            commit("setFriend", friend);
+          });
+
+          data.d.channels.map((channel) => {
+            commit("setChannel", channel);
+
+            channel.users.map((user) => {
+              commit("setChannelUser", {
+                channel: channel.id,
+                ...user,
+              });
+            });
+          });
+
+          commit("setReady", true);
         }
 
         if (data.t === "user") {
@@ -762,14 +754,11 @@ export default new Vuex.Store({
       };
 
       ws.onclose = () => {
+        clearInterval(ws.idleTimeout);
         clearInterval(ws.keepaliveSender);
-        clearInterval(ws.keepaliveChecker);
 
-        if (getters.user) {
-          setTimeout(() => {
-            dispatch("wsConnect");
-          }, 1e3); //TODO: increase timeout before prod
-        }
+        commit("setReady", false);
+        dispatch("wsConnect");
       };
 
       commit("setWs", ws);
