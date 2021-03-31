@@ -32,8 +32,10 @@
       "buildResources": "resources"
     },
     "publish": {
-      "provider": "generic",
-      "url": "https://hyalus.xyz/update/"
+      "provider": "github",
+      "repo": "hyalus",
+      "owner": "hyalusapp",
+      "vPrefixedTagName": false
     }
   },
   "scripts": {
