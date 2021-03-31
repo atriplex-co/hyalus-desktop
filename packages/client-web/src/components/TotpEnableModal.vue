@@ -29,6 +29,17 @@
             <GooglePlayIcon class="w-6 h-6" />
             <p>FreeOTP for Android</p>
           </a>
+          <div
+            class="flex items-center space-x-3 text-gray-400 hover:text-gray-200"
+            :class="{
+              'cursor-pointer': !showSecret,
+            }"
+            @click="showSecret = true"
+          >
+            <LockIcon class="w-6 h-6" />
+            <p v-if="showSecret">{{ totpInitData.secret }}</p>
+            <p v-else>Add manually with secret</p>
+          </div>
         </div>
         <div
           class="flex items-center p-3 space-x-3 text-sm text-gray-200 border border-gray-700 rounded-md bg-gray-750"
@@ -83,6 +94,7 @@ export default {
       error: null,
       password: "",
       code: "",
+      showSecret: false,
     };
   },
   computed: {
@@ -107,8 +119,13 @@ export default {
     },
   },
   async updated() {
-    if (this.totpInitData?.uri) {
-      this.$refs.qrcode.src = await qrcode.toDataURL(this.totpInitData?.uri);
+    if (this.totpInitData?.secret) {
+      const { username } = this.$store.getters.user;
+      const { secret } = this.totpInitData;
+
+      this.$refs.qrcode.src = await qrcode.toDataURL(
+        `otpauth://totp/Hyalus:%40${username}2?secret=${secret}&period=30&digits=6&algorithm=SHA1&issuer=Hyalus`
+      );
     }
   },
   mounted() {
@@ -120,6 +137,7 @@ export default {
     AppleIcon: () => import("../icons/Apple"),
     GooglePlayIcon: () => import("../icons/GooglePlay"),
     ErrorIcon: () => import("../icons/Error"),
+    LockIcon: () => import("../icons/Lock"),
   },
 };
 </script>
