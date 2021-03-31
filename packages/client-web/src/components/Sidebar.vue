@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col w-full h-full max-w-xs border-r border-gray-750 bg-gray-850"
+    class="flex flex-col w-full h-full max-w-xs min-h-0 border-r border-gray-750 bg-gray-850"
   >
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
       <div class="flex items-center flex-1 ">
@@ -29,7 +29,8 @@
         </router-link>
       </div>
     </div>
-    <div class="flex flex-col h-full">
+    <SidebarCall v-if="voice" />
+    <div class="flex flex-col flex-1 h-full overflow-auto">
       <SidebarChannel
         v-for="channel in channels"
         v-bind:key="channel.id"
@@ -56,6 +57,9 @@ export default {
     acceptableFriends() {
       return this.$store.getters.friends.filter((f) => f.acceptable).length;
     },
+    voice() {
+      return this.$store.getters.voice;
+    },
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
@@ -63,6 +67,7 @@ export default {
     SettingsIcon: () => import("../icons/Settings"),
     GroupIcon: () => import("../icons/Group"),
     FriendsIcon: () => import("../icons/Friends"),
+    SidebarCall: () => import("./SidebarCall"),
   },
 };
 </script>

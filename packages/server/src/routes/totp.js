@@ -31,11 +31,7 @@ app.get("/init", sessionMiddleware, userMiddleware, async (req, res) => {
 
   res.json({
     ticket: ticket.token.toString("base64"),
-    uri: authenticator.keyuri(
-      `@${req.user.username}`,
-      "Hyalus",
-      ticket.totpSecret
-    ),
+    secret: ticket.totpSecret,
   });
 });
 

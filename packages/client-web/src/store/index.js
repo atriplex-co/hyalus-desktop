@@ -221,6 +221,11 @@ export default new Vuex.Store({
 
       channel.messages = channel.messages.filter((m) => m.id !== message.id);
 
+      // has to be above merged.type === text so a notification can be sent without a redundant if
+      // statement
+      const sender =
+        channel.users.find((u) => u.id === merged.sender) || state.user;
+
       if (!message.delete) {
         if (merged.type === "text") {
           if (typeof merged.body === "string") {
@@ -263,10 +268,17 @@ export default new Vuex.Store({
 
             merged.decrypted = nacl.to_string(decryptedBody);
           }
+
+          //check if we are supposed to send a push notif and if so send it
+          if (localStorage.getItem("pushNotification") === "true") {
+            new Notification(`New Message from ${sender.name}`, {
+              "body": `${truncateString(merged.decrypted, 150)}`,
+              "icon": "/a31d8dafc822eefc1f4dd1d28e4a097e.webp",
+            })
+          }
+
         }
 
-        const sender =
-          channel.users.find((u) => u.id === merged.sender) || state.user;
 
         const target =
           channel.users.find((u) => u.id === merged.body) || state.user;
@@ -711,6 +723,7 @@ export default new Vuex.Store({
         if (data.t === "message") {
           commit("setMessage", data.d);
 
+          //check if you should make a sound
           if (!data.d.delete && data.d.sender !== getters.user.id) {
             let playSound = false;
 
@@ -1503,3 +1516,14 @@ export default new Vuex.Store({
     },
   },
 });
+
+function truncateString(str, num) {
+  //console.log(str)
+  // If the length of str is less than or equal to num
+  // just return str--don't truncate it.
+  if (str.length <= num) {
+    return str
+  }
+  // Return str truncated with '...' concatenated to the end of str.
+  return str.slice(0, num) + '...'
+}
