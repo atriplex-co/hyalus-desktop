@@ -80,6 +80,7 @@ app.post(
         return;
       }
 
+      //fields that should not be saved in the db under the user.
       delete req.body.oldAuthKey;
     } else if (passwordChangeKeywords) {
       res.status(400).json({
@@ -95,12 +96,14 @@ app.post(
 
     res.end();
 
+    //fields that should not be exposed to other users.
+    //or the user in general (via the $store.state.user object).
     delete req.body.salt;
     delete req.body.authKey;
     delete req.body.encryptedPrivateKey;
 
     if (Object.keys(req.body).length) {
-      req.deps.wss.send((w) => w.session.user.equals(req.user._id), {
+      req.deps.redis.publish(`user:${req.session.user}`, {
         t: "user",
         d: req.body,
       });

@@ -1,4 +1,4 @@
-module.exports = (data, ws, deps) => {
+module.exports = (ws) => {
   ws.send({
     t: "keepaliveAck",
   });

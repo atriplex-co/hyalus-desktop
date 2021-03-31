@@ -5,6 +5,7 @@ const express = require("express");
 const WebSocket = require("ws");
 const morgan = require("morgan");
 const Redis = require("ioredis");
+const msgpack = require("msgpack-lite");
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({
@@ -35,52 +36,62 @@ const deps = {};
 const app = express();
 const server = http.createServer(app);
 
-const wss = new WebSocket.Server({
-  server,
-  path: "/api/ws",
-});
+// const wss = new WebSocket.Server({
+//   server,
+//   path: "/api/ws",
+// });
 
-wss.send = (filter, message) => {
-  for (const ws of [...wss.clients].filter(filter)) {
-    ws.send(message);
-  }
-};
+// wss.send = (filter, message) => {
+//   for (const ws of [...wss.clients].filter(filter)) {
+//     ws.send(message);
+//   }
+// };
 
-wss.on("connection", require("./routes/socket")(deps));
+// wss.on("connection", require("./routes/socket")(deps));
+
+const wss = require("./routes/ws")(server, deps);
 
 (async () => {
-  let mongoClient;
+  let db;
+  let redis;
+  let redisSub;
 
   try {
-    mongoClient = new MongoClient(process.env.MONGO, {
+    const client = new MongoClient(process.env.MONGO, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
 
-    await mongoClient.connect();
+    await client.connect();
+
+    db = client.db("hyalus");
+
+    await db.collection("tickets").createIndex(
+      {
+        expires: 1,
+      },
+      {
+        expireAfterSeconds: 0,
+      }
+    );
   } catch (e) {
     log.error(`Error connecting to MongoDB`);
     log.error(e.message);
     process.exit(1);
   }
 
-  const db = mongoClient.db("hyalus");
-
-  await db.collection("tickets").createIndex(
-    {
-      expires: 1,
-    },
-    {
-      expireAfterSeconds: 0,
-    }
-  );
-
   log.info("Connected to MongoDB");
-
-  let redis;
 
   try {
     redis = new Redis(process.env.REDIS);
+    redisSub = new Redis(process.env.REDIS);
+
+    redis._publish = redis.publish;
+    redis.publish = (chan, msg) => {
+      redis._publish(chan, msgpack.encode(msg));
+    };
+
+    redisSub.on("messageBuffer", require("./events/redisMessage")(deps));
   } catch (e) {
     log.error(`Error connecting to Redis`);
     log.error(e.message);
@@ -119,8 +130,8 @@ wss.on("connection", require("./routes/socket")(deps));
   deps.app = app;
   deps.server = server;
   deps.db = db;
-  deps.wss = wss;
   deps.redis = redis;
+  deps.redisSub = redisSub;
 
   server.listen(process.env.PORT);
   log.info(`HTTP listening on :${process.env.PORT}`);
