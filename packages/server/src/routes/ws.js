@@ -37,8 +37,6 @@ const setup = () => {
         return ws.close();
       }
 
-      console.log(msg);
-
       const knownTypes = [
         "keepalive",
         "start",
