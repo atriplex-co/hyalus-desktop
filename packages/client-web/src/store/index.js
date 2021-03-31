@@ -1042,6 +1042,12 @@ export default new Vuex.Store({
         keys: userKeys,
       });
     },
+    async sendMessageTyping({ getters, commit, dispatch }, channel) {
+      getters.ws.send({
+        t: "messageTyping",
+        d: channel,
+      });
+    },
     async deleteMessage({}, data) {
       await axios.delete(`/api/channels/${data.channel}/${data.id}`);
     },

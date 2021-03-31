@@ -93,6 +93,9 @@
         </div>
         <GroupSidebar v-if="groupMembers" :channel="channel" />
       </div>
+      <div class="px-4 py-2 text-sm bg-gray-800" v-if="typingStatus">
+        {{ typingStatus }}
+      </div>
       <div
         class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
         v-if="channel.writable"
@@ -147,6 +150,9 @@ export default {
       groupNameModal: false,
       groupMembers: false,
       lastScrollTop: 0,
+      lastTyping: 0,
+      typingStatus: "",
+      typingStatusInterval: null,
     };
   },
   computed: {
@@ -179,6 +185,11 @@ export default {
     messageInput() {
       this.$refs.msgBox.style.height = "auto";
       this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
+
+      if (Date.now() - 1000 * 5 > this.lastTyping) {
+        this.$store.dispatch("sendMessageTyping", this.channel.id);
+        this.lastTyping = Date.now();
+      }
     },
     messageKeydown(e) {
       if (e.code === "Enter" && !e.shiftKey) {
@@ -240,6 +251,31 @@ export default {
         this.$store.dispatch("getChannelHistory", this.channel.id);
       }
     },
+    updateTypingStatus() {
+      const users = this.channel.users
+        .filter((u) => u.lastTyping > Date.now() - 1000 * 5)
+        .map((u) => u.name);
+
+      if (!users.length) {
+        this.typingStatus = "";
+      }
+
+      if (users.length === 1) {
+        this.typingStatus = `${users[0]} is typing...`;
+      }
+
+      if (users.length === 2) {
+        this.typingStatus = `${users[0]}, and ${users[1]} are typing...`;
+      }
+
+      if (users.length === 3) {
+        this.typingStatus = `${users[0]}, ${users[1]}, and ${users[2]} are typing...`;
+      }
+
+      if (users.length > 3) {
+        this.typingStatus = "Many users are typing...";
+      }
+    },
   },
   updated() {
     if (this.channel && !this.channel.updated) {
@@ -261,8 +297,13 @@ export default {
       document.title = "Hyalus";
     }
   },
+  beforeMount() {
+    this.updateTypingStatus();
+    this.typingStatusInterval = setInterval(this.updateTypingStatus, 100);
+  },
   beforeDestroy() {
     document.title = "Hyalus";
+    clearInterval(this.typingStatusInterval);
   },
   components: {
     UserAvatar: () => import("../components/UserAvatar"),
