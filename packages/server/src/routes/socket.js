@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const msgpack = require("msgpack-lite");
 
-const keepaliveInterval = 10e3;
+const keepaliveInterval = 30e3;
 const keepaliveTimeout = 120e3;
 
 module.exports = (deps) => (ws) => {
