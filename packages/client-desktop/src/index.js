@@ -131,10 +131,6 @@ app.on("second-instance", () => {
   }
 });
 
-autoUpdater.on("update-available", () => {
-  autoUpdater.downloadUpdate();
-});
-
 autoUpdater.on("update-downloaded", () => {
   autoUpdater.quitAndInstall(true, true);
 });
