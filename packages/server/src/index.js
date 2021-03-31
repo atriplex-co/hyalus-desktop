@@ -91,7 +91,6 @@ wss.on("connection", require("./routes/socket")(deps));
     })
   );
   app.use(express.static("../client-web/dist"));
-  app.use("/update", express.static("../client-desktop/dist"));
   app.use(express.json());
   app.use("/api/me", require("./routes/me"));
   app.use("/api/prelogin", require("./routes/prelogin"));
