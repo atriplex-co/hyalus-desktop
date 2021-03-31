@@ -39,7 +39,9 @@
           />
         </div>
         <div @click="leave">
-          <PhoneIcon class="w-12 h-12 p-3 text-white bg-red-500 rounded-full" />
+          <PhoneIcon
+            class="w-12 h-12 p-3 text-white bg-red-500 rounded-full cursor-pointer"
+          />
         </div>
       </div>
     </div>
