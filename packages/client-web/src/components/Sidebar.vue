@@ -29,6 +29,7 @@
         </router-link>
       </div>
     </div>
+    <SidebarCall v-if="voice" />
     <div class="flex flex-col flex-1 h-full overflow-auto">
       <SidebarChannel
         v-for="channel in channels"
@@ -56,6 +57,9 @@ export default {
     acceptableFriends() {
       return this.$store.getters.friends.filter((f) => f.acceptable).length;
     },
+    voice() {
+      return this.$store.getters.voice;
+    },
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
@@ -63,6 +67,7 @@ export default {
     SettingsIcon: () => import("../icons/Settings"),
     GroupIcon: () => import("../icons/Group"),
     FriendsIcon: () => import("../icons/Friends"),
+    SidebarCall: () => import("./SidebarCall"),
   },
 };
 </script>
