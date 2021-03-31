@@ -35,7 +35,8 @@
       "provider": "github",
       "repo": "hyalus",
       "owner": "hyalusapp",
-      "vPrefixedTagName": false
+      "vPrefixedTagName": false,
+      "releaseType": "release"
     }
   },
   "scripts": {
