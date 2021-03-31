@@ -73,12 +73,15 @@ export default new Vuex.Store({
     symKey: (state) => state.symKey,
     baseUrl: (state) => state.baseUrl,
     localStream: (state) => (type) =>
-      state.voice.localStreams.find((s) => s.type === type),
+      state.voice?.localStreams.find((s) => s.type === type),
     localStreamPeer: (state) => (user, type) =>
-      state.voice.localStreams.find((s) => s.type === type).peers[user],
+      state.voice?.localStreams.find((s) => s.type === type)?.peers[user],
     remoteStream: (state) => (user, type) =>
-      state.voice.remoteStreams.find((s) => s.user === user && s.type === type),
+      state.voice?.remoteStreams.find(
+        (s) => s.user === user && s.type === type
+      ),
     ready: (state) => state.ready,
+    queuedIce: (state) => state.queuedIce,
   },
   mutations: {
     setUser(state, user) {
@@ -339,6 +342,7 @@ export default new Vuex.Store({
           localStreams: [],
           remoteStreams: [],
           started: Date.now(),
+          queuedIce: [],
         };
       } else {
         state.voice = null;
@@ -393,6 +397,12 @@ export default new Vuex.Store({
     },
     setReady(state, ready) {
       state.ready = ready;
+    },
+    queueIce(state, ice) {
+      state.voice.queuedIce.push(ice);
+    },
+    removeQueuedIce(state, ice) {
+      state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
     },
   },
   actions: {
@@ -752,6 +762,10 @@ export default new Vuex.Store({
           dispatch("handleVoiceStreamAnswer", data.d);
         }
 
+        if (data.t === "voiceStreamIce") {
+          dispatch("handleVoiceStreamIce", data.d);
+        }
+
         if (data.t === "voiceStreamEnd") {
           dispatch("stopRemoteStream", data.d);
         }
@@ -1080,16 +1094,16 @@ export default new Vuex.Store({
       } catch {}
     },
     async voiceLeave({ getters, commit, dispatch }) {
-      getters.voice.localStreams.map((stream) => {
-        dispatch("stopLocalStream", stream.type);
-      });
+      for (const stream of getters.voice.localStreams) {
+        await dispatch("stopLocalStream", stream.type);
+      }
 
-      getters.voice.remoteStreams.map((stream) => {
-        dispatch("stopRemoteStream", {
+      for (const stream of getters.voice.remoteStreams) {
+        await dispatch("stopRemoteStream", {
           user: stream.user,
           type: stream.type,
         });
-      });
+      }
 
       commit("setVoice", null);
 
@@ -1118,13 +1132,19 @@ export default new Vuex.Store({
       });
 
       peer.onicecandidate = ({ candidate }) => {
-        if (!candidate) {
+        if (candidate) {
           const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
 
-          const encryptedSdp = new Uint8Array([
+          const packed = msgpack.encode({
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex,
+          });
+
+          const encrypted = new Uint8Array([
             ...nonce,
             ...nacl.crypto_box_easy(
-              peer.localDescription.sdp,
+              packed,
               nonce,
               user.publicKey,
               getters.privateKey
@@ -1132,11 +1152,12 @@ export default new Vuex.Store({
           ]);
 
           getters.ws.send({
-            t: "voiceStreamAnswer",
+            t: "voiceStreamIce",
             d: {
               user: data.user,
               type: data.type,
-              sdp: encryptedSdp,
+              candidate: encrypted,
+              initiator: false,
             },
           });
         }
@@ -1173,6 +1194,34 @@ export default new Vuex.Store({
       );
 
       await peer.setLocalDescription(await peer.createAnswer());
+
+      const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+
+      const encryptedSdp = new Uint8Array([
+        ...nonce,
+        ...nacl.crypto_box_easy(
+          peer.localDescription.sdp,
+          nonce,
+          user.publicKey,
+          getters.privateKey
+        ),
+      ]);
+
+      getters.ws.send({
+        t: "voiceStreamAnswer",
+        d: {
+          user: data.user,
+          type: data.type,
+          sdp: encryptedSdp,
+        },
+      });
+
+      for (const ice of getters.voice.queuedIce
+        .filter((i) => i.user === data.user)
+        .filter((i) => i.type === data.type)) {
+        await peer.addIceCandidate(ice.candidate);
+        commit("removeQueuedIce", ice);
+      }
     },
     async handleVoiceStreamAnswer({ getters, commit, dispatch }, data) {
       const stream = getters.localStream(data.type);
@@ -1203,6 +1252,56 @@ export default new Vuex.Store({
           sdp: nacl.to_string(decryptedSdp),
         })
       );
+    },
+    async handleVoiceStreamIce({ getters, commit, dispatch }, data) {
+      const channel = getters.channelById(getters.voice.channel);
+      const user = channel.users.find((u) => u.id === data.user);
+
+      const decrypted = nacl.crypto_box_open_easy(
+        data.candidate.slice(24),
+        data.candidate.slice(0, 24),
+        user.publicKey,
+        getters.privateKey
+      );
+
+      if (!decrypted) {
+        console.log(`error decrypting ice from ${data.user}/${data.type}`);
+        return;
+      }
+
+      const unpacked = msgpack.decode(decrypted);
+      const candidate = new RTCIceCandidate(unpacked);
+
+      if (data.initiator) {
+        const stream = getters.remoteStream(data.user, data.type);
+
+        if (!stream) {
+          const queuedIce = {
+            user: data.user,
+            type: data.type,
+            candidate,
+          };
+
+          commit("queueIce", queuedIce);
+
+          setTimeout(() => {
+            commit("removeQueuedIce", queuedIce);
+          }, 1000 * 30); //30s
+
+          return;
+        }
+
+        await stream.peer.addIceCandidate(candidate);
+      } else {
+        const stream = getters.localStream(data.type);
+        const peer = stream.peers[data.user];
+
+        if (!peer) {
+          return;
+        }
+
+        await peer.addIceCandidate(candidate);
+      }
     },
     async handleVoiceUserJoin({ getters, commit, dispatch }, user) {
       getters.voice.localStreams.map((stream) => {
@@ -1292,13 +1391,19 @@ export default new Vuex.Store({
       });
 
       peer.onicecandidate = ({ candidate }) => {
-        if (!candidate) {
+        if (candidate) {
           const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
 
-          const encryptedSdp = new Uint8Array([
+          const packed = msgpack.encode({
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex,
+          });
+
+          const encrypted = new Uint8Array([
             ...nonce,
             ...nacl.crypto_box_easy(
-              peer.localDescription.sdp,
+              packed,
               nonce,
               user.publicKey,
               getters.privateKey
@@ -1306,11 +1411,12 @@ export default new Vuex.Store({
           ]);
 
           getters.ws.send({
-            t: "voiceStreamOffer",
+            t: "voiceStreamIce",
             d: {
               user: data.user,
               type: data.type,
-              sdp: encryptedSdp,
+              candidate: encrypted,
+              initiator: true,
             },
           });
         }
@@ -1322,6 +1428,27 @@ export default new Vuex.Store({
 
       peer.addTrack(stream.track);
       await peer.setLocalDescription(await peer.createOffer());
+
+      const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+
+      const encryptedSdp = new Uint8Array([
+        ...nonce,
+        ...nacl.crypto_box_easy(
+          peer.localDescription.sdp,
+          nonce,
+          user.publicKey,
+          getters.privateKey
+        ),
+      ]);
+
+      getters.ws.send({
+        t: "voiceStreamOffer",
+        d: {
+          user: data.user,
+          type: data.type,
+          sdp: encryptedSdp,
+        },
+      });
 
       commit("setLocalStreamPeer", {
         user: data.user,
