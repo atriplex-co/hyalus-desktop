@@ -4,6 +4,7 @@ const { MongoClient } = require("mongodb");
 const express = require("express");
 const WebSocket = require("ws");
 const morgan = require("morgan");
+const Redis = require("ioredis");
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({
@@ -76,6 +77,18 @@ wss.on("connection", require("./routes/socket")(deps));
 
   log.info("Connected to MongoDB");
 
+  let redis;
+
+  try {
+    redis = new Redis(process.env.REDIS);
+  } catch (e) {
+    log.error(`Error connecting to Redis`);
+    log.error(e.message);
+    process.exit(1);
+  }
+
+  log.info("Connected to Redis");
+
   app.use((req, res, next) => {
     req.deps = deps;
     next();
@@ -107,6 +120,7 @@ wss.on("connection", require("./routes/socket")(deps));
   deps.server = server;
   deps.db = db;
   deps.wss = wss;
+  deps.redis = redis;
 
   server.listen(process.env.PORT);
   log.info(`HTTP listening on :${process.env.PORT}`);
