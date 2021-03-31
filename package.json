@@ -12,6 +12,8 @@
     "build": "yarn build:web && yarn build:desktop",
     "build:web": "yarn workspace client-web build",
     "build:desktop": "yarn workspace client-desktop build",
+    "release": "yarn release:desktop",
+    "release:desktop": "yarn workspace client-desktop release",
     "dev:server": "yarn workspace server dev",
     "dev:web": "yarn dev:server & yarn workspace client-web dev",
     "dev:desktop": "yarn dev:web & yarn workspace client-desktop dev",

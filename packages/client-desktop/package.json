@@ -41,6 +41,7 @@
   "scripts": {
     "clean": "rm -rf build dist",
     "build": "yarn clean && webpack && electron-builder -wml",
+    "release": "yarn build -p always",
     "dev": "yarn dev:main & yarn dev:renderer",
     "dev:main": "DEV=1 nodemon -w src --exec electron .",
     "dev:renderer": "webpack  --mode development --watch",
