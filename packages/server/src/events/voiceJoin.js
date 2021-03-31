@@ -51,6 +51,13 @@ module.exports = async (ws, msg) => {
     await ws.deps.redis.del(`voice_channel:${ws.session.user}`);
   }
 
+  ws.voiceChannel = channel._id;
+
+  await ws.deps.redis.set(`voice_ws:${ws.session.user}`, ws.id);
+  await ws.deps.redis.set(`voice_channel:${ws.session.user}`, channel._id);
+
+  await ws.deps.redisSub.subscribe(`voice:${channel._id}`);
+
   for (const user of channel.users
     .filter((u) => !u.removed)
     .filter((u) => !u.id.equals(ws.session.user))) {
@@ -63,11 +70,4 @@ module.exports = async (ws, msg) => {
       },
     });
   }
-
-  await ws.deps.redis.set(`voice_ws:${ws.session.user}`, ws.id);
-  await ws.deps.redis.set(`voice_channel:${ws.session.user}`, channel._id);
-
-  await ws.deps.redisSub.subscribe(`voice:${channel._id}`);
-
-  ws.voiceChannel = channel._id;
 };
