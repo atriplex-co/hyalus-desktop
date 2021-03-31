@@ -790,7 +790,10 @@ export default new Vuex.Store({
         clearInterval(ws.keepaliveSender);
 
         commit("setReady", false);
-        dispatch("wsConnect");
+
+        setTimeout(() => {
+          dispatch("wsConnect");
+        }, 1000 * 5); //5s
       };
 
       commit("setWs", ws);
