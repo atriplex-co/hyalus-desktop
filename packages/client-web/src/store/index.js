@@ -9,6 +9,7 @@ import sndStateDown from "../sounds/state-change_confirm-down.ogg";
 import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
 import sndNavForward from "../sounds/navigation_forward-selection.ogg";
 import router from "../router";
+import userImage from "../images/user.webp";
 
 Vue.use(Vuex);
 
@@ -319,6 +320,59 @@ export default new Vuex.Store({
           merged.time > channel.lastMessage.time
         ) {
           channel.lastMessage = merged;
+        }
+
+        if (state.ready && merged.sender !== state.user.id) {
+          let playSound = false;
+
+          if (document.visibilityState === "hidden") {
+            playSound = true;
+          }
+
+          if (document.visibilityState === "visible") {
+            if (router.currentRoute.name === "channel") {
+              if (router.currentRoute.params.channel !== merged.channel) {
+                playSound = true;
+              }
+            } else {
+              playSound = true;
+            }
+          }
+
+          if (!merged.decrypted) {
+            playSound = false;
+          }
+
+          if (playSound) {
+            try {
+              new Audio(sndNotification).play();
+            } catch {}
+
+            if (typeof process !== "undefined") {
+              let icon;
+              let title;
+
+              if (sender.avatar === "default") {
+                icon = userImage;
+              } else {
+                icon = `${state.baseUrl}/api/avatars/${sender.avatar}`;
+              }
+
+              if (channel.type === "dm") {
+                title = sender.name;
+              }
+
+              if (channel.type === "group") {
+                title = `${sender.name} (${channel.name})`;
+              }
+
+              new Notification(title, {
+                icon,
+                silent: true,
+                body: merged.decrypted,
+              });
+            }
+          }
         }
       }
     },
@@ -735,30 +789,6 @@ export default new Vuex.Store({
 
         if (data.t === "message") {
           commit("setMessage", data.d);
-
-          if (!data.d.delete && data.d.sender !== getters.user.id) {
-            let playSound = false;
-
-            if (document.visibilityState === "hidden") {
-              playSound = true;
-            }
-
-            if (document.visibilityState === "visible") {
-              if (router.currentRoute.name === "channel") {
-                if (router.currentRoute.params.channel !== data.d.channel) {
-                  playSound = true;
-                }
-              } else {
-                playSound = true;
-              }
-            }
-
-            if (playSound) {
-              try {
-                new Audio(sndNotification).play();
-              } catch {}
-            }
-          }
         }
 
         if (data.t === "voiceStreamOffer") {
