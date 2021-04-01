@@ -352,9 +352,12 @@ export default new Vuex.Store({
             }
           }
 
-          if (!merged.decrypted) {
+          if (!merged.decrypted || localStorage.getItem("soundNotification") === "true") {
             playSound = false;
           }
+
+          console.debug(merged)
+
 
           if (playSound) {
             try {
