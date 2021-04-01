@@ -679,7 +679,7 @@ export default new Vuex.Store({
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (Vue.config.devtools) {
+        if (Vue.config.devtools && data.t !== "keepaliveAck") {
           console.log(data);
         }
 
