@@ -5,6 +5,7 @@ const {
   Tray,
   Menu,
   ipcMain,
+  shell,
 } = require("electron");
 const path = require("path");
 const url = require("url");
@@ -33,8 +34,11 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
 let mainWindow;
 let quitting;
 let tray;
+let startHidden;
 
 const start = () => {
+  app.setAppUserModelId("xyz.hyalus");
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
@@ -56,7 +60,9 @@ const start = () => {
   mainWindow.removeMenu();
 
   mainWindow.once("ready-to-show", () => {
-    mainWindow.show();
+    if (!startHidden) {
+      mainWindow.show();
+    }
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
@@ -78,6 +84,11 @@ const start = () => {
       e.preventDefault();
       mainWindow.hide();
     }
+  });
+
+  mainWindow.webContents.on("new-window", (e, arg) => {
+    e.preventDefault();
+    shell.openExternal(arg);
   });
 
   setTimeout(() => {
@@ -124,6 +135,21 @@ app.on("ready", () => {
     return start();
   }
 
+  const { launchItems, wasOpenedAsHidden } = app.getLoginItemSettings();
+
+  if (!launchItems) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      openAsHidden: true,
+      args: ["-h"],
+      name: "Hyalus",
+    });
+  }
+
+  if (wasOpenedAsHidden || process.argv.find((a) => a === "-h")) {
+    startHidden = true;
+  }
+
   autoUpdater.checkForUpdates();
 });
 
@@ -131,6 +157,12 @@ app.on("second-instance", () => {
   if (mainWindow) {
     mainWindow.show();
   }
+});
+
+app.on("web-contents-created", (e, webContents) => {
+  webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+  });
 });
 
 autoUpdater.on("update-downloaded", () => {

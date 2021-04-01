@@ -32,11 +32,12 @@
             Verify
           </button>
         </form>
-        <router-link
-          class="mt-4 transition text-primary-500 hover:text-primary-600"
-          to="/login"
-          >Cancel</router-link
+        <div
+          class="mt-4 transition cursor-pointer text-primary-500 hover:text-primary-600"
+          @click="cancel"
         >
+          Cancel
+        </div>
       </div>
     </div>
   </div>
@@ -66,6 +67,10 @@ export default {
       }
 
       this.$router.push("/app");
+    },
+    cancel() {
+      this.$store.dispatch("clearTotpTicket");
+      this.$router.push("/login");
     },
   },
 };

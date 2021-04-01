@@ -9,6 +9,7 @@ import sndStateDown from "../sounds/state-change_confirm-down.ogg";
 import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
 import sndNavForward from "../sounds/navigation_forward-selection.ogg";
 import router from "../router";
+import userImage from "../images/user.webp";
 
 Vue.use(Vuex);
 
@@ -333,6 +334,59 @@ export default new Vuex.Store({
         ) {
           channel.lastMessage = merged;
         }
+
+        if (state.ready && merged.sender !== state.user.id) {
+          let playSound = false;
+
+          if (document.visibilityState === "hidden") {
+            playSound = true;
+          }
+
+          if (document.visibilityState === "visible") {
+            if (router.currentRoute.name === "channel") {
+              if (router.currentRoute.params.channel !== merged.channel) {
+                playSound = true;
+              }
+            } else {
+              playSound = true;
+            }
+          }
+
+          if (!merged.decrypted) {
+            playSound = false;
+          }
+
+          if (playSound) {
+            try {
+              new Audio(sndNotification).play();
+            } catch {}
+
+            if (typeof process !== "undefined") {
+              let icon;
+              let title;
+
+              if (sender.avatar === "default") {
+                icon = userImage;
+              } else {
+                icon = `${state.baseUrl}/api/avatars/${sender.avatar}`;
+              }
+
+              if (channel.type === "dm") {
+                title = sender.name;
+              }
+
+              if (channel.type === "group") {
+                title = `${sender.name} (${channel.name})`;
+              }
+
+              new Notification(title, {
+                icon,
+                silent: true,
+                body: merged.decrypted,
+              });
+            }
+          }
+        }
       }
     },
     setTotpInitData(state, totpInitData) {
@@ -563,6 +617,9 @@ export default new Vuex.Store({
 
       await dispatch("refresh", login.token);
     },
+    clearTotpTicket({commit}) {
+      commit("setTotpLoginTicket", null);
+    },
     async refresh({ commit, dispatch }, token) {
       if (typeof process !== "undefined") {
         if (process.env.DEV) {
@@ -638,7 +695,7 @@ export default new Vuex.Store({
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (data.t !== "keepaliveAck" && data.t !== "voiceStreamData") {
+        if (Vue.config.devtools && data.t !== "keepaliveAck") {
           console.log(data);
         }
 
@@ -691,6 +748,13 @@ export default new Vuex.Store({
                 ...user,
               });
             });
+
+            if (channel.lastMessage) {
+              commit("setMessage", {
+                channel: channel.id,
+                ...channel.lastMessage,
+              });
+            }
           });
 
           commit("setReady", true);
@@ -741,31 +805,6 @@ export default new Vuex.Store({
 
         if (data.t === "message") {
           commit("setMessage", data.d);
-
-          //check if you should make a sound
-          if (!data.d.delete && data.d.sender !== getters.user.id) {
-            let playSound = false;
-
-            if (document.visibilityState === "hidden") {
-              playSound = true;
-            }
-
-            if (document.visibilityState === "visible") {
-              if (router.currentRoute.name === "channel") {
-                if (router.currentRoute.params.channel !== data.d.channel) {
-                  playSound = true;
-                }
-              } else {
-                playSound = true;
-              }
-            }
-
-            if (playSound === true && localStorage.getItem("soundNotification") == "true") {
-              try {
-                new Audio(sndNotification).play();
-              } catch {}
-            }
-          }
         }
 
         if (data.t === "voiceStreamOffer") {
@@ -1187,7 +1226,9 @@ export default new Vuex.Store({
       };
 
       peer.ontrack = ({ track }) => {
-        console.log(track);
+        if (Vue.config.devtools) {
+          console.log(track);
+        }
 
         commit("setRemoteStream", {
           user: data.user,
@@ -1198,7 +1239,9 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        }
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1446,7 +1489,9 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        }
       };
 
       peer.addTrack(stream.track);
@@ -1580,8 +1625,6 @@ export default new Vuex.Store({
       let stream;
 
       if (params) {
-        console.log({ params });
-
         if (params.audio) {
           try {
             stream = await navigator.mediaDevices.getUserMedia({
