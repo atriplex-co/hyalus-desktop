@@ -103,16 +103,12 @@ app.post(
 
     await req.deps.db.collection("tickets").deleteOne(ticket);
 
-    [...req.deps.wss.clients]
-      .filter((w) => w.session.user.equals(req.user._id))
-      .map((w) => {
-        w.send({
-          t: "user",
-          d: {
-            totpEnabled: true,
-          },
-        });
-      });
+    req.deps.redis.publish(`user:${req.user._id}`, {
+      t: "user",
+      d: {
+        totpEnabled: true,
+      },
+    });
 
     res.status(204).end();
   }
@@ -155,16 +151,12 @@ app.post(
       },
     });
 
-    [...req.deps.wss.clients]
-      .filter((w) => w.session.user.equals(req.user._id))
-      .map((w) => {
-        w.send({
-          t: "user",
-          d: {
-            totpEnabled: false,
-          },
-        });
-      });
+    req.deps.redis.publish(`user:${req.user._id}`, {
+      t: "user",
+      d: {
+        totpEnabled: false,
+      },
+    });
 
     res.status(204).end();
   }

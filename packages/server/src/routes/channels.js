@@ -8,6 +8,7 @@ const { ObjectId } = require("mongodb");
 const Busboy = require("busboy");
 const sharp = require("sharp");
 const crypto = require("crypto");
+const { default: redis } = require("ioredis/built/redis");
 
 app.get("/", session, async (req, res) => {
   const channels = await (
@@ -35,11 +36,8 @@ app.get("/", session, async (req, res) => {
         _id: channelUserMeta.id,
       });
 
-      const voiceWs = [...req.deps.wss.clients].find(
-        (w) =>
-          w.voiceChannel &&
-          w.voiceChannel.equals(channel._id) &&
-          w.session.user.equals(user._id)
+      const voiceChannel = await req.deps.redis.get(
+        `voice_channel:${user._id}`
       );
 
       users.push({
@@ -49,7 +47,7 @@ app.get("/", session, async (req, res) => {
         username: user.username,
         publicKey: user.publicKey.toString("base64"),
         removed: channelUserMeta.removed,
-        voiceConnected: Boolean(voiceWs),
+        voiceConnected: channel._id.equals(voiceChannel),
       });
     }
 
@@ -180,7 +178,7 @@ app.post(
     ).ops[0];
 
     for (const user of users) {
-      req.deps.wss.send((w) => w.session.user.equals(user._id), {
+      req.deps.redis.publish(`user:${user._id}`, {
         t: "channel",
         d: {
           id: channel._id.toString(),
@@ -218,7 +216,7 @@ app.post(
       ).ops[0];
 
       for (const channelUser of channel.users) {
-        req.deps.wss.send((w) => w.session.user.equals(channelUser.id), {
+        req.deps.redis.publish(`user:${channelUser.id}`, {
           t: "message",
           d: {
             channel: channel._id.toString(),
@@ -287,7 +285,7 @@ app.post(
     });
 
     for (const user of channel.users.filter((u) => !u.removed)) {
-      req.deps.wss.send((w) => w.session.user.equals(user.id), {
+      req.deps.redis.publish(`user:${user.id}`, {
         t: "channel",
         d: {
           id: channel._id.toString(),
@@ -309,7 +307,7 @@ app.post(
       ).ops[0];
 
       for (const user of channel.users.filter((u) => !u.removed)) {
-        req.deps.wss.send((w) => w.session.user.equals(user.id), {
+        req.deps.redis.publish(`user:${user.id}`, {
           t: "message",
           d: {
             channel: channel._id.toString(),
@@ -497,7 +495,7 @@ app.post(
     ).ops[0];
 
     for (const channelUser of channel.users.filter((u) => !u.removed)) {
-      req.deps.wss.send((w) => w.session.user.equals(channelUser.id), {
+      req.deps.redis.publish(`user:${channelUser.id}`, {
         t: "message",
         d: {
           channel: channel._id.toString(),
@@ -552,7 +550,7 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
   res.end();
 
   for (const channelUser of channel.users.filter((u) => !u.removed)) {
-    req.deps.wss.send((w) => w.session.user.equals(channelUser.id), {
+    req.deps.redis.publish(`user:${channelUser.id}`, {
       t: "message",
       d: {
         channel: channel._id.toString(),
@@ -661,7 +659,7 @@ app.post("/:channel/avatar", session, async (req, res) => {
       ).ops[0];
 
       for (const user of channel.users.filter((u) => !u.removed)) {
-        req.deps.wss.send((w) => w.session.user.equals(user.id), {
+        req.deps.redis.publish(`user:${user.id}`, {
           t: "channel",
           d: {
             id: channel._id.toString(),
@@ -669,7 +667,7 @@ app.post("/:channel/avatar", session, async (req, res) => {
           },
         });
 
-        req.deps.wss.send((w) => w.session.user.equals(user.id), {
+        req.deps.redis.publish(`user:${user.id}`, {
           t: "message",
           d: {
             channel: channel._id.toString(),
@@ -786,7 +784,7 @@ app.post(
         .filter((user) => !user.removed)
         .filter((user) => !user.id.equals(req.body.user))
         .map((user) => {
-          req.deps.wss.send((w) => w.session.user.equals(user.id), {
+          req.deps.redis.publish(`user:${user.id}`, {
             t: "channelUser",
             d: {
               channel: channel._id.toString(),
@@ -808,7 +806,7 @@ app.post(
       });
 
       for (const user of channel.users.filter((u) => !u.removed)) {
-        req.deps.wss.send((w) => w.session.user.equals(user.id), {
+        req.deps.redis.publish(`user:${user.id}`, {
           t: "channelUser",
           d: {
             channel: channel._id.toString(),
@@ -840,7 +838,7 @@ app.post(
       });
     }
 
-    req.deps.wss.send((w) => w.session.user.equals(targetUser._id), {
+    req.deps.redis.publish(`user:${targetUser._id}`, {
       t: "channel",
       d: {
         id: channel._id.toString(),
@@ -868,7 +866,7 @@ app.post(
     });
 
     for (const user of users.filter((u) => !u.removed)) {
-      req.deps.wss.send((w) => w.session.user.equals(user.id), {
+      req.deps.redis.publish(`user:${user.id}`, {
         t: "message",
         d: {
           channel: channel._id.toString(),
@@ -968,7 +966,7 @@ app.delete("/:channel/users/:user", session, async (req, res) => {
     .filter((u) => !u.removed)
     .filter((u) => !u.id.equals(req.params.user))
     .map((user) => {
-      req.deps.wss.send((w) => w.session.user.equals(user.id), {
+      req.deps.redis.publish(`user:${user.id}`, {
         t: "message",
         d: {
           channel: message.channel.toString(),
@@ -980,7 +978,7 @@ app.delete("/:channel/users/:user", session, async (req, res) => {
         },
       });
 
-      req.deps.wss.send((w) => w.session.user.equals(user.id), {
+      req.deps.redis.publish(`user:${user.id}`, {
         t: "channelUser",
         d: {
           channel: message.channel.toString(),
@@ -991,12 +989,11 @@ app.delete("/:channel/users/:user", session, async (req, res) => {
       });
     });
 
-  req.deps.wss.send((w) => w.session.user.equals(req.params.user), {
+  req.deps.redis.publish(`user:${req.params.user}`, {
     t: "voiceKick",
-    d: {},
   });
 
-  req.deps.wss.send((w) => w.session.user.equals(req.params.user), {
+  req.deps.redis.publish(`user:${req.params.user}`, {
     t: "channel",
     d: {
       id: channel._id.toString(),

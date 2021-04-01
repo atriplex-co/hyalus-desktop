@@ -5,7 +5,7 @@ module.exports = async (ws, msg) => {
     return;
   }
 
-  msg.sdp = Buffer.from(msg.sdp);
+  msg.candidate = Buffer.from(msg.candidate);
 
   if (
     Joi.object({
@@ -16,7 +16,8 @@ module.exports = async (ws, msg) => {
       type: Joi.string()
         .required()
         .valid("audio", "video", "displayVideo", "displayAudio"),
-      sdp: Joi.binary().required(),
+      candidate: Joi.binary().required(),
+      initiator: Joi.bool().required(),
     })
       .required()
       .validate(msg).error
@@ -42,11 +43,12 @@ module.exports = async (ws, msg) => {
   const targetVoiceWs = await ws.deps.redis.get(`voice_ws:${msg.user}`);
 
   await ws.deps.redis.publish(`ws:${targetVoiceWs}`, {
-    t: "voiceStreamOffer",
+    t: "voiceStreamIce",
     d: {
       user: ws.session.user.toString(),
       type: msg.type,
-      sdp: msg.sdp,
+      candidate: msg.candidate,
+      initiator: msg.initiator,
     },
   });
 };

@@ -1,6 +1,6 @@
 {
   "name": "client-desktop",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "main": "src/index.js",
   "license": "MIT",
   "build": {
@@ -35,7 +35,8 @@
       "provider": "github",
       "repo": "hyalus",
       "owner": "hyalusapp",
-      "vPrefixedTagName": false
+      "vPrefixedTagName": false,
+      "releaseType": "release"
     }
   },
   "scripts": {

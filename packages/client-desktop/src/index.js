@@ -39,6 +39,8 @@ const start = () => {
     show: false,
     width: 1200,
     height: 800,
+    minWidth: 600,
+    minHeight: 400,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -129,10 +131,6 @@ app.on("second-instance", () => {
   if (mainWindow) {
     mainWindow.show();
   }
-});
-
-autoUpdater.on("update-available", () => {
-  autoUpdater.downloadUpdate();
 });
 
 autoUpdater.on("update-downloaded", () => {
