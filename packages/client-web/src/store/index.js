@@ -678,6 +678,13 @@ export default new Vuex.Store({
                 ...user,
               });
             });
+
+            if (channel.lastMessage) {
+              commit("setMessage", {
+                channel: channel.id,
+                ...channel.lastMessage,
+              });
+            }
           });
 
           commit("setReady", true);
