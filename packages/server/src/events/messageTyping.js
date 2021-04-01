@@ -30,33 +30,8 @@ module.exports = async (ws, msg) => {
   });
 
   if (!channel) {
-    ws.send({
-      t: "close",
-      d: {
-        reason: "invalid-channel",
-      },
-    });
-
-    return ws.close();
+    return;
   }
-
-  const existingVoicWs = await ws.deps.redis.get(`voice_ws:${ws.session.user}`);
-
-  if (existingVoicWs && existingVoicWs !== ws.id) {
-    await ws.deps.redis.publish(`ws:${existingVoicWs}`, {
-      t: "voiceKick",
-    });
-
-    await ws.deps.redis.del(`voice_ws:${ws.session.user}`);
-    await ws.deps.redis.del(`voice_channel:${ws.session.user}`);
-  }
-
-  ws.voiceChannel = channel._id;
-
-  await ws.deps.redis.set(`voice_ws:${ws.session.user}`, ws.id);
-  await ws.deps.redis.set(`voice_channel:${ws.session.user}`, channel._id);
-
-  await ws.deps.redisSub.subscribe(`voice:${channel._id}`);
 
   for (const user of channel.users
     .filter((u) => !u.removed)
@@ -66,8 +41,22 @@ module.exports = async (ws, msg) => {
       d: {
         id: ws.session.user.toString(),
         channel: channel._id.toString(),
-        voiceConnected: true,
+        lastTyping: Date.now(),
       },
     });
   }
+
+  await ws.deps.redis.set(
+    `typing_time:${ws.session.user}`,
+    Date.now(),
+    "ex",
+    5
+  );
+
+  await ws.deps.redis.set(
+    `typing_channel:${ws.session.user}`,
+    channel._id,
+    "ex",
+    5
+  );
 };

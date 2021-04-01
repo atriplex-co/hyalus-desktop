@@ -61,7 +61,7 @@ app.post("/", session, user, async (req, res) => {
 
       res.end();
 
-      req.deps.wss.send((a) => a.session.user.equals(req.user._id), {
+      req.deps.redis.publish(`user:${req.user._id}`, {
         t: "user",
         d: {
           avatar: avatar._id.toString(),

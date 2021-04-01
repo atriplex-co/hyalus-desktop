@@ -125,7 +125,7 @@ app.post(
       })
     ).ops[0];
 
-    req.deps.wss.send((w) => w.session.user.equals(req.session.user), {
+    req.deps.redis.publish(`user:${req.session.user}`, {
       t: "friend",
       d: {
         id: friend._id.toString(),
@@ -140,7 +140,7 @@ app.post(
       },
     });
 
-    req.deps.wss.send((w) => w.session.user.equals(user._id), {
+    req.deps.redis.publish(`user:${user._id}`, {
       t: "friend",
       d: {
         id: friend._id.toString(),
@@ -207,7 +207,7 @@ app.post(
       },
     });
 
-    req.deps.wss.send((w) => w.session.user.equals(friend.initiator), {
+    req.deps.redis.publish(`user:${friend.initiator}`, {
       t: "friend",
       d: {
         id: friend._id.toString(),
@@ -216,7 +216,7 @@ app.post(
       },
     });
 
-    req.deps.wss.send((w) => w.session.user.equals(friend.target), {
+    req.deps.redis.publish(`user:${friend.target}`, {
       t: "friend",
       d: {
         id: friend._id.toString(),
@@ -254,7 +254,7 @@ app.post(
       });
 
       for (const dmChannelUser of dmChannel.users) {
-        req.deps.wss.send((w) => w.session.user.equals(dmChannelUser.id), {
+        req.deps.redis.publish(`user:${dmChannelUser.id}`, {
           t: "channel",
           d: {
             id: dmChannel._id.toString(),
@@ -289,7 +289,7 @@ app.post(
         _id: friend.initiator,
       });
 
-      req.deps.wss.send((w) => w.session.user.equals(friend.initiator), {
+      req.deps.redis.publish(`user:${friend.initiator}`, {
         t: "channel",
         d: {
           id: dmChannel._id.toString(),
@@ -308,7 +308,7 @@ app.post(
         },
       });
 
-      req.deps.wss.send((w) => w.session.user.equals(friend.target), {
+      req.deps.redis.publish(`user:${friend.target}`, {
         t: "channel",
         d: {
           id: dmChannel._id.toString(),
@@ -347,7 +347,7 @@ app.delete("/:id", session, async (req, res) => {
 
   await req.deps.db.collection("friends").deleteOne(friend);
 
-  req.deps.wss.send((w) => w.session.user.equals(friend.initiator), {
+  req.deps.redis.publish(`user:${friend.initiator}`, {
     t: "friend",
     d: {
       id: friend._id.toString(),
@@ -355,7 +355,7 @@ app.delete("/:id", session, async (req, res) => {
     },
   });
 
-  req.deps.wss.send((w) => w.session.user.equals(friend.target), {
+  req.deps.redis.publish(`user:${friend.target}`, {
     t: "friend",
     d: {
       id: friend._id.toString(),
@@ -392,7 +392,7 @@ app.delete("/:id", session, async (req, res) => {
   }
 
   for (const dmChannelUser of dmChannel.users) {
-    req.deps.wss.send((w) => w.session.user.equals(dmChannelUser.id), {
+    req.deps.redis.publish(`user:${dmChannelUser.id}`, {
       t: "channel",
       d: {
         id: dmChannel._id.toString(),

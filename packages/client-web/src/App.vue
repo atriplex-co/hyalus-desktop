@@ -5,7 +5,8 @@
     <DesktopTitlebar v-if="isDesktopApp" />
     <BetaBanner v-if="!betaBanner" />
     <div class="flex-1 min-h-0">
-      <router-view />
+      <LoadingView v-if="loading" />
+      <router-view v-else />
     </div>
   </div>
 </template>
@@ -19,10 +20,14 @@ export default {
     isDesktopApp() {
       return typeof process !== "undefined";
     },
+    loading() {
+      return this.$store.getters.token && !this.$store.getters.ready;
+    },
   },
   components: {
     BetaBanner: () => import("./components/BetaBanner"),
     DesktopTitlebar: () => import("./components/DesktopTitlebar"),
+    LoadingView: () => import("./views/Loading"),
   },
 };
 </script>

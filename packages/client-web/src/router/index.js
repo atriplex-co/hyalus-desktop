@@ -5,7 +5,7 @@ import store from "../store";
 Vue.use(VueRouter);
 
 const requireAuth = (to, from, next) => {
-  if (!store.getters.user) {
+  if (!store.getters.token) {
     return next("/login");
   }
 
@@ -13,7 +13,7 @@ const requireAuth = (to, from, next) => {
 };
 
 const requireNoAuth = (to, from, next) => {
-  if (store.getters.user) {
+  if (store.getters.token) {
     return next("/");
   }
 

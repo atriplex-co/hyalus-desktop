@@ -1,6 +1,6 @@
 <template>
   <router-link
-    class="flex items-center p-2 space-x-2 text-sm transition cursor-pointer hover:bg-gray-700"
+    class="flex items-center p-2 space-x-2 text-sm transition border-b cursor-pointer hover:bg-gray-700 border-gray-750"
     :to="`/channels/${this.channel.id}/call`"
   >
     <PhoneIcon class="w-8 h-8 p-2 text-white rounded-full bg-primary-500" />

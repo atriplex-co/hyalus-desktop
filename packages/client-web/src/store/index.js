@@ -9,8 +9,27 @@ import sndStateDown from "../sounds/state-change_confirm-down.ogg";
 import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
 import sndNavForward from "../sounds/navigation_forward-selection.ogg";
 import router from "../router";
+import userImage from "../images/user.webp";
 
 Vue.use(Vuex);
+
+const iceServers = [
+  {
+    urls: ["stun:stun.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun1.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun2.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun3.l.google.com:19302"],
+  },
+  {
+    urls: ["stun:stun4.l.google.com:19302"],
+  },
+];
 
 export default new Vuex.Store({
   state: {
@@ -31,8 +50,7 @@ export default new Vuex.Store({
     totpLoginTicket: null,
     symKey: null,
     baseUrl: null,
-    soundNotification: localStorage.getItem("soundNotification"),
-
+    ready: false,
   },
   getters: {
     config: (state) => state.config,
@@ -56,11 +74,15 @@ export default new Vuex.Store({
     symKey: (state) => state.symKey,
     baseUrl: (state) => state.baseUrl,
     localStream: (state) => (type) =>
-      state.voice.localStreams.find((s) => s.type === type),
+      state.voice?.localStreams.find((s) => s.type === type),
     localStreamPeer: (state) => (user, type) =>
-      state.voice.localStreams.find((s) => s.type === type).peers[user],
+      state.voice?.localStreams.find((s) => s.type === type)?.peers[user],
     remoteStream: (state) => (user, type) =>
-      state.voice.remoteStreams.find((s) => s.user === user && s.type === type),
+      state.voice?.remoteStreams.find(
+        (s) => s.user === user && s.type === type
+      ),
+    ready: (state) => state.ready,
+    queuedIce: (state) => state.queuedIce,
   },
   mutations: {
     setUser(state, user) {
@@ -311,6 +333,59 @@ export default new Vuex.Store({
         ) {
           channel.lastMessage = merged;
         }
+
+        if (state.ready && merged.sender !== state.user.id) {
+          let playSound = false;
+
+          if (document.visibilityState === "hidden") {
+            playSound = true;
+          }
+
+          if (document.visibilityState === "visible") {
+            if (router.currentRoute.name === "channel") {
+              if (router.currentRoute.params.channel !== merged.channel) {
+                playSound = true;
+              }
+            } else {
+              playSound = true;
+            }
+          }
+
+          if (!merged.decrypted || localStorage.getItem("soundNotification") == "true") {
+            playSound = false;
+          }
+
+          if (playSound) {
+            try {
+              new Audio(sndNotification).play();
+            } catch {}
+
+            if (typeof process !== "undefined") {
+              let icon;
+              let title;
+
+              if (sender.avatar === "default") {
+                icon = userImage;
+              } else {
+                icon = `${state.baseUrl}/api/avatars/${sender.avatar}`;
+              }
+
+              if (channel.type === "dm") {
+                title = sender.name;
+              }
+
+              if (channel.type === "group") {
+                title = `${sender.name} (${channel.name})`;
+              }
+
+              new Notification(title, {
+                icon,
+                silent: true,
+                body: merged.decrypted,
+              });
+            }
+          }
+        }
       }
     },
     setTotpInitData(state, totpInitData) {
@@ -333,6 +408,7 @@ export default new Vuex.Store({
           localStreams: [],
           remoteStreams: [],
           started: Date.now(),
+          queuedIce: [],
         };
       } else {
         state.voice = null;
@@ -384,6 +460,15 @@ export default new Vuex.Store({
       if (!merged.delete) {
         state.voice.remoteStreams.push(merged);
       }
+    },
+    setReady(state, ready) {
+      state.ready = ready;
+    },
+    queueIce(state, ice) {
+      state.voice.queuedIce.push(ice);
+    },
+    removeQueuedIce(state, ice) {
+      state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
     },
   },
   actions: {
@@ -531,6 +616,9 @@ export default new Vuex.Store({
 
       await dispatch("refresh", login.token);
     },
+    clearTotpTicket({commit}) {
+      commit("setTotpLoginTicket", null);
+    },
     async refresh({ commit, dispatch }, token) {
       if (typeof process !== "undefined") {
         if (process.env.DEV) {
@@ -574,41 +662,7 @@ export default new Vuex.Store({
       commit("setToken", token);
 
       if (token) {
-        try {
-          const { data: user } = await axios.get("/api/me");
-          const { data: friends } = await axios.get("/api/friends");
-          const { data: channels } = await axios.get("/api/channels");
-
-          commit("setUser", user);
-
-          for (const friend of friends) {
-            commit("setFriend", friend);
-          }
-
-          for (const channel of channels) {
-            commit("setChannel", channel);
-
-            for (const channelUser of channel.users) {
-              commit("setChannelUser", {
-                channel: channel.id,
-                ...channelUser,
-              });
-            }
-
-            if (channel.lastMessage) {
-              commit("setMessage", {
-                channel: channel.id,
-                ...channel.lastMessage,
-              });
-            }
-          }
-
-          dispatch("wsConnect");
-        } catch (e) {
-          console.log(e);
-          console.log("Attempting reset (refresh error)");
-          dispatch("reset");
-        }
+        dispatch("wsConnect");
       }
     },
     async logout({ dispatch }) {
@@ -640,7 +694,7 @@ export default new Vuex.Store({
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (data.t !== "keepaliveAck" && data.t !== "voiceStreamData") {
+        if (Vue.config.devtools && data.t !== "keepaliveAck") {
           console.log(data);
         }
 
@@ -651,16 +705,16 @@ export default new Vuex.Store({
             });
           }, data.d.keepalive);
 
-          ws.keepaliveChecker = setInterval(() => {
-            if (ws.lastKeepalive < Date.now - data.d.keepalive * 2) {
+          ws.idleTimeout = setInterval(() => {
+            if (Date.now() - ws.lastKeepalive > data.d.keepalive * 2) {
               ws.close();
             }
-          }, data.d.keepalive);
+          }, 1000);
 
           ws.lastKeepalive = Date.now();
 
           ws.send({
-            t: "auth",
+            t: "start",
             d: {
               token: getters.token,
             },
@@ -672,9 +726,37 @@ export default new Vuex.Store({
         }
 
         if (data.t === "close") {
-          if (data.d.reason === "invalid-auth") {
+          if (data.d.reset) {
             dispatch("reset");
           }
+        }
+
+        if (data.t === "ready") {
+          commit("setUser", data.d.user);
+
+          data.d.friends.map((friend) => {
+            commit("setFriend", friend);
+          });
+
+          data.d.channels.map((channel) => {
+            commit("setChannel", channel);
+
+            channel.users.map((user) => {
+              commit("setChannelUser", {
+                channel: channel.id,
+                ...user,
+              });
+            });
+
+            if (channel.lastMessage) {
+              commit("setMessage", {
+                channel: channel.id,
+                ...channel.lastMessage,
+              });
+            }
+          });
+
+          commit("setReady", true);
         }
 
         if (data.t === "user") {
@@ -757,6 +839,10 @@ export default new Vuex.Store({
           dispatch("handleVoiceStreamAnswer", data.d);
         }
 
+        if (data.t === "voiceStreamIce") {
+          dispatch("handleVoiceStreamIce", data.d);
+        }
+
         if (data.t === "voiceStreamEnd") {
           dispatch("stopRemoteStream", data.d);
         }
@@ -777,14 +863,14 @@ export default new Vuex.Store({
       };
 
       ws.onclose = () => {
+        clearInterval(ws.idleTimeout);
         clearInterval(ws.keepaliveSender);
-        clearInterval(ws.keepaliveChecker);
 
-        if (getters.user) {
-          setTimeout(() => {
-            dispatch("wsConnect");
-          }, 1e3); //TODO: increase timeout before prod
-        }
+        commit("setReady", false);
+
+        setTimeout(() => {
+          dispatch("wsConnect");
+        }, 1000 * 5); //5s
       };
 
       commit("setWs", ws);
@@ -1036,6 +1122,12 @@ export default new Vuex.Store({
         keys: userKeys,
       });
     },
+    async sendMessageTyping({ getters, commit, dispatch }, channel) {
+      getters.ws.send({
+        t: "messageTyping",
+        d: channel,
+      });
+    },
     async deleteMessage({}, data) {
       await axios.delete(`/api/channels/${data.channel}/${data.id}`);
     },
@@ -1088,16 +1180,16 @@ export default new Vuex.Store({
       } catch {}
     },
     async voiceLeave({ getters, commit, dispatch }) {
-      getters.voice.localStreams.map((stream) => {
-        dispatch("stopLocalStream", stream.type);
-      });
+      for (const stream of getters.voice.localStreams) {
+        await dispatch("stopLocalStream", stream.type);
+      }
 
-      getters.voice.remoteStreams.map((stream) => {
-        dispatch("stopRemoteStream", {
+      for (const stream of getters.voice.remoteStreams) {
+        await dispatch("stopRemoteStream", {
           user: stream.user,
           type: stream.type,
         });
-      });
+      }
 
       commit("setVoice", null);
 
@@ -1121,16 +1213,24 @@ export default new Vuex.Store({
         getters.privateKey
       );
 
-      const peer = new RTCPeerConnection();
+      const peer = new RTCPeerConnection({
+        iceServers,
+      });
 
       peer.onicecandidate = ({ candidate }) => {
-        if (!candidate) {
+        if (candidate) {
           const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
 
-          const encryptedSdp = new Uint8Array([
+          const packed = msgpack.encode({
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex,
+          });
+
+          const encrypted = new Uint8Array([
             ...nonce,
             ...nacl.crypto_box_easy(
-              peer.localDescription.sdp,
+              packed,
               nonce,
               user.publicKey,
               getters.privateKey
@@ -1138,18 +1238,21 @@ export default new Vuex.Store({
           ]);
 
           getters.ws.send({
-            t: "voiceStreamAnswer",
+            t: "voiceStreamIce",
             d: {
               user: data.user,
               type: data.type,
-              sdp: encryptedSdp,
+              candidate: encrypted,
+              initiator: false,
             },
           });
         }
       };
 
       peer.ontrack = ({ track }) => {
-        console.log(track);
+        if (Vue.config.devtools) {
+          console.log(track);
+        }
 
         commit("setRemoteStream", {
           user: data.user,
@@ -1160,7 +1263,9 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        }
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1179,6 +1284,34 @@ export default new Vuex.Store({
       );
 
       await peer.setLocalDescription(await peer.createAnswer());
+
+      const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+
+      const encryptedSdp = new Uint8Array([
+        ...nonce,
+        ...nacl.crypto_box_easy(
+          peer.localDescription.sdp,
+          nonce,
+          user.publicKey,
+          getters.privateKey
+        ),
+      ]);
+
+      getters.ws.send({
+        t: "voiceStreamAnswer",
+        d: {
+          user: data.user,
+          type: data.type,
+          sdp: encryptedSdp,
+        },
+      });
+
+      for (const ice of getters.voice.queuedIce
+        .filter((i) => i.user === data.user)
+        .filter((i) => i.type === data.type)) {
+        await peer.addIceCandidate(ice.candidate);
+        commit("removeQueuedIce", ice);
+      }
     },
     async handleVoiceStreamAnswer({ getters, commit, dispatch }, data) {
       const stream = getters.localStream(data.type);
@@ -1209,6 +1342,56 @@ export default new Vuex.Store({
           sdp: nacl.to_string(decryptedSdp),
         })
       );
+    },
+    async handleVoiceStreamIce({ getters, commit, dispatch }, data) {
+      const channel = getters.channelById(getters.voice.channel);
+      const user = channel.users.find((u) => u.id === data.user);
+
+      const decrypted = nacl.crypto_box_open_easy(
+        data.candidate.slice(24),
+        data.candidate.slice(0, 24),
+        user.publicKey,
+        getters.privateKey
+      );
+
+      if (!decrypted) {
+        console.log(`error decrypting ice from ${data.user}/${data.type}`);
+        return;
+      }
+
+      const unpacked = msgpack.decode(decrypted);
+      const candidate = new RTCIceCandidate(unpacked);
+
+      if (data.initiator) {
+        const stream = getters.remoteStream(data.user, data.type);
+
+        if (!stream) {
+          const queuedIce = {
+            user: data.user,
+            type: data.type,
+            candidate,
+          };
+
+          commit("queueIce", queuedIce);
+
+          setTimeout(() => {
+            commit("removeQueuedIce", queuedIce);
+          }, 1000 * 30); //30s
+
+          return;
+        }
+
+        await stream.peer.addIceCandidate(candidate);
+      } else {
+        const stream = getters.localStream(data.type);
+        const peer = stream.peers[data.user];
+
+        if (!peer) {
+          return;
+        }
+
+        await peer.addIceCandidate(candidate);
+      }
     },
     async handleVoiceUserJoin({ getters, commit, dispatch }, user) {
       getters.voice.localStreams.map((stream) => {
@@ -1293,16 +1476,24 @@ export default new Vuex.Store({
       const stream = getters.localStream(data.type);
       const channel = getters.channelById(getters.voice.channel);
       const user = channel.users.find((user) => user.id === data.user);
-      const peer = new RTCPeerConnection();
+      const peer = new RTCPeerConnection({
+        iceServers,
+      });
 
       peer.onicecandidate = ({ candidate }) => {
-        if (!candidate) {
+        if (candidate) {
           const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
 
-          const encryptedSdp = new Uint8Array([
+          const packed = msgpack.encode({
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex,
+          });
+
+          const encrypted = new Uint8Array([
             ...nonce,
             ...nacl.crypto_box_easy(
-              peer.localDescription.sdp,
+              packed,
               nonce,
               user.publicKey,
               getters.privateKey
@@ -1310,22 +1501,46 @@ export default new Vuex.Store({
           ]);
 
           getters.ws.send({
-            t: "voiceStreamOffer",
+            t: "voiceStreamIce",
             d: {
               user: data.user,
               type: data.type,
-              sdp: encryptedSdp,
+              candidate: encrypted,
+              initiator: true,
             },
           });
         }
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        }
       };
 
       peer.addTrack(stream.track);
       await peer.setLocalDescription(await peer.createOffer());
+
+      const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+
+      const encryptedSdp = new Uint8Array([
+        ...nonce,
+        ...nacl.crypto_box_easy(
+          peer.localDescription.sdp,
+          nonce,
+          user.publicKey,
+          getters.privateKey
+        ),
+      ]);
+
+      getters.ws.send({
+        t: "voiceStreamOffer",
+        d: {
+          user: data.user,
+          type: data.type,
+          sdp: encryptedSdp,
+        },
+      });
 
       commit("setLocalStreamPeer", {
         user: data.user,
@@ -1434,8 +1649,6 @@ export default new Vuex.Store({
       let stream;
 
       if (params) {
-        console.log({ params });
-
         if (params.audio) {
           try {
             stream = await navigator.mediaDevices.getUserMedia({

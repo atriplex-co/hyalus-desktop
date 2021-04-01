@@ -25,6 +25,7 @@
     "libsodium-wrappers": "^0.7.9",
     "markdown-it": "^12.0.4",
     "markdown-it-emoji": "^2.0.0",
+    "markdown-it-link-attributes": "^3.0.0",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "nodemon": "^2.0.7",
