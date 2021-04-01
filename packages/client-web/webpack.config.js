@@ -64,6 +64,7 @@ module.exports = {
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, "src/index.html"),
+      minify: true,
     }),
     new ProgressPlugin(),
   ],
