@@ -604,6 +604,9 @@ export default new Vuex.Store({
 
       await dispatch("refresh", login.token);
     },
+    clearTotpTicket({commit}) {
+      commit("setTotpLoginTicket", null);
+    },
     async refresh({ commit, dispatch }, token) {
       if (typeof process !== "undefined") {
         if (process.env.DEV) {
