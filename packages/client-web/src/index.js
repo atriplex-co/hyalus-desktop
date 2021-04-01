@@ -9,11 +9,8 @@ import "./style.css";
 (async () => {
   await store.dispatch("refresh", localStorage.getItem("token"));
 
-  const el = document.createElement("div");
-  document.body.appendChild(el);
-
   new Vue({
-    el,
+    el: "#app",
     render: (h) => h(App),
     store,
     router,
