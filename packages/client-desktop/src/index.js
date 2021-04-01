@@ -34,6 +34,7 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
 let mainWindow;
 let quitting;
 let tray;
+let startHidden;
 
 const start = () => {
   mainWindow = new BrowserWindow({
@@ -57,7 +58,9 @@ const start = () => {
   mainWindow.removeMenu();
 
   mainWindow.once("ready-to-show", () => {
-    mainWindow.show();
+    if (!startHidden) {
+      mainWindow.show();
+    }
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
@@ -128,6 +131,21 @@ const start = () => {
 app.on("ready", () => {
   if (process.env.DEV) {
     return start();
+  }
+
+  const { launchItems, wasOpenedAsHidden } = app.getLoginItemSettings();
+
+  if (!launchItems) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      openAsHidden: true,
+      args: ["-h"],
+      name: "Hyalus",
+    });
+  }
+
+  if (wasOpenedAsHidden || process.argv.find((a) => a === "-h")) {
+    startHidden = true;
   }
 
   autoUpdater.checkForUpdates();
