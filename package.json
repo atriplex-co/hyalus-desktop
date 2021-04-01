@@ -25,6 +25,7 @@
     "html-webpack-plugin": "^5.3.1"
   },
   "dependencies": {
+    "ioredis": "^4.24.6",
     "vue-loader": "^15.9.6"
   }
 }
