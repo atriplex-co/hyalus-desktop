@@ -625,7 +625,7 @@ export default new Vuex.Store({
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (data.t !== "keepaliveAck" && data.t !== "voiceStreamData") {
+        if (Vue.config.devtools) {
           console.log(data);
         }
 
@@ -1180,7 +1180,9 @@ export default new Vuex.Store({
       };
 
       peer.ontrack = ({ track }) => {
-        console.log(track);
+        if (Vue.config.devtools) {
+          console.log(track);
+        }
 
         commit("setRemoteStream", {
           user: data.user,
@@ -1191,7 +1193,9 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        }
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1439,7 +1443,9 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        if (Vue.config.devtools) {
+          console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        }
       };
 
       peer.addTrack(stream.track);
@@ -1573,8 +1579,6 @@ export default new Vuex.Store({
       let stream;
 
       if (params) {
-        console.log({ params });
-
         if (params.audio) {
           try {
             stream = await navigator.mediaDevices.getUserMedia({
