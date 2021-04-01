@@ -5,6 +5,7 @@ const {
   Tray,
   Menu,
   ipcMain,
+  shell,
 } = require("electron");
 const path = require("path");
 const url = require("url");
@@ -80,6 +81,11 @@ const start = () => {
     }
   });
 
+  mainWindow.webContents.on("new-window", (e, arg) => {
+    e.preventDefault();
+    shell.openExternal(arg);
+  });
+
   setTimeout(() => {
     if (mainWindow) {
       mainWindow.webContents.session.flushStorageData();
@@ -131,6 +137,12 @@ app.on("second-instance", () => {
   if (mainWindow) {
     mainWindow.show();
   }
+});
+
+app.on("web-contents-created", (e, webContents) => {
+  webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+  });
 });
 
 autoUpdater.on("update-downloaded", () => {
