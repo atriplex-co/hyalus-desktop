@@ -37,6 +37,8 @@ let tray;
 let startHidden;
 
 const start = () => {
+  app.setAppUserModelId("xyz.hyalus");
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
