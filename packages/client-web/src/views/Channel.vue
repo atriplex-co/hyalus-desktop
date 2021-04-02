@@ -153,6 +153,7 @@ export default {
       lastTyping: 0,
       typingStatus: "",
       typingStatusInterval: null,
+      lastChannel: null,
     };
   },
   computed: {
@@ -283,6 +284,7 @@ export default {
     }
 
     const msgEl = this.$refs.messages;
+    const msgBox = this.$refs.msgBox;
 
     if (msgEl && msgEl.scrollTop === this.lastScrollTop) {
       msgEl.scrollTop = msgEl.scrollHeight;
@@ -296,6 +298,12 @@ export default {
     } else {
       document.title = "Hyalus";
     }
+
+    if (msgBox && this.lastChannel !== this.channel) {
+      msgBox.focus();
+    }
+
+    this.lastChannel = this.channel;
   },
   beforeMount() {
     this.updateTypingStatus();
