@@ -1147,6 +1147,10 @@ export default new Vuex.Store({
       } catch {}
     },
     async voiceLeave({ getters, commit, dispatch }) {
+      if (!getters.voice) {
+        return;
+      }
+
       for (const stream of getters.voice.localStreams) {
         await dispatch("stopLocalStream", stream.type);
       }
