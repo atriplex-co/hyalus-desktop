@@ -343,7 +343,7 @@ export default new Vuex.Store({
             playSound = false;
           }
 
-          if (playSound) {
+          if (!message.silent && playSound) {
             try {
               new Audio(sndNotification).play();
             } catch {}
@@ -744,6 +744,7 @@ export default new Vuex.Store({
               commit("setMessage", {
                 channel: channel.id,
                 ...channel.lastMessage,
+                silent: true,
               });
             }
           });
@@ -1009,6 +1010,7 @@ export default new Vuex.Store({
         commit("setMessage", {
           channel: id,
           ...message,
+          silent: true,
         });
       }
 
@@ -1029,6 +1031,7 @@ export default new Vuex.Store({
         commit("setMessage", {
           channel: id,
           ...message,
+          silent: true,
         });
       });
     },
