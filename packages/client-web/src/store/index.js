@@ -677,7 +677,11 @@ export default new Vuex.Store({
       ws.binaryType = "arraybuffer";
 
       ws._send = ws.send;
-      ws.send = (data) => ws._send(msgpack.encode(data));
+      ws.send = (data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws._send(msgpack.encode(data));
+        }
+      };
 
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
