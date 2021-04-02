@@ -221,17 +221,14 @@ export default {
         this.groupNameModal = true;
       }
     },
-    voiceJoin() {
+    async voiceJoin() {
       if (this.$store.getters.voice?.channel !== this.channel.id) {
-        if (this.$store.getters.voice) {
-          this.$store.dispatch("voiceLeave");
-        }
-
-        this.$store.dispatch("voiceJoin", this.channel.id);
+        await this.$store.dispatch("voiceLeave");
+        await this.$store.dispatch("voiceJoin", this.channel.id);
       }
 
       if (!this.$store.getters.localStream("audio")) {
-        this.$store.dispatch("toggleAudio", {
+        await this.$store.dispatch("toggleAudio", {
           silent: true,
         });
       }
