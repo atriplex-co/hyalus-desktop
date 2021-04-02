@@ -30,24 +30,6 @@ app.post(
     })
   ),
   async (req, res, next) => {
-    //!Remove after beta prerelease.
-    //!Remove after beta prerelease.
-    //!Remove after beta prerelease.
-    const betaSecret = "_6c2d0e1b7773";
-
-    if (!req.body.username.endsWith(betaSecret)) {
-      res.status(400).json({
-        error: "Invalid beta invite code",
-      });
-
-      return;
-    }
-
-    req.body.username = req.body.username.slice(0, -1 * betaSecret.length);
-    //!Remove after beta prerelease.
-    //!Remove after beta prerelease.
-    //!Remove after beta prerelease.
-
     req.body.username = req.body.username.toLowerCase();
 
     if (
