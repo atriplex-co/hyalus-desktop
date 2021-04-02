@@ -286,7 +286,10 @@ export default {
     const msgEl = this.$refs.messages;
     const msgBox = this.$refs.msgBox;
 
-    if (msgEl && msgEl.scrollTop === this.lastScrollTop) {
+    if (
+      (msgEl && msgEl.scrollTop === this.lastScrollTop) ||
+      this.lastChannel !== this.channel
+    ) {
       msgEl.scrollTop = msgEl.scrollHeight;
       this.lastScrollTop = msgEl.scrollTop;
     } else {
