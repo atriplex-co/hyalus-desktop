@@ -749,6 +749,13 @@ export default new Vuex.Store({
             }
           });
 
+          if (getters.channelById(getters.voice?.channel)) {
+            ws.send({
+              t: "voiceJoin",
+              d: getters.voice?.channel,
+            });
+          }
+
           commit("setReady", true);
         }
 
