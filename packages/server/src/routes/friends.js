@@ -333,6 +333,12 @@ app.post(
 );
 
 app.delete("/:id", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      error: "Invalid friend",
+    });
+  }
+
   const friend = await req.deps.db.collection("friends").findOne({
     _id: new ObjectId(req.params.id),
   });

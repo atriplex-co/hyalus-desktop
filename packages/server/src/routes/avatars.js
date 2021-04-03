@@ -4,7 +4,7 @@ const Busboy = require("busboy");
 const sharp = require("sharp");
 const session = require("../middleware/session");
 const user = require("../middleware/user");
-const { ObjectID } = require("mongodb");
+const { ObjectId } = require("mongodb");
 const app = express.Router();
 
 app.post("/", session, user, async (req, res) => {
@@ -84,16 +84,14 @@ app.post("/", session, user, async (req, res) => {
 });
 
 app.get("/:id", async (req, res) => {
-  if (!ObjectID.isValid(req.params.id)) {
-    res.status(400).json({
-      error: "Invalid avatar ID",
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      error: "Invalid avatar",
     });
-
-    return;
   }
 
   const avatar = await req.deps.db.collection("avatars").findOne({
-    _id: new ObjectID(req.params.id),
+    _id: new ObjectId(req.params.id),
   });
 
   if (!avatar) {
