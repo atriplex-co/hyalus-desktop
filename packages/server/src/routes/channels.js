@@ -246,6 +246,12 @@ app.post(
     })
   ),
   async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
+
     const channel = await req.deps.db.collection("channels").findOne({
       _id: new ObjectId(req.params.channel),
       users: {
@@ -326,6 +332,12 @@ app.post(
 );
 
 app.get("/:id/messages", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
   const channel = await req.deps.db.collection("channels").findOne({
     _id: new ObjectId(req.params.id),
     users: {
@@ -365,13 +377,7 @@ app.get("/:id/messages", session, async (req, res) => {
     ],
   };
 
-  if (
-    !Joi.string()
-      .required()
-      .hex()
-      .length(24)
-      .validate(req.query.before).error
-  ) {
+  if (ObjectId.isValid(req.query.before)) {
     query._id = {
       $lt: new ObjectId(req.query.before),
     };
@@ -437,6 +443,12 @@ app.post(
     })
   ),
   async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
+
     const channel = await req.deps.db.collection("channels").findOne({
       _id: new ObjectId(req.params.id),
       users: {
@@ -514,6 +526,18 @@ app.post(
 );
 
 app.delete("/:channel/messages/:message", session, user, async (req, res) => {
+  if (!ObjectId.isValid(req.params.channel)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
+  if (!ObjectId.isValid(req.params.message)) {
+    return res.status(400).json({
+      error: "Invalid message",
+    });
+  }
+
   const channel = await req.deps.db.collection("channels").findOne({
     _id: new ObjectId(req.params.channel),
     users: {
@@ -533,6 +557,7 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
   }
 
   const message = await req.deps.db.collection("messages").findOne({
+    _id: new ObjectId(req.params.message),
     channel: channel._id,
     sender: req.session.user,
   });
@@ -562,6 +587,12 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
 });
 
 app.post("/:channel/avatar", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.channel)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
   const channel = await req.deps.db.collection("channels").findOne({
     _id: new ObjectId(req.params.channel),
     users: {
@@ -699,6 +730,12 @@ app.post(
     })
   ),
   async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
+
     const channel = await req.deps.db.collection("channels").findOne({
       _id: new ObjectId(req.params.channel),
       users: {
@@ -885,6 +922,18 @@ app.post(
 );
 
 app.delete("/:channel/users/:user", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.channel)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
+  if (!ObjectId.isValid(req.params.user)) {
+    return res.status(400).json({
+      error: "Invalid user",
+    });
+  }
+
   if (req.session.user.equals(req.params.user)) {
     res.status(400).json({
       error: "You can't remove yourself",

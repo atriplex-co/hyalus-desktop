@@ -845,7 +845,7 @@ export default new Vuex.Store({
 
         setTimeout(() => {
           dispatch("wsConnect");
-        }, 1000 * 5); //5s
+        }, 1000 * 3); //3s
       };
 
       commit("setWs", ws);
