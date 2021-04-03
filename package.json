@@ -20,5 +20,9 @@
     "start": "yarn workspace server start",
     "stop": "yarn workspace server stop",
     "restart": "yarn workspace server restart"
+  },
+  "dependencies": {
+    "vue-context": "^6.0.0",
+    "vue-right-click-menu": "^1.0.1"
   }
 }

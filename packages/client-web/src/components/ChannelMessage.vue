@@ -2,7 +2,7 @@
   <div class="max-w-lg p-2 mx-auto text-sm text-gray-200" v-if="message.event">
     {{ message.event }}
   </div>
-  <div class="flex items-end space-x-2" v-else>
+  <div class="flex items-end space-x-2 group" v-else>
     <UserAvatar
       class="w-8 h-8 rounded-full"
       :id="sender.avatar"
@@ -16,7 +16,7 @@
         'bg-primary-500 text-white': sentByMe,
         'bg-gray-800': !sentByMe,
       }"
-  @mousedown.right="OpenMenu" 
+  @mousedown.right="$refs.menu.open" 
       >
       <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
         {{ sender.name }}
@@ -32,6 +32,10 @@
         {{ time }}
       </p>
     </div>
+    <vue-context ref="menu" v-if="sentByMe" 
+    class="opacity-0 group-hover:opacity-100 text-gray-400 align-top">
+            <a href="#" @click.prevent="OpenMenu">Delete message</a>
+    </vue-context>
   </div>
 </template>
 
@@ -40,6 +44,8 @@ import moment from "moment";
 import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
+// for right clicks
+import VueContext from 'vue-context';
 
 export default {
   props: ["message"],
