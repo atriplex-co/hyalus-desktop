@@ -5,6 +5,9 @@ services:
     restart: always
     volumes:
       - db:/data/db
+  redis:
+    image: redis
+    restart: always
   node:
     build: .
     restart: always
@@ -12,7 +15,9 @@ services:
       - 3000:3000
     environment:
       - MONGO=mongodb://mongo
+      - REDIS=redis://redis
     depends_on:
       - mongo
+      - redis
 volumes:
   db:
