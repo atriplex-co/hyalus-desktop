@@ -6,3 +6,4 @@ packages/client-web/dist
 packages/client-desktop/dist
 packages/client-desktop/build
 .env
+package-lock.json
