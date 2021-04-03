@@ -147,7 +147,7 @@ export default {
           }
 
 
-          console.debug("preventing default", e, this)
+          //console.debug("preventing default", e, this)
           e.preventDefault();
           this.delete()
 

@@ -1723,17 +1723,22 @@ export default new Vuex.Store({
         } catch {}
       }
     },
+    // this func takes channelid and msgid (see deleteMessageFromObj future me for how this works)
+    // this is the more technical function but is a bit too bare-bones for all parts of this code
     async deleteMessage(uselessjsbullshit, {channelid, msgid}) {
       // prevent random code injection or bad stuff because "hey it's JS! no types!"
       // "Fuck sanity, it runs on the WEB! it's WORLD WIDE! and look, JSON!"
       if (!channelid instanceof String || !msgid instanceof String) {
         return
       }
-      let resp = await axios.delete(`/api/channels/${channelid}/messages/${msgid}`);
-      console.debug(resp)
+      // idk returning data is cool, right?
+      return await axios.delete(`/api/channels/${channelid}/messages/${msgid}`);
+    //  console.debug(resp)
     },
+    // this func is so that you can pass an entire msg file in and it just deletes it
+    // so I can forget of the horrors from deleteMessage() above
     async deleteMessageFromObj(uselessjsbullshit, msg){
-      console.log(msg)
+     // console.log(msg)
       
       return await this.dispatch("deleteMessage",{ channelid: msg.channel, msgid: msg.id })
     },
