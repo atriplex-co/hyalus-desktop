@@ -1,3 +1,0 @@
-[cross-env NODE_ENV='production' && webpack -p --progress]    <-- your build command in brackets here
-out: ./build/*.js     <-- path where your webpack will put a new file
-src/**/*    <-- all sources that will be monitored
