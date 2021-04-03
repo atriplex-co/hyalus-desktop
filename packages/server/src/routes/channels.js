@@ -557,6 +557,7 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
   }
 
   const message = await req.deps.db.collection("messages").findOne({
+    _id: new ObjectId(req.params.message),
     channel: channel._id,
     sender: req.session.user,
   });
