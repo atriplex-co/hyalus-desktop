@@ -356,10 +356,7 @@ export default new Vuex.Store({
             playSound = false;
           }
 
-          console.debug(merged)
-
-
-          if (playSound) {
+          if (!message.silent && playSound) {
             try {
               new Audio(sndNotification).play();
             } catch {}
@@ -620,7 +617,7 @@ export default new Vuex.Store({
 
       await dispatch("refresh", login.token);
     },
-    clearTotpTicket({commit}) {
+    clearTotpTicket({ commit }) {
       commit("setTotpLoginTicket", null);
     },
     async refresh({ commit, dispatch }, token) {
@@ -693,7 +690,11 @@ export default new Vuex.Store({
       ws.binaryType = "arraybuffer";
 
       ws._send = ws.send;
-      ws.send = (data) => ws._send(msgpack.encode(data));
+      ws.send = (data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws._send(msgpack.encode(data));
+        }
+      };
 
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
@@ -756,9 +757,17 @@ export default new Vuex.Store({
               commit("setMessage", {
                 channel: channel.id,
                 ...channel.lastMessage,
+                silent: true,
               });
             }
           });
+
+          if (getters.channelById(getters.voice?.channel)) {
+            ws.send({
+              t: "voiceJoin",
+              d: getters.voice?.channel,
+            });
+          }
 
           commit("setReady", true);
         }
@@ -1021,6 +1030,7 @@ export default new Vuex.Store({
         commit("setMessage", {
           channel: id,
           ...message,
+          silent: true,
         });
       }
 
@@ -1041,6 +1051,7 @@ export default new Vuex.Store({
         commit("setMessage", {
           channel: id,
           ...message,
+          silent: true,
         });
       });
     },
@@ -1159,14 +1170,22 @@ export default new Vuex.Store({
       } catch {}
     },
     async voiceLeave({ getters, commit, dispatch }) {
+      if (!getters.voice) {
+        return;
+      }
+
       for (const stream of getters.voice.localStreams) {
-        await dispatch("stopLocalStream", stream.type);
+        await dispatch("stopLocalStream", {
+          type: stream.type,
+          leaving: true,
+        });
       }
 
       for (const stream of getters.voice.remoteStreams) {
         await dispatch("stopRemoteStream", {
           user: stream.user,
           type: stream.type,
+          leaving: false,
         });
       }
 
@@ -1422,8 +1441,8 @@ export default new Vuex.Store({
           });
         });
     },
-    async stopLocalStream({ getters, commit, dispatch }, type) {
-      const stream = getters.localStream(type);
+    async stopLocalStream({ getters, commit, dispatch }, params) {
+      const stream = getters.localStream(params.type);
 
       if (!stream) {
         return;
@@ -1436,20 +1455,22 @@ export default new Vuex.Store({
 
         commit("setLocalStreamPeer", {
           user,
-          type,
+          type: params.type,
           peer: null,
         });
       });
 
       commit("setLocalStream", {
-        type,
+        type: params.type,
         delete: true,
       });
 
-      getters.ws.send({
-        t: "voiceStreamEnd",
-        d: type,
-      });
+      if (!params.leaving) {
+        getters.ws.send({
+          t: "voiceStreamEnd",
+          d: params.type,
+        });
+      }
     },
     async sendLocalStream({ getters, commit, dispatch }, data) {
       const stream = getters.localStream(data.type);
@@ -1544,7 +1565,9 @@ export default new Vuex.Store({
     },
     async toggleAudio({ getters, commit, dispatch }, params) {
       if (getters.localStream("audio")) {
-        dispatch("stopLocalStream", "audio");
+        dispatch("stopLocalStream", {
+          type: "audio",
+        });
 
         if (!params?.silent) {
           try {
@@ -1574,7 +1597,9 @@ export default new Vuex.Store({
     },
     async toggleVideo({ getters, commit, dispatch }, params) {
       if (getters.localStream("video")) {
-        dispatch("stopLocalStream", "video");
+        dispatch("stopLocalStream", {
+          type: "video",
+        });
 
         if (!params?.silent) {
           try {
@@ -1613,8 +1638,13 @@ export default new Vuex.Store({
     },
     async toggleDisplay({ getters, commit, dispatch }, params) {
       if (getters.localStream("displayVideo")) {
-        dispatch("stopLocalStream", "displayVideo");
-        dispatch("stopLocalStream", "displayAudio");
+        dispatch("stopLocalStream", {
+          type: "displayVideo",
+        });
+
+        dispatch("stopLocalStream", {
+          type: "displayAudio",
+        });
 
         if (!params?.silent) {
           try {

@@ -155,6 +155,7 @@ export default {
       lastTyping: 0,
       typingStatus: "",
       typingStatusInterval: null,
+      lastChannel: null,
     };
   },
   computed: {
@@ -222,17 +223,14 @@ export default {
         this.groupNameModal = true;
       }
     },
-    voiceJoin() {
+    async voiceJoin() {
       if (this.$store.getters.voice?.channel !== this.channel.id) {
-        if (this.$store.getters.voice) {
-          this.$store.dispatch("voiceLeave");
-        }
-
-        this.$store.dispatch("voiceJoin", this.channel.id);
+        await this.$store.dispatch("voiceLeave");
+        await this.$store.dispatch("voiceJoin", this.channel.id);
       }
 
       if (!this.$store.getters.localStream("audio")) {
-        this.$store.dispatch("toggleAudio", {
+        await this.$store.dispatch("toggleAudio", {
           silent: true,
         });
       }
@@ -285,8 +283,12 @@ export default {
     }
 
     const msgEl = this.$refs.messages;
+    const msgBox = this.$refs.msgBox;
 
-    if (msgEl && msgEl.scrollTop === this.lastScrollTop) {
+    if (
+      (msgEl && msgEl.scrollTop === this.lastScrollTop) ||
+      this.lastChannel !== this.channel
+    ) {
       msgEl.scrollTop = msgEl.scrollHeight;
       this.lastScrollTop = msgEl.scrollTop;
     } else {
@@ -298,6 +300,12 @@ export default {
     } else {
       document.title = "Hyalus";
     }
+
+    if (msgBox && this.lastChannel !== this.channel) {
+      msgBox.focus();
+    }
+
+    this.lastChannel = this.channel;
   },
   beforeMount() {
     this.updateTypingStatus();
