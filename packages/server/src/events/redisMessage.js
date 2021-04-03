@@ -8,7 +8,6 @@ module.exports = (deps) => (chan, msg) => {
     [...deps.wss.clients]
       .filter((w) => w.id === chan[1])
       .map((w) => {
-        console.log({ chan, msg });
         w.send(msg);
       });
   }
