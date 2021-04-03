@@ -84,6 +84,22 @@ export default new Vuex.Store({
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
   },
+  methods: {
+    // now, asineth, I know you will probably look at this and for some vuejs reason
+    // ask why I am putting a method inside of the main file, and the reason is that
+    // dispatch never sends the fking variable I want and I want to define a function
+    // to do this work instead of having spagetti code
+    async deleteMessage(channelid, msgid) {
+      // prevent random code injection or bad stuff because "hey it's JS! no types!"
+      // "Fuck sanity, it runs on the WEB! it's WORLD WIDE! and look, JSON!"
+      console.debug(channelid, msgid)
+      if (!channelid instanceof String || !msgid instanceof String) {
+        return
+      }
+      let resp = await axios.delete(`/api/channels/${channelid}/messages/${msgid}`);
+      console.debug(resp)
+    },
+  },
   mutations: {
     setUser(state, user) {
       state.user = { ...state.user, ...user };
@@ -1722,6 +1738,11 @@ export default new Vuex.Store({
           new Audio(sndNavForward).play();
         } catch {}
       }
+    },
+    async deleteMessageFromObj(uselessjsbullshit, msg){
+      console.log(this)
+      
+      return await deleteMessage(msg.channel.id, msg.id)
     },
   },
 });

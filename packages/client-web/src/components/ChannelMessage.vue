@@ -16,7 +16,8 @@
         'bg-primary-500 text-white': sentByMe,
         'bg-gray-800': !sentByMe,
       }"
-    >
+  @mousedown.right="OpenMenu" 
+      >
       <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
         {{ sender.name }}
       </p>
@@ -138,8 +139,19 @@ export default {
         .replace("in ", "");
     },
     async delete() {
-      await this.$store.dispatch("deleteMesasge", this.message);
+      await this.$store.dispatch("deleteMessageFromObj", this.message, "root: true");
     },
+    OpenMenu: function(e) {
+          if (!this.sentByMe || e.shiftKey) {
+            return
+          }
+
+
+          console.debug("preventing default", e, this)
+          e.preventDefault();
+          this.delete()
+
+      }
   },
   beforeMount() {
     this.updateTime();
@@ -148,6 +160,7 @@ export default {
   beforeDestroy() {
     clearInterval(this.timeUpdateInterval);
   },
+
   components: {
     UserAvatar: () => import("./UserAvatar"),
   },
