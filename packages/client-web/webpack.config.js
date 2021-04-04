@@ -6,7 +6,7 @@ const { ProgressPlugin } = require("webpack");
 
 module.exports = {
   mode: "production",
-  entry: "./src/index.js",
+  entry: path.join(__dirname, "src/index.js"),
   output: {
     path: path.join(__dirname, "dist"),
     filename: "[name].[contenthash].js",
