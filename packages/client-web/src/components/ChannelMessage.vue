@@ -6,10 +6,9 @@
     <UserAvatar
       class="w-8 h-8 rounded-full"
       :id="sender.avatar"
-      :class="{
-        'opacity-0': !lastFromSender,
-      }"
+      v-if="lastFromSender"
     />
+    <div class="p-4" v-else />
     <div
       class="max-w-md p-2 rounded-md"
       :class="{
