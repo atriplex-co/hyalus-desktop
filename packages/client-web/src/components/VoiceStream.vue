@@ -7,6 +7,7 @@
       controls="true"
       autoplay="true"
       :srcObject.prop="playerSrc"
+      ref="player"
     ></audio>
     <video
       class="outline-none"
@@ -14,6 +15,7 @@
       controls="true"
       autoplay="true"
       :srcObject.prop="playerSrc"
+      ref="player"
     ></video>
   </div>
 </template>
@@ -25,6 +27,9 @@ export default {
     playerSrc() {
       return new MediaStream([this.stream.track]);
     },
+  },
+  mounted() {
+    this.$refs.player.setSinkId(this.$store.getters.audioOutput);
   },
 };
 </script>
