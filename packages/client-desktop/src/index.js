@@ -77,6 +77,11 @@ const start = () => {
     if (input.key === "F5") {
       mainWindow.reload();
     }
+
+    if (input.key === "F6") {
+      app.relaunch();
+      app.exit();
+    }
   });
 
   mainWindow.on("close", (e) => {
