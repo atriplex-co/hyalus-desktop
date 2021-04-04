@@ -1140,7 +1140,7 @@ export default new Vuex.Store({
       });
     },
     async deleteMessage({}, data) {
-      await axios.delete(`/api/channels/${data.channel}/${data.id}`);
+      await axios.delete(`/api/channels/${data.channel}/messages/${data.id}`);
     },
     async createGroup({}, { name, users }) {
       await axios.post("/api/channels", {

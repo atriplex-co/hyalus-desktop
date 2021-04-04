@@ -9,26 +9,35 @@
       v-if="lastFromSender"
     />
     <div class="p-4" v-else />
-    <div
-      class="max-w-md p-2 rounded-md"
-      :class="{
-        'bg-primary-500 text-white': sentByMe,
-        'bg-gray-800': !sentByMe,
-      }"
-    >
-      <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
-        {{ sender.name }}
-      </p>
-      <div class="text-sm break-all whitespace-pre-wrap" v-html="body"></div>
-      <p
-        class="text-xs"
+    <div class="flex items-center space-x-4 group">
+      <div
+        class="max-w-md p-2 rounded-md"
         :class="{
-          'text-white': sentByMe,
-          'text-gray-400': !sentByMe,
+          'bg-primary-500 text-white': sentByMe,
+          'bg-gray-800': !sentByMe,
         }"
       >
-        {{ time }}
-      </p>
+        <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
+          {{ sender.name }}
+        </p>
+        <div class="text-sm break-all whitespace-pre-wrap" v-html="body"></div>
+        <p
+          class="text-xs"
+          :class="{
+            'text-white': sentByMe,
+            'text-gray-400': !sentByMe,
+          }"
+        >
+          {{ time }}
+        </p>
+      </div>
+      <div
+        class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
+        v-if="sentByMe"
+        @click="remove"
+      >
+        <TrashIcon class="w-5 h-5" />
+      </div>
     </div>
   </div>
 </template>
@@ -110,8 +119,8 @@ export default {
         .replace(" ago", "")
         .replace("in ", "");
     },
-    async delete() {
-      await this.$store.dispatch("deleteMesasge", this.message);
+    async remove() {
+      await this.$store.dispatch("deleteMessage", this.message);
     },
   },
   beforeMount() {
@@ -123,6 +132,7 @@ export default {
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
+    TrashIcon: () => import("../icons/Trash"),
   },
 };
 </script>
