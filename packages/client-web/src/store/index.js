@@ -184,6 +184,13 @@ export default new Vuex.Store({
         state.friends.push({ ...oldFriend, ...friend });
       }
     },
+    setFriendUser(state, friendUser) {
+      const friend = state.friends.find((f) => f.id === friendUser.friend);
+      friend.user = {
+        ...friend.user,
+        ...friendUser,
+      };
+    },
     setChannel(state, channel) {
       const merged = {
         ...state.channels.find((c) => c.id === channel.id),
@@ -193,11 +200,6 @@ export default new Vuex.Store({
       state.channels = state.channels.filter((c) => c.id !== channel.id);
 
       if (!merged.delete) {
-        if (merged.type === "dm") {
-          merged.name = merged.users[0].name;
-          merged.avatar = merged.users[0].avatar;
-        }
-
         if (!merged.messages) {
           merged.messages = [];
         }
@@ -228,10 +230,12 @@ export default new Vuex.Store({
         }
 
         channel.users.push(merged);
-      }
 
-      state.channels = state.channels.filter((c) => c.id !== channel.id);
-      state.channels.push(channel);
+        if (channel.type === "dm") {
+          channel.name = merged.name;
+          channel.avatar = merged.avatar;
+        }
+      }
     },
     setMessage(state, message) {
       const channel = state.channels.find((c) => c.id === message.channel);
@@ -765,6 +769,10 @@ export default new Vuex.Store({
 
         if (data.t === "friend") {
           commit("setFriend", data.d);
+        }
+
+        if (data.t === "friendUser") {
+          commit("setFriendUser", data.d);
         }
 
         if (data.t === "channel") {
