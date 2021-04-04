@@ -35,9 +35,6 @@
 
 <script>
 import moment from "moment";
-import MarkdownIt from "markdown-it";
-import MarkdownItEmoji from "markdown-it-emoji";
-import MarkdownItLinkAttr from "markdown-it-link-attributes";
 
 export default {
   props: ["message"],
@@ -90,30 +87,7 @@ export default {
       }
     },
     body() {
-      if (this.message.decrypted) {
-        return new MarkdownIt("zero", {
-          html: false,
-          linkify: true,
-        })
-          .enable([
-            "emphasis",
-            "strikethrough",
-            "backticks",
-            "fence",
-            "linkify",
-          ])
-          .use(MarkdownItEmoji)
-          .use(MarkdownItLinkAttr, {
-            attrs: {
-              target: "_blank",
-              rel: "noopener noreferrer",
-            },
-          })
-          .renderInline(this.message.decrypted)
-          .trim();
-      } else {
-        return "[Failed to decrypt message]";
-      }
+      return this.message.formatted || "[Failed to decrypt message]";
     },
   },
   methods: {

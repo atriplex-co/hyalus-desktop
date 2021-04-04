@@ -10,6 +10,9 @@ import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
 import sndNavForward from "../sounds/navigation_forward-selection.ogg";
 import router from "../router";
 import userImage from "../images/user.webp";
+import MarkdownIt from "markdown-it";
+import MarkdownItEmoji from "markdown-it-emoji";
+import MarkdownItLinkAttr from "markdown-it-link-attributes";
 
 Vue.use(Vuex);
 
@@ -288,6 +291,29 @@ export default new Vuex.Store({
             );
 
             merged.decrypted = nacl.to_string(decryptedBody);
+          }
+
+          if (!merged.formatted && merged.decrypted) {
+            merged.formatted = new MarkdownIt("zero", {
+              html: false,
+              linkify: true,
+            })
+              .enable([
+                "emphasis",
+                "strikethrough",
+                "backticks",
+                "fence",
+                "linkify",
+              ])
+              .use(MarkdownItEmoji)
+              .use(MarkdownItLinkAttr, {
+                attrs: {
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                },
+              })
+              .renderInline(merged.decrypted)
+              .trim();
           }
         }
 
