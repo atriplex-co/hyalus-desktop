@@ -199,17 +199,16 @@ export default {
       }
     },
     async sendMessage() {
-      if (!this.message) {
-        return;
-      }
-
-      await this.$store.dispatch("sendMessage", {
-        channel: this.channel.id,
-        body: this.message.trim(),
-      });
-
+      const _message = this.message.trim();
       this.message = "";
       setTimeout(() => this.messageInput(), 1);
+
+      if (_message) {
+        await this.$store.dispatch("sendMessage", {
+          channel: this.channel.id,
+          body: _message,
+        });
+      }
     },
     setAvatar() {
       if (this.channel.admin) {
