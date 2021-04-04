@@ -136,7 +136,10 @@ app.post(
 
       await req.deps.redis.publish(`user:${userId}`, {
         t: "friendUser",
-        d: req.body,
+        d: {
+          friend: friend._id.toString(),
+          ...req.body,
+        },
       });
     }
 

@@ -77,6 +77,67 @@ app.post("/", session, user, async (req, res) => {
           id: avatar._id,
         });
       }
+
+      //propegate changes to friends
+      const friends = await (
+        await req.deps.db.collection("friends").find({
+          $or: [
+            {
+              initiator: req.session.user,
+            },
+            {
+              target: req.session.user,
+            },
+          ],
+        })
+      ).toArray();
+
+      for (const friend of friends) {
+        let userId;
+
+        if (friend.initiator.equals(req.session.user)) {
+          userId = friend.target;
+        }
+
+        if (friend.target.equals(req.session.user)) {
+          userId = friend.initiator;
+        }
+
+        await req.deps.redis.publish(`user:${userId}`, {
+          t: "friendUser",
+          d: {
+            friend: friend._id.toString(),
+            avatar: avatar._id.toString(),
+          },
+        });
+      }
+
+      //propegate changes to channels
+      const channels = await (
+        await req.deps.db.collection("channels").find({
+          users: {
+            $elemMatch: {
+              id: req.session.user,
+              removed: false,
+            },
+          },
+        })
+      ).toArray();
+
+      for (const channel of channels) {
+        for (const channelUser of channel.users
+          .filter((u) => !u.removed)
+          .filter((u) => !u.id.equals(req.session.user))) {
+          await req.deps.redis.publish(`user:${channelUser.id}`, {
+            t: "channelUser",
+            d: {
+              channel: channel._id.toString(),
+              id: req.session.user.toString(),
+              avatar: avatar._id.toString(),
+            },
+          });
+        }
+      }
     });
   });
 
