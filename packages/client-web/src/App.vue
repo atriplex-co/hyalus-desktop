@@ -2,13 +2,23 @@
   <div
     class="flex flex-col h-screen min-h-0 antialiased text-white bg-gray-900"
     :class="{
-      'accent-green': accentColor === 'green',
       'accent-red': accentColor === 'red',
+      'accent-orange': accentColor === 'orange',
+      'accent-amber': accentColor === 'amber',
       'accent-yellow': accentColor === 'yellow',
+      'accent-lime': accentColor === 'lime',
+      'accent-green': accentColor === 'green',
+      'accent-emerald': accentColor === 'emerald',
+      'accent-teal': accentColor === 'teal',
+      'accent-cyan': accentColor === 'cyan',
+      'accent-lightBlue': accentColor === 'lightBlue',
       'accent-blue': accentColor === 'blue',
       'accent-indigo': accentColor === 'indigo',
+      'accent-violet': accentColor === 'violet',
       'accent-purple': accentColor === 'purple',
+      'accent-fuchsia': accentColor === 'fuchsia',
       'accent-pink': accentColor === 'pink',
+      'accent-rose': accentColor === 'rose',
     }"
   >
     <DesktopTitlebar v-if="isDesktopApp" />
