@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg"
+   width="14.569536"
+   height="11.344452"
+   viewBox="0 0 14.569536 11.344452"
+   version="1.1"
+   sodipodi:docname="BackButton.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata850">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs848" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2560"
+     inkscape:window-height="1548"
+     id="namedview846"
+     showgrid="false"
+     inkscape:zoom="67.85"
+     inkscape:cx="7.2847682"
+     inkscape:cy="5.6722259"
+     inkscape:window-x="1080"
+     inkscape:window-y="320"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <g
+     id="svgg"
+     transform="matrix(0.05,0,0,0.05,-2.8263136,-4.3286757)">
+    <path
+       id="path0"
+       d="m 105.208,138.457 c -64.964,65.226 -64.987,58.172 0.4,123.403 56.649,56.513 70.461,62.937 79.533,36.99 3.796,-10.859 1.9,-13.72 -31.013,-46.806 l -35.058,-35.24 114.424,-1.11 114.423,-1.111 V 200 185.417 l -114.423,-1.111 -114.424,-1.11 35.058,-35.24 c 32.912,-33.084 34.809,-35.948 31.014,-46.806 -9.1,-26.037 -23.57,-19.283 -79.934,37.307"
+       inkscape:connector-curvature="0"
+       style="fill:#000000;fill-rule:evenodd;stroke:none" />
+  </g>
+</svg>

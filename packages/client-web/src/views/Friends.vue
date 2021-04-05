@@ -1,6 +1,12 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
+      <div class="p-8">
+      <ToggleSidebar v-bind:class="{
+          'hidden': this.$store.getters.showSidebar
+      }"
+      class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750 text-gray-400"/>
+    </div>
     <div class="flex-1 px-16 pt-16 overflow-auto">
       <div class="flex items-center justify-between">
         <p class="text-4xl font-bold">Friends</p>
@@ -71,6 +77,7 @@ export default {
   },
   components: {
     Sidebar: () => import("../components/Sidebar"),
+    ToggleSidebar: () => import("../components/ToggleSidebar"),
     UserAddIcon: () => import("../icons/UserAdd"),
     CheckIcon: () => import("../icons/Check"),
     LetterXIcon: () => import("../icons/LetterX"),

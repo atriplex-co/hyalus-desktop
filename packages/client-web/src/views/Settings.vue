@@ -1,6 +1,12 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
+    <div class="p-8">
+      <ToggleSidebar v-bind:class="{
+          'hidden': this.$store.getters.showSidebar
+      }"
+      class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750 text-gray-400"/>
+    </div>
     <div class="flex-1 px-16 pt-16 overflow-auto">
       <p class="text-4xl font-bold">Settings</p>
       <div class="flex my-8 space-x-8 text-gray-400 border-b border-gray-800">
@@ -357,6 +363,8 @@ export default {
     TrashIcon: () => import("../icons/Trash"),
     ArrowDownIcon: () => import("../icons/ArrowDown"),
     LogoutIcon: () => import("../icons/Logout"),
+    ToggleSidebar: () => import("../components/ToggleSidebar"),
+
   },
 };
 </script>
