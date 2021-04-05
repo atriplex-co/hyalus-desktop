@@ -30,28 +30,25 @@ app.post(
       encryptedPrivateKey: Joi.string()
         .length(96)
         .base64(),
-      accentColor: Joi.string()
-        .required()
-        .valid(
-          //
-          "red",
-          "orange",
-          "amber",
-          "yellow",
-          "lime",
-          "green",
-          "emerald",
-          "teal",
-          "cyan",
-          "lightBlue",
-          "blue",
-          "indigo",
-          "violet",
-          "purple",
-          "fuchsia",
-          "pink",
-          "rose"
-        ),
+      accentColor: Joi.string().valid(
+        "red",
+        "orange",
+        "amber",
+        "yellow",
+        "lime",
+        "green",
+        "emerald",
+        "teal",
+        "cyan",
+        "lightBlue",
+        "blue",
+        "indigo",
+        "violet",
+        "purple",
+        "fuchsia",
+        "pink",
+        "rose"
+      ),
     })
   ),
   async (req, res) => {
