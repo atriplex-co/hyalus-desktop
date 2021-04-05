@@ -46,61 +46,42 @@ module.exports = {
       themes: [
         {
           name: "base",
-          selectors: [".accent-green"],
+          selectors: [":root"],
           theme: {
             colors: {
+              //default accent color goes here.
               primary: colors.emerald,
             },
           },
         },
-        {
-          selectors: [".accent-red"],
+        ...[
+          //this will be a lot less janky once we move to @tailwindcss/jit.
+          //we're currently waiting for it to be merged upstream.
+          "red",
+          "orange",
+          "amber",
+          "yellow",
+          "lime",
+          "green",
+          "emerald",
+          "teal",
+          "cyan",
+          "lightBlue",
+          "blue",
+          "indigo",
+          "violet",
+          "purple",
+          "fuchsia",
+          "pink",
+          "rose",
+        ].map((accent) => ({
+          selectors: [`accent-${accent}`],
           theme: {
             colors: {
-              primary: colors.red,
+              primary: colors[accent],
             },
           },
-        },
-        {
-          selectors: [".accent-yellow"],
-          theme: {
-            colors: {
-              primary: colors.yellow,
-            },
-          },
-        },
-        {
-          selectors: [".accent-blue"],
-          theme: {
-            colors: {
-              primary: colors.blue,
-            },
-          },
-        },
-        {
-          selectors: [".accent-indigo"],
-          theme: {
-            colors: {
-              primary: colors.indigo,
-            },
-          },
-        },
-        {
-          selectors: [".accent-purple"],
-          theme: {
-            colors: {
-              primary: colors.violet,
-            },
-          },
-        },
-        {
-          selectors: [".accent-pink"],
-          theme: {
-            colors: {
-              primary: colors.pink,
-            },
-          },
-        },
+        })),
       ],
     }),
   ],
