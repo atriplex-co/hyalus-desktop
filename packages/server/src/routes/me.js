@@ -32,7 +32,26 @@ app.post(
         .base64(),
       accentColor: Joi.string()
         .required()
-        .valid("green", "red", "yellow", "blue", "indigo", "purple", "pink"),
+        .valid(
+          //
+          "red",
+          "orange",
+          "amber",
+          "yellow",
+          "lime",
+          "green",
+          "emerald",
+          "teal",
+          "cyan",
+          "lightBlue",
+          "blue",
+          "indigo",
+          "violet",
+          "purple",
+          "fuchsia",
+          "pink",
+          "rose"
+        ),
     })
   ),
   async (req, res) => {
