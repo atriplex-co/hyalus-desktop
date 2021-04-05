@@ -6,54 +6,6 @@ const user = require("../middleware/user");
 const validation = require("../middleware/validation");
 const { ObjectId } = require("mongodb");
 
-app.get("/", session, async (req, res) => {
-  const friends = await (
-    await req.deps.db.collection("friends").find({
-      $or: [
-        {
-          initiator: req.session.user,
-        },
-        {
-          target: req.session.user,
-        },
-      ],
-    })
-  ).toArray();
-
-  const formatted = [];
-
-  for (const friend of friends) {
-    let userId;
-
-    if (friend.initiator.equals(req.session.user)) {
-      userId = friend.target;
-    }
-
-    if (friend.target.equals(req.session.user)) {
-      userId = friend.initiator;
-    }
-
-    const user = await req.deps.db.collection("users").findOne({
-      _id: userId,
-    });
-
-    formatted.push({
-      id: friend._id,
-      user: {
-        id: user._id,
-        name: user.name,
-        avatar: user.avatar,
-        username: user.username,
-      },
-      accepted: friend.accepted,
-      acceptable: !friend.accepted && friend.target.equals(req.session.user),
-      updatedAt: friend.updatedAt,
-    });
-  }
-
-  res.json(formatted);
-});
-
 app.post(
   "/",
   session,

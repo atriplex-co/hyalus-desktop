@@ -5,20 +5,6 @@ const user = require("../middleware/user");
 const validation = require("../middleware/validation");
 const Joi = require("joi");
 
-app.get("/", session, user, async (req, res) => {
-  res.json({
-    id: req.user._id,
-    name: req.user.name,
-    username: req.user.username,
-    avatar: req.user.avatar,
-    createdAt: req.user.createdAt,
-    updatedAt: req.user.updatedAt,
-    totpEnabled: Boolean(req.user.totpSecret),
-    // accentColor: req.user.accentColor,
-    accentColor: "purple",
-  });
-});
-
 app.post(
   "/",
   session,
