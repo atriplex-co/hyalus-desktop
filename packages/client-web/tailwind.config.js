@@ -1,5 +1,6 @@
 const path = require("path");
 const colors = require("tailwindcss/colors");
+const swapper = require("tailwindcss-theme-swapper");
 
 module.exports = {
   purge: [`${path.join(__dirname, "src")}/**/*.vue`],
@@ -7,7 +8,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: colors.emerald,
         gray: {
           50: "#FAFAFA",
           100: "#F4F4F5",
@@ -42,5 +42,66 @@ module.exports = {
     // require("@tailwindcss/typography"),
     // require("@tailwindcss/forms"),
     // require("@tailwindcss/line-clamp"),
+    swapper({
+      themes: [
+        {
+          name: "base",
+          selectors: [".accent-green"],
+          theme: {
+            colors: {
+              primary: colors.emerald,
+            },
+          },
+        },
+        {
+          selectors: [".accent-red"],
+          theme: {
+            colors: {
+              primary: colors.red,
+            },
+          },
+        },
+        {
+          selectors: [".accent-yellow"],
+          theme: {
+            colors: {
+              primary: colors.yellow,
+            },
+          },
+        },
+        {
+          selectors: [".accent-blue"],
+          theme: {
+            colors: {
+              primary: colors.blue,
+            },
+          },
+        },
+        {
+          selectors: [".accent-indigo"],
+          theme: {
+            colors: {
+              primary: colors.indigo,
+            },
+          },
+        },
+        {
+          selectors: [".accent-purple"],
+          theme: {
+            colors: {
+              primary: colors.violet,
+            },
+          },
+        },
+        {
+          selectors: [".accent-pink"],
+          theme: {
+            colors: {
+              primary: colors.pink,
+            },
+          },
+        },
+      ],
+    }),
   ],
 };

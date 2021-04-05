@@ -1,6 +1,15 @@
 <template>
   <div
     class="flex flex-col h-screen min-h-0 antialiased text-white bg-gray-900"
+    :class="{
+      'accent-green': accentColor === 'green',
+      'accent-red': accentColor === 'red',
+      'accent-yellow': accentColor === 'yellow',
+      'accent-blue': accentColor === 'blue',
+      'accent-indigo': accentColor === 'indigo',
+      'accent-purple': accentColor === 'purple',
+      'accent-pink': accentColor === 'pink',
+    }"
   >
     <DesktopTitlebar v-if="isDesktopApp" />
     <BetaBanner v-if="!betaBanner" />
@@ -22,6 +31,9 @@ export default {
     },
     loading() {
       return this.$store.getters.token && !this.$store.getters.ready;
+    },
+    accentColor() {
+      return this.$store.getters.accentColor;
     },
   },
   components: {

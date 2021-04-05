@@ -86,6 +86,7 @@ export default new Vuex.Store({
       ),
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
+    accentColor: (state) => state.user?.accentColor || "green",
   },
   mutations: {
     setUser(state, user) {
