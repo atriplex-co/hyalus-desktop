@@ -179,3 +179,15 @@ autoUpdater.on("update-not-available", start);
 ipcMain.on("close", () => {
   mainWindow.close();
 });
+
+ipcMain.on("maximize", () => {
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow.maximize();
+  }
+});
+
+ipcMain.on("minimize", () => {
+  mainWindow.minimize();
+});
