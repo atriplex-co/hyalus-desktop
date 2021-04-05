@@ -404,6 +404,26 @@ export default new Vuex.Store({
             }
           }
         }
+      } else {
+        if (merged.id === channel.lastMessage.id) {
+          let newLastMessage;
+
+          channel.messages.map((msg) => {
+            if (!newLastMessage) {
+              newLastMessage = msg;
+            }
+
+            if (
+              newLastMessage &&
+              newLastMessage.id !== merged.id &&
+              newLastMessage.time < merged.time
+            ) {
+              newLastMessage = msg;
+            }
+          });
+
+          channel.lastMessage = newLastMessage;
+        }
       }
     },
     setTotpInitData(state, totpInitData) {
