@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg877"
+   sodipodi:docname="hamburger.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata883">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>70 Basic icons by Xicons.co</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs881" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2560"
+     inkscape:window-height="1548"
+     id="namedview879"
+     showgrid="false"
+     inkscape:zoom="67.85"
+     inkscape:cx="10"
+     inkscape:cy="10"
+     inkscape:window-x="1080"
+     inkscape:window-y="320"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg877"
+     viewbox-height="48"
+     scale-x="0.1"
+     viewbox-width="48" />
+  <title
+     id="title869">70 Basic icons by Xicons.co</title>
+  <path
+     d="M 17.089,5.83 H 2.911 a 0.834,0.834 0 0 1 0,-1.668 h 14.178 a 0.834,0.834 0 0 1 0,1.668 z"
+     id="path871"
+     style="fill:#000000;fill-opacity:1;stroke-width:0.417"
+     inkscape:connector-curvature="0" />
+  <path
+     d="M 17.089,10.834 H 2.911 a 0.834,0.834 0 0 1 0,-1.668 h 14.178 a 0.834,0.834 0 0 1 0,1.668 z"
+     id="path873"
+     style="fill:#000000;fill-opacity:1;stroke-width:0.417"
+     inkscape:connector-curvature="0" />
+  <path
+     d="M 17.089,15.838 H 2.911 a 0.834,0.834 0 0 1 0,-1.668 h 14.178 a 0.834,0.834 0 0 1 0,1.668 z"
+     id="path875"
+     style="fill:#000000;fill-opacity:1;stroke-width:0.417"
+     inkscape:connector-curvature="0" />
+</svg>

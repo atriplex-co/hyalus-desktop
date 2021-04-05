@@ -54,6 +54,7 @@ export default new Vuex.Store({
     symKey: null,
     baseUrl: null,
     ready: false,
+    showSidebar: true,
   },
   getters: {
     config: (state) => state.config,
@@ -86,10 +87,14 @@ export default new Vuex.Store({
       ),
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
+    showSidebar: (state) => state.showSidebar,
   },
   mutations: {
     setUser(state, user) {
       state.user = { ...state.user, ...user };
+    },
+    toggleSidebar (state) {
+      state.showSidebar = !state.showSidebar
     },
     setToken(state, token) {
       state.token = token;

@@ -1,7 +1,7 @@
 <template>
   <div
     class="flex flex-col w-full h-full max-w-xs min-h-0 border-r border-gray-750 bg-gray-850"
-  >
+   :class="{ 'hidden':  !this.$store.getters.showSidebar }">
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
       <div class="flex items-center flex-1 ">
         <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />
@@ -11,6 +11,7 @@
         </div>
       </div>
       <div class="flex items-center space-x-2 text-gray-400">
+        <ToggleSidebar class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750"/>
         <router-link class="relative" to="/friends">
           <FriendsIcon
             class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750"
@@ -68,6 +69,7 @@ export default {
     GroupIcon: () => import("../icons/Group"),
     FriendsIcon: () => import("../icons/Friends"),
     SidebarCall: () => import("./SidebarCall"),
+    ToggleSidebar: () => import("../components/ToggleSidebar"),
   },
 };
 </script>

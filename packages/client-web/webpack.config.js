@@ -47,7 +47,9 @@ module.exports = {
         ],
       },
       {
-        test: /\.(webp|woff|woff2|ogg)$/,
+        // you know what asineth? some svg's can just be imported like normal people do it
+        // also the background of my svg is transparent so just change the fill of the div
+        test: /\.(webp|woff|woff2|ogg|svg)$/,
         use: {
           loader: "file-loader",
           options: {
