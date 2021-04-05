@@ -56,6 +56,7 @@ app.post(
           "base64"
         ),
         avatar: "default",
+        accentColor: "green",
         createdAt: Date.now(),
         updatedAt: Date.now(),
         totpSecret: null,

@@ -14,6 +14,8 @@ app.get("/", session, user, async (req, res) => {
     createdAt: req.user.createdAt,
     updatedAt: req.user.updatedAt,
     totpEnabled: Boolean(req.user.totpSecret),
+    // accentColor: req.user.accentColor,
+    accentColor: "purple",
   });
 });
 
@@ -42,6 +44,9 @@ app.post(
       encryptedPrivateKey: Joi.string()
         .length(96)
         .base64(),
+      accentColor: Joi.string()
+        .required()
+        .valid("green", "red", "yellow", "blue", "indigo", "purple", "pink"),
     })
   ),
   async (req, res) => {
@@ -108,6 +113,9 @@ app.post(
         d: req.body,
       });
     }
+
+    //fields that should not be exposed outside of the current user.
+    delete req.body.accentColor;
 
     //propegate changes to friends
     const friends = await (
