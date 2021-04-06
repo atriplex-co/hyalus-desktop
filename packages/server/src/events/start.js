@@ -48,6 +48,7 @@ module.exports = async (ws, msg) => {
     totpEnabled: Boolean(user.totpSecret),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    accentColor: user.accentColor,
   };
 
   const friends = await (

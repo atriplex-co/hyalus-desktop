@@ -55,6 +55,7 @@ export default new Vuex.Store({
     baseUrl: null,
     ready: false,
     showSidebar: true,
+    faviconEl: null,
   },
   getters: {
     config: (state) => state.config,
@@ -88,6 +89,7 @@ export default new Vuex.Store({
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
     showSidebar: (state) => state.showSidebar,
+    accentColor: (state) => state.user?.accentColor || "green",
   },
   mutations: {
     setUser(state, user) {
@@ -357,7 +359,9 @@ export default new Vuex.Store({
           channel.lastMessage = merged;
         }
 
-        if (state.ready && merged.sender !== state.user.id) {
+        if (state.ready && merged.sender !== state.user.id && !message.silent) {
+          sender.lastTyping = 0;
+
           let playSound = false;
 
           if (document.visibilityState === "hidden") {
@@ -378,7 +382,7 @@ export default new Vuex.Store({
             playSound = false;
           }
 
-          if (!message.silent && playSound) {
+          if (playSound) {
             try {
               new Audio(sndNotification).play();
             } catch {}
@@ -408,6 +412,26 @@ export default new Vuex.Store({
               });
             }
           }
+        }
+      } else {
+        if (merged.id === channel.lastMessage.id) {
+          let newLastMessage;
+
+          channel.messages.map((msg) => {
+            if (!newLastMessage) {
+              newLastMessage = msg;
+            }
+
+            if (
+              newLastMessage &&
+              newLastMessage.id !== merged.id &&
+              newLastMessage.time < merged.time
+            ) {
+              newLastMessage = msg;
+            }
+          });
+
+          channel.lastMessage = newLastMessage;
         }
       }
     },
@@ -492,6 +516,16 @@ export default new Vuex.Store({
     },
     removeQueuedIce(state, ice) {
       state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
+    },
+    setFavicon(state, href) {
+      if (!state.faviconEl) {
+        state.faviconEl = document.createElement("link");
+        state.faviconEl.rel = "shortcut icon";
+
+        document.querySelector("head").appendChild(state.faviconEl);
+      }
+
+      state.faviconEl.href = href;
     },
   },
   actions: {
@@ -760,6 +794,7 @@ export default new Vuex.Store({
 
         if (data.t === "ready") {
           commit("setUser", data.d.user);
+          dispatch("updateFavicon");
 
           data.d.friends.map((friend) => {
             commit("setFriend", friend);
@@ -796,6 +831,10 @@ export default new Vuex.Store({
 
         if (data.t === "user") {
           commit("setUser", data.d);
+
+          if (data.d.accentColor) {
+            dispatch("updateFavicon");
+          }
         }
 
         if (data.t === "friend") {
@@ -1761,6 +1800,13 @@ export default new Vuex.Store({
           new Audio(sndNavForward).play();
         } catch {}
       }
+    },
+    async setAccentColor({}, accentColor) {
+      await axios.post("/api/me", { accentColor });
+    },
+    async updateFavicon({ getters, commit }) {
+      const icon = await import(`../images/icon-${getters.accentColor}.webp`);
+      commit("setFavicon", icon.default);
     },
   },
 });

@@ -38,6 +38,7 @@
     "scrypt-js": "^3.0.1",
     "style-loader": "^2.0.0",
     "tailwindcss": "^2.0.3",
+    "tailwindcss-theme-swapper": "^0.3.0",
     "vue": "^2.6.12",
     "vue-loader": "^15.9.5",
     "vue-router": "^3.4.9",

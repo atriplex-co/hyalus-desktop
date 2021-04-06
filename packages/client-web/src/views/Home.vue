@@ -2,7 +2,7 @@
   <div>
     <Navbar />
     <div class="flex flex-col items-center w-full py-20">
-      <img class="w-32 h-32" src="../images/icon.webp" />
+      <AppIcon class="w-32 h-32" />
       <h1 class="mt-8 text-6xl font-bold tracking-tight">
         Talk on an open platform
       </h1>
@@ -100,6 +100,7 @@ export default {
     Footer: () => import("../components/Footer"),
     Navbar: () => import("../components/Navbar"),
     AppDownloadModal: () => import("../components/AppDownloadModal"),
+    AppIcon: () => import("../icons/App"),
   },
 };
 </script>

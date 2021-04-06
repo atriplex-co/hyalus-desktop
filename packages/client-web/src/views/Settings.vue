@@ -117,7 +117,7 @@
             </div>
             <div class="relative" v-if="audioOutputDevices">
               <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96"
+                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
                 v-if="audioOutputMenu"
               >
                 <p
@@ -149,17 +149,14 @@
             </div>
             <div class="relative" v-if="audioInputDevices">
               <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96"
+                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
                 v-if="audioInputMenu"
               >
                 <p
                   class="px-2 py-1 cursor-pointer hover:bg-gray-800"
                   v-for="device in audioInputDevices"
                   v-bind:key="device.deviceId"
-                  @click="
-                    setAudioInput(device.deviceId);
-                    audioInputMenu = false;
-                  "
+                  @click="setAudioInput(device.deviceId)"
                 >
                   {{ device.label }}
                 </p>
@@ -181,20 +178,66 @@
             </div>
             <div class="relative" v-if="videoInputDevices">
               <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96"
+                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
                 v-if="videoInputMenu"
               >
                 <p
                   class="px-2 py-1 cursor-pointer hover:bg-gray-800"
                   v-for="device in videoInputDevices"
                   v-bind:key="device.deviceId"
-                  @click="
-                    setVideoInput(device.deviceId);
-                    videoInputMenu = false;
-                  "
+                  @click="setVideoInput(device.deviceId)"
                 >
                   {{ device.label }}
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between h-12">
+          <p class="font-bold">UI Color</p>
+          <div class="flex flex-col">
+            <div
+              class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+              @click="accentColorMenu = !accentColorMenu"
+            >
+              <div class="flex items-center space-x-2">
+                <div
+                  class="p-2 rounded-full"
+                  :class="`bg-${accentColor}-500`"
+                />
+                <p>
+                  {{
+                    `${accentColor
+                      .slice(0, 1)
+                      .toUpperCase()}${accentColor.slice(1)}`
+                  }}
+                </p>
+              </div>
+              <ArrowDownIcon class="h-4" />
+            </div>
+            <div class="relative">
+              <div
+                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+                v-if="accentColorMenu"
+              >
+                <div
+                  class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
+                  v-for="usableAccent in usableAccentColors"
+                  v-bind:key="usableAccent"
+                  @click="setAccentColor(usableAccent)"
+                >
+                  <div
+                    class="p-2 rounded-full"
+                    :class="`bg-${usableAccent}-500`"
+                  />
+                  <p>
+                    {{
+                      `${usableAccent
+                        .slice(0, 1)
+                        .toUpperCase()}${usableAccent.slice(1)}`
+                    }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -221,7 +264,10 @@
       @close="setPasswordModal = false"
     />
     <TotpEnableModal v-if="totpEnableModal" @close="totpEnableModal = false" />
-    <TotpDisableModal v-if="totpDisableModal" @close="totpDisableModal = false" />
+    <TotpDisableModal
+      v-if="totpDisableModal"
+      @close="totpDisableModal = false"
+    />
   </div>
 </template>
 
@@ -242,6 +288,26 @@ export default {
       setPasswordModal: false,
       totpEnableModal: false,
       totpDisableModal: false,
+      accentColorMenu: false,
+      usableAccentColors: [
+        "red",
+        "orange",
+        "amber",
+        "yellow",
+        "lime",
+        "green",
+        "emerald",
+        "teal",
+        "cyan",
+        "lightBlue",
+        "blue",
+        "indigo",
+        "violet",
+        "purple",
+        "fuchsia",
+        "pink",
+        "rose",
+      ],
     };
   },
   computed: {
@@ -293,6 +359,9 @@ export default {
         }
       },
     },
+    accentColor() {
+      return this.$store.getters.accentColor;
+    },
   },
   methods: {
     async logout() {
@@ -304,12 +373,19 @@ export default {
     },
     setAudioOutput(id) {
       this.$store.dispatch("setAudioOutput", id);
+      this.audioOutputMenu = false;
     },
     setAudioInput(id) {
       this.$store.dispatch("setAudioInput", id);
+      this.audioInputMenu = false;
     },
     setVideoInput(id) {
       this.$store.dispatch("setVideoInput", id);
+      this.videoInputMenu = false;
+    },
+    setAccentColor(accentColor) {
+      this.$store.dispatch("setAccentColor", accentColor);
+      this.accentColorMenu = false;
     },
   },
   async mounted() {

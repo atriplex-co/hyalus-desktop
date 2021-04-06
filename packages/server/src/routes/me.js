@@ -5,18 +5,6 @@ const user = require("../middleware/user");
 const validation = require("../middleware/validation");
 const Joi = require("joi");
 
-app.get("/", session, user, async (req, res) => {
-  res.json({
-    id: req.user._id,
-    name: req.user.name,
-    username: req.user.username,
-    avatar: req.user.avatar,
-    createdAt: req.user.createdAt,
-    updatedAt: req.user.updatedAt,
-    totpEnabled: Boolean(req.user.totpSecret),
-  });
-});
-
 app.post(
   "/",
   session,
@@ -42,6 +30,25 @@ app.post(
       encryptedPrivateKey: Joi.string()
         .length(96)
         .base64(),
+      accentColor: Joi.string().valid(
+        "red",
+        "orange",
+        "amber",
+        "yellow",
+        "lime",
+        "green",
+        "emerald",
+        "teal",
+        "cyan",
+        "lightBlue",
+        "blue",
+        "indigo",
+        "violet",
+        "purple",
+        "fuchsia",
+        "pink",
+        "rose"
+      ),
     })
   ),
   async (req, res) => {
@@ -108,6 +115,9 @@ app.post(
         d: req.body,
       });
     }
+
+    //fields that should not be exposed outside of the current user.
+    delete req.body.accentColor;
 
     //propegate changes to friends
     const friends = await (
