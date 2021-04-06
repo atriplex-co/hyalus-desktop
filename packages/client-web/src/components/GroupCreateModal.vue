@@ -28,9 +28,7 @@
           </div>
           <div class="space-y-2">
             <p class="text-sm text-gray-500">Friends</p>
-            <div
-              class="bg-gray-900 border rounded-md border-gray-750"
-            >
+            <div class="bg-gray-900 border rounded-md border-gray-750">
               <input
                 class="w-full px-4 py-2 -m-px text-gray-400 bg-transparent border rounded-sm border-gray-750 focus:outline-none focus:border-gray-650"
                 type="text"
@@ -57,7 +55,7 @@
                         </p>
                       </div>
                     </div>
-                    <input type="checkbox" v-model="friend.selected" />
+                    <Checkbox v-model="friend.selected" />
                   </div>
                 </div>
                 <div
@@ -96,11 +94,16 @@
 export default {
   props: ["selected"],
   data() {
-    const friends = this.$store.getters.friends;
+    const friends = [];
 
-    for (const friend of friends.filter((f) => f.accepted)) {
-      friend.selected = friend.user.id === this.selected;
-    }
+    this.$store.getters.friends
+      .filter((friend) => friend.accepted)
+      .map((friend) => {
+        friends.push({
+          ...friend,
+          selected: friend.user.id === this.selected,
+        });
+      });
 
     return {
       error: null,
@@ -133,6 +136,7 @@ export default {
     GroupIcon: () => import("../icons/Group"),
     UserAvatar: () => import("./UserAvatar"),
     ErrorIcon: () => import("../icons/Error"),
+    Checkbox: () => import("../components/Checkbox"),
   },
 };
 </script>

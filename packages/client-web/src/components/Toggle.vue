@@ -13,8 +13,6 @@
 
 <script>
 export default {
-  props: {
-    value: Boolean,
-  },
+  props: ["value"],
 };
 </script>
