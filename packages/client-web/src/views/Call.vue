@@ -4,7 +4,7 @@
     <div class="flex flex-col flex-1" v-if="channel && voice">
       <div class="flex-1 overflow-auto p-4 space-y-2">
         <div
-          class="px-4 py-2 text-sm bg-gray-850 rounded-md overflow-hidden border-gray-700 border flex items-center space-x-4"
+          class="px-4 py-2 text-sm bg-gray-850 rounded-md overflow-hidden border-gray-700 border flex items-center space-x-4 shadow-lg"
         >
           <WarningIcon class="w-4 h-4 text-gray-400" />
           <p>While calls are fairly stable, the UI is not finished yet.</p>

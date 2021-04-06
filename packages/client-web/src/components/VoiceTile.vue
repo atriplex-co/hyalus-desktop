@@ -3,7 +3,7 @@
         <UserAvatar class="w-32 h-32 rounded-full" :id="tile.user.avatar" />
       </div> -->
 
-  <div class="relative rounded-md overflow-hidden border border-gray-700">
+  <div class="relative rounded-md overflow-hidden border border-gray-700 shadow-lg">
     <div class="aspect-w-16 aspect-h-9 bg-gray-850" />
     <div class="absolute inset-0 flex items-center justify-center">
       <video

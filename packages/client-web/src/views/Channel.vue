@@ -86,7 +86,7 @@
           @scroll="messagesScroll"
         >
           <div
-            class="px-4 py-2 text-sm bg-gray-800 w-full sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4"
+            class="px-4 py-2 text-sm bg-gray-800 w-full sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4 shadow-lg"
             v-if="typingStatus"
           >
             <PencilIcon class="w-4 h-4 text-gray-400" />
