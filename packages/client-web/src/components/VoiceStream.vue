@@ -1,20 +1,10 @@
 <template>
   <div>
-    <p>{{ stream }}</p>
-    <audio
-      class="outline-none"
-      v-if="stream.type === 'audio' || stream.type === 'displayAudio'"
-      controls="true"
-      autoplay="true"
-      :srcObject.prop="playerSrc"
-      ref="player"
-    ></audio>
     <video
       class="outline-none"
-      v-if="stream.type === 'video' || stream.type === 'displayVideo'"
-      controls="true"
-      autoplay="true"
-      :srcObject.prop="playerSrc"
+      v-if="stream.track.kind === 'video'"
+      autoplay
+      :srcObject.prop="src"
       ref="player"
     ></video>
   </div>
@@ -24,12 +14,9 @@
 export default {
   props: ["stream"],
   computed: {
-    playerSrc() {
+    src() {
       return new MediaStream([this.stream.track]);
     },
-  },
-  mounted() {
-    this.$refs.player.setSinkId(this.$store.getters.audioOutput);
   },
 };
 </script>

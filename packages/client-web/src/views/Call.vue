@@ -2,11 +2,14 @@
   <div class="flex h-full">
     <Sidebar />
     <div class="flex flex-col flex-1" v-if="channel && voice">
-      <div class="flex-1 overflow-auto">
-        <p class="px-4 py-2 text-sm bg-gray-800">
-          While calls are fairly stable, the UI is not finished yet.
-        </p>
-        <VoiceUser v-for="user in users" v-bind:key="user.id" :user="user" />
+      <div class="flex-1 overflow-auto p-4 space-y-2">
+        <div
+          class="px-4 py-2 text-sm bg-gray-850 rounded-md overflow-hidden border-gray-700 border flex items-center space-x-4"
+        >
+          <WarningIcon class="w-4 h-4 text-gray-400" />
+          <p>While calls are fairly stable, the UI is not finished yet.</p>
+        </div>
+        <VoiceTile v-for="tile in tiles" v-bind:key="tile.id" :tile="tile" />
       </div>
       <div
         class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800"
@@ -57,6 +60,8 @@ export default {
   data() {
     return {
       screenshareModal: false,
+      // tiles: [],
+      // updateTilesInterval: null,
     };
   },
   computed: {
@@ -65,11 +70,6 @@ export default {
     },
     channel() {
       return this.$store.getters.channelById(this.$route.params.channel);
-    },
-    users() {
-      if (this.channel) {
-        return this.channel.users.filter((u) => u.voiceConnected);
-      }
     },
     audioEnabled() {
       if (this.voice) {
@@ -85,6 +85,54 @@ export default {
       if (this.voice) {
         return this.$store.getters.localStream("displayVideo");
       }
+    },
+    tiles() {
+      const tiles = [];
+
+      this.channel.users
+        .filter((user) => user.voiceConnected)
+        .map((user) => {
+          const userTiles = [];
+
+          const streams = this.$store.getters.voice.remoteStreams.filter(
+            (stream) => stream.user === user.id
+          );
+
+          const videoStream = streams.find((stream) => stream.type === "video");
+          const displayVideoStream = streams.find(
+            (stream) => stream.type === "displayVideo"
+          );
+          const audioStream = streams.find((stream) => stream.type === "audio");
+
+          if (videoStream) {
+            userTiles.push({
+              user,
+              stream: videoStream,
+            });
+          }
+
+          if (displayVideoStream) {
+            userTiles.push({
+              user,
+              stream: displayVideoStream,
+            });
+          }
+
+          if (!userTiles.length) {
+            userTiles.push({
+              user,
+              stream: audioStream,
+            });
+          }
+
+          tiles.push(...userTiles);
+        });
+
+      tiles.map((tile) => {
+        tile.id = `${tile.user.id}:${tile.stream?.type || "none"}`;
+      });
+
+      return tiles;
     },
   },
   methods: {
@@ -119,6 +167,9 @@ export default {
       document.title = "Hyalus";
     }
   },
+  beforeMount() {
+    //
+  },
   beforeDestroy() {
     document.title = "Hyalus";
   },
@@ -131,6 +182,8 @@ export default {
     VideoIcon: () => import("../icons/Video"),
     DisplayIcon: () => import("../icons/Display"),
     ScreenshareModal: () => import("../components/ScreenshareModal"),
+    VoiceTile: () => import("../components/VoiceTile"),
+    WarningIcon: () => import("../icons/Warning"),
   },
 };
 </script>

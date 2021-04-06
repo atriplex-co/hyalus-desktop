@@ -1297,8 +1297,13 @@ export default new Vuex.Store({
       };
 
       peer.ontrack = ({ track }) => {
-        if (Vue.config.devtools) {
-          console.log(track);
+        const el = document.createElement(track.kind);
+        el.srcObject = new MediaStream([track]);
+        el.controls = false;
+        el.play();
+
+        if (track.kind === "audio") {
+          el.setSinkId(getters.audioOutput);
         }
 
         commit("setRemoteStream", {
@@ -1306,6 +1311,7 @@ export default new Vuex.Store({
           type: data.type,
           track,
           peer,
+          el,
         });
       };
 

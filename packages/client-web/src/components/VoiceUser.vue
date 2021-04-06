@@ -1,6 +1,5 @@
 <template>
   <div>
-    <p>{{ user }}</p>
     <VoiceStream
       v-for="stream in streams"
       v-bind:key="stream.type"
