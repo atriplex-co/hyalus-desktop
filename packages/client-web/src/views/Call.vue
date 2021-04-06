@@ -201,7 +201,6 @@ export default {
   components: {
     Sidebar: () => import("../components/Sidebar"),
     ErrorIcon: () => import("../icons/Error"),
-    VoiceUser: () => import("../components/VoiceUser"),
     PhoneIcon: () => import("../icons/Phone"),
     MicrophoneIcon: () => import("../icons/Microphone"),
     VideoIcon: () => import("../icons/Video"),
