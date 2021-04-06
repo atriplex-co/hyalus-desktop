@@ -354,7 +354,9 @@ export default new Vuex.Store({
           channel.lastMessage = merged;
         }
 
-        if (state.ready && merged.sender !== state.user.id) {
+        if (state.ready && merged.sender !== state.user.id && !message.silent) {
+          sender.lastTyping = 0;
+
           let playSound = false;
 
           if (document.visibilityState === "hidden") {
@@ -375,7 +377,7 @@ export default new Vuex.Store({
             playSound = false;
           }
 
-          if (!message.silent && playSound) {
+          if (playSound) {
             try {
               new Audio(sndNotification).play();
             } catch {}
