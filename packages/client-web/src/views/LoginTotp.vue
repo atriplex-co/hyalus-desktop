@@ -4,7 +4,7 @@
       class="flex flex-col w-full max-w-sm border rounded-md bg-gray-850 border-gray-750"
     >
       <div class="p-8 border-b border-gray-750">
-        <img class="w-16 h-16" src="../images/icon.webp" />
+        <AppIcon class="w-16 h-16" />
         <p class="mt-6 text-3xl font-bold">2FA Verification</p>
       </div>
       <div
@@ -72,6 +72,9 @@ export default {
       this.$store.dispatch("clearTotpTicket");
       this.$router.push("/login");
     },
+  },
+  components: {
+    AppIcon: () => import("../icons/App"),
   },
 };
 </script>

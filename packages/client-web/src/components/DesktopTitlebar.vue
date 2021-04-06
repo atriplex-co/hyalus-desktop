@@ -1,7 +1,7 @@
 <template>
   <div class="flex text-sm border-b border-gray-800">
     <div class="flex items-center flex-1 px-2 space-x-2 select-none draggable">
-      <img class="w-4 h-4" src="../images/icon.webp" />
+      <AppIcon class="w-4 h-4" />
       <p>{{ title }}</p>
     </div>
     <div class="flex">
@@ -49,6 +49,7 @@ export default {
   },
   components: {
     LetterXIcon: () => import("../icons/LetterX"),
+    AppIcon: () => import("../icons/App"),
   },
 };
 </script>
