@@ -24,6 +24,23 @@ module.exports = {
           850: "#202023",
           900: "#18181B",
         },
+        red: colors.red,
+        orange: colors.orange,
+        amber: colors.amber,
+        yellow: colors.yellow,
+        lime: colors.lime,
+        green: colors.green,
+        emerald: colors.emerald,
+        teal: colors.teal,
+        cyan: colors.cyan,
+        lightBlue: colors.lightBlue,
+        blue: colors.blue,
+        indigo: colors.indigo,
+        violet: colors.violet,
+        purple: colors.purple,
+        fuchsia: colors.fuchsia,
+        pink: colors.pink,
+        rose: colors.rose,
       },
       minWidth: {
         "1/2": "50%",
@@ -75,7 +92,8 @@ module.exports = {
           "pink",
           "rose",
         ].map((accent) => ({
-          selectors: [`accent-${accent}`],
+          name: `accent-${accent}`,
+          selectors: [`.accent-${accent}`],
           theme: {
             colors: {
               primary: colors[accent],

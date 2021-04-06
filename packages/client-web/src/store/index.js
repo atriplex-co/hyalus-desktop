@@ -1778,5 +1778,8 @@ export default new Vuex.Store({
         } catch {}
       }
     },
+    async setAccentColor({}, accentColor) {
+      await axios.post("/api/me", { accentColor });
+    },
   },
 });
