@@ -747,38 +747,26 @@ export default new Vuex.Store({
         }
       };
 
+      ws.onopen = () => {
+        ws.send({
+          t: "start",
+          d: {
+            token: getters.token,
+          },
+        });
+      };
+
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (Vue.config.devtools && data.t !== "keepaliveAck") {
+        if (Vue.config.devtools && data.t !== "ping") {
           console.log(data);
         }
 
-        if (data.t === "hello") {
-          ws.keepaliveSender = setInterval(() => {
-            ws.send({
-              t: "keepalive",
-            });
-          }, data.d.keepalive);
-
-          ws.idleTimeout = setInterval(() => {
-            if (Date.now() - ws.lastKeepalive > data.d.keepalive * 2) {
-              ws.close();
-            }
-          }, 1000);
-
-          ws.lastKeepalive = Date.now();
-
+        if (data.t === "ping") {
           ws.send({
-            t: "start",
-            d: {
-              token: getters.token,
-            },
+            t: "pong",
           });
-        }
-
-        if (data.t === "keepaliveAck") {
-          ws.lastKeepalive = Date.now();
         }
 
         if (data.t === "close") {
@@ -911,9 +899,6 @@ export default new Vuex.Store({
       };
 
       ws.onclose = () => {
-        clearInterval(ws.idleTimeout);
-        clearInterval(ws.keepaliveSender);
-
         commit("setReady", false);
 
         setTimeout(() => {
