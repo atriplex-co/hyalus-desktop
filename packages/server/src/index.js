@@ -2,7 +2,6 @@ const http = require("http");
 const winston = require("winston");
 const { MongoClient } = require("mongodb");
 const express = require("express");
-const WebSocket = require("ws");
 const morgan = require("morgan");
 const Redis = require("ioredis");
 const msgpack = require("msgpack-lite");
@@ -35,19 +34,6 @@ const log = winston.createLogger({
 const deps = {};
 const app = express();
 const server = http.createServer(app);
-
-// const wss = new WebSocket.Server({
-//   server,
-//   path: "/api/ws",
-// });
-
-// wss.send = (filter, message) => {
-//   for (const ws of [...wss.clients].filter(filter)) {
-//     ws.send(message);
-//   }
-// };
-
-// wss.on("connection", require("./routes/socket")(deps));
 
 const wss = require("./routes/ws")(server, deps);
 
