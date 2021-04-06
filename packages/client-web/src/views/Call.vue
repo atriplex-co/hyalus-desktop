@@ -89,6 +89,31 @@ export default {
     tiles() {
       const tiles = [];
 
+      const localVideo = this.$store.getters.localStream("video");
+      const localDisplayVideo = this.$store.getters.localStream("displayVideo");
+      const localAudio = this.$store.getters.localStream("audio");
+
+      if (localVideo) {
+        tiles.push({
+          user: this.$store.getters.user,
+          stream: localVideo,
+        });
+      }
+
+      if (localDisplayVideo) {
+        tiles.push({
+          user: this.$store.getters.user,
+          stream: localDisplayVideo,
+        });
+      }
+
+      if (!tiles.length) {
+        tiles.push({
+          user: this.$store.getters.user,
+          stream: localAudio,
+        });
+      }
+
       this.channel.users
         .filter((user) => user.voiceConnected)
         .map((user) => {
