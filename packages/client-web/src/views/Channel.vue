@@ -167,11 +167,11 @@ export default {
     description() {
       let description = "";
 
-      if (this.channel.type === "dm") {
+      if (this.channel?.type === "dm") {
         description = `@${this.channel.users[0].username}`;
       }
 
-      if (this.channel.type === "group") {
+      if (this.channel?.type === "group") {
         const users = this.channel.users.filter((u) => !u.removed);
 
         description = `${users.length + 1} member${users.length ? "s" : ""}`;
@@ -180,10 +180,10 @@ export default {
       return description;
     },
     voiceUsers() {
-      return this.channel.users.filter((u) => u.voiceConnected);
+      return this.channel?.users.filter((u) => u.voiceConnected);
     },
     voiceUsersShown() {
-      return this.voiceUsers.slice(0, this.voiceUsers.length > 4 ? 3 : 4);
+      return this.voiceUsers?.slice(0, this.voiceUsers.length > 4 ? 3 : 4);
     },
   },
   methods: {
@@ -254,6 +254,10 @@ export default {
       }
     },
     updateTypingStatus() {
+      if (!this.channel) {
+        return;
+      }
+
       const users = this.channel.users
         .filter((u) => u.lastTyping > Date.now() - 1000 * 5)
         .map((u) => u.name);
@@ -288,14 +292,16 @@ export default {
     const msgEl = this.$refs.messages;
     const msgBox = this.$refs.msgBox;
 
-    if (
-      (msgEl && msgEl.scrollTop === this.lastScrollTop) ||
-      this.lastChannel !== this.channel
-    ) {
-      msgEl.scrollTop = msgEl.scrollHeight;
-      this.lastScrollTop = msgEl.scrollTop;
-    } else {
-      this.lastScrollTop = msgEl.scrollHeight - msgEl.clientHeight;
+    if (msgEl) {
+      if (
+        msgEl.scrollTop === this.lastScrollTop ||
+        this.lastChannel !== this.channel
+      ) {
+        msgEl.scrollTop = msgEl.scrollHeight;
+        this.lastScrollTop = msgEl.scrollTop;
+      } else {
+        this.lastScrollTop = msgEl.scrollHeight - msgEl.clientHeight;
+      }
     }
 
     if (this.channel) {
