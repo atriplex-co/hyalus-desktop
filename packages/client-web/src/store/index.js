@@ -54,6 +54,7 @@ export default new Vuex.Store({
     symKey: null,
     baseUrl: null,
     ready: false,
+    faviconEl: null,
   },
   getters: {
     config: (state) => state.config,
@@ -509,6 +510,16 @@ export default new Vuex.Store({
     removeQueuedIce(state, ice) {
       state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
     },
+    setFavicon(state, href) {
+      if (!state.faviconEl) {
+        state.faviconEl = document.createElement("link");
+        state.faviconEl.rel = "shortcut link";
+
+        document.querySelector("head").appendChild(state.faviconEl);
+      }
+
+      state.faviconEl.href = href;
+    },
   },
   actions: {
     async register({ commit, dispatch }, data) {
@@ -776,6 +787,7 @@ export default new Vuex.Store({
 
         if (data.t === "ready") {
           commit("setUser", data.d.user);
+          commit("updateFavicon");
 
           data.d.friends.map((friend) => {
             commit("setFriend", friend);
@@ -812,6 +824,10 @@ export default new Vuex.Store({
 
         if (data.t === "user") {
           commit("setUser", data.d);
+
+          if (data.d.accentColor) {
+            commit("updateFavicon");
+          }
         }
 
         if (data.t === "friend") {
@@ -1780,6 +1796,13 @@ export default new Vuex.Store({
     },
     async setAccentColor({}, accentColor) {
       await axios.post("/api/me", { accentColor });
+    },
+    async updateFavicon({ commit }) {
+      const icon = await import(
+        `../images/icon-${state.user?.accentColor || "green"}.webp`
+      );
+
+      commit("setFavicon", icon.default);
     },
   },
 });
