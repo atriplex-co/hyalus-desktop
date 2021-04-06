@@ -20,11 +20,14 @@
         <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
           {{ sender.name }}
         </p>
-        <div class="text-sm break-words whitespace-pre-wrap" v-html="body"></div>
+        <div
+          class="text-sm break-words whitespace-pre-wrap"
+          v-html="body"
+        ></div>
         <p
           class="text-xs"
           :class="{
-            'text-white': sentByMe,
+            'text-primary-200': sentByMe,
             'text-gray-400': !sentByMe,
           }"
         >
