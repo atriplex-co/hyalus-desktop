@@ -100,7 +100,17 @@ const wss = require("./routes/ws")(server, deps);
       },
     })
   );
-  app.use(express.static("../client-web/dist"));
+  app.use(
+    express.static("../client-web/dist", {
+      setHeaders(res, path) {
+        if (path.endsWith(".html")) {
+          res.set("Cache-Control", "no-cache");
+        } else {
+          res.set("Cache-Control", "max-age=31536000");
+        }
+      },
+    })
+  );
   app.use(express.json());
   app.use("/api/me", require("./routes/me"));
   app.use("/api/prelogin", require("./routes/prelogin"));
