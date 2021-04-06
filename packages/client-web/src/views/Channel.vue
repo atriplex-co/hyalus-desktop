@@ -79,12 +79,19 @@
       <p class="px-4 py-2 text-sm bg-gray-800" v-if="!channel.writable">
         You can't send messages in this channel.
       </p>
-      <div class="flex flex-1 min-h-0">
+      <div class="flex flex-1 min-h-0 relative">
         <div
           ref="messages"
           class="flex flex-col flex-1 p-2 space-y-1 overflow-auto"
           @scroll="messagesScroll"
         >
+          <div
+            class="px-4 py-2 text-sm bg-gray-800 w-full z-10 sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4"
+            v-if="typingStatus"
+          >
+            <PencilIcon class="w-4 h-4 text-gray-400" />
+            <p>{{ typingStatus }}</p>
+          </div>
           <ChannelMessage
             v-for="message in channel.messages"
             v-bind:key="message.id"
@@ -92,9 +99,6 @@
           />
         </div>
         <GroupSidebar v-if="groupMembers" :channel="channel" />
-      </div>
-      <div class="px-4 py-2 text-sm bg-gray-800" v-if="typingStatus">
-        {{ typingStatus }}
       </div>
       <div
         class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
@@ -329,6 +333,7 @@ export default {
     GroupCreateModal: () => import("../components/GroupCreateModal"),
     GroupAddModal: () => import("../components/GroupAddModal"),
     GroupSidebar: () => import("../components/GroupSidebar"),
+    PencilIcon: () => import("../icons/Pencil"),
   },
 };
 </script>
