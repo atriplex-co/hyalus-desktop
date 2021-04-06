@@ -45,7 +45,7 @@ export default {
       }
 
       if (duration.asDays() >= 1) {
-        this.time = moment.utc(duration.asMilliseconds()).format("dd:HH:mm:ss");
+        this.time = moment.utc(duration.asMilliseconds()).format("DD:HH:mm:ss");
       }
     },
   },
