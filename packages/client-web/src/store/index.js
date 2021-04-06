@@ -341,6 +341,10 @@ export default new Vuex.Store({
           merged.event = `${sender.name} removed ${target.name}`;
         }
 
+        if (merged.type === "channelUserLeave") {
+          merged.event = `${sender.name} left the group`;
+        }
+
         channel.messages.push(merged);
         channel.messages = channel.messages.sort((a, b) => {
           return a.id > b.id ? 1 : -1;
@@ -1787,6 +1791,9 @@ export default new Vuex.Store({
     async updateFavicon({ getters, commit }) {
       const icon = await import(`../images/icon-${getters.accentColor}.webp`);
       commit("setFavicon", icon.default);
+    },
+    async leaveChannel({}, id) {
+      await axios.post(`/api/channels/${id}/leave`);
     },
   },
 });
