@@ -958,4 +958,100 @@ app.delete("/:channel/users/:user", session, async (req, res) => {
   res.status(204).end();
 });
 
+app.post("/:channel/leave", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.channel)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
+  const channel = await req.deps.db.collection("channels").findOne({
+    _id: new ObjectId(req.params.channel),
+    users: {
+      $elemMatch: {
+        id: req.session.user,
+        removed: false,
+      },
+    },
+  });
+
+  if (!channel) {
+    return res.status(404).json({
+      error: "Channel not found",
+    });
+  }
+
+  if (channel.type === "dm") {
+    return res.status(400).json({
+      error: "You cannot leave a DM channel",
+    });
+  }
+
+  if (channel.users.filter((user) => !user.removed).length === 1) {
+    await req.deps.db.collection("channels").deleteOne(channel);
+  } else {
+    await req.deps.db.collection("channels").updateOne(
+      {
+        _id: channel._id,
+        users: {
+          $elemMatch: {
+            id: req.session.user,
+          },
+        },
+      },
+      {
+        $set: {
+          "users.$.removed": true,
+        },
+      }
+    );
+
+    const message = (
+      await req.deps.db.collection("messages").insertOne({
+        channel: channel._id,
+        sender: req.session.user,
+        type: "channelUserLeave",
+        time: Date.now(),
+        body: null,
+        keys: null,
+      })
+    ).ops[0];
+
+    for (const user of channel.users
+      .filter((user) => !user.removed)
+      .filter((user) => !user.id.equals(req.session.user))) {
+      await req.deps.redis.publish(`user:${user.id}`, {
+        t: "channelUser",
+        d: {
+          channel: channel._id.toString(),
+          id: req.session.user.toString(),
+          removed: true,
+        },
+      });
+
+      await req.deps.redis.publish(`user:${user.id}`, {
+        t: "message",
+        d: {
+          channel: channel._id.toString(),
+          id: message._id.toString(),
+          sender: message.sender.toString(),
+          type: message.type,
+          body: message.body,
+          key: null,
+        },
+      });
+    }
+  }
+
+  await req.deps.redis.publish(`user:${req.session.user}`, {
+    t: "channel",
+    d: {
+      id: channel._id.toString(),
+      delete: true,
+    },
+  });
+
+  res.status(204).end();
+});
+
 module.exports = app;
