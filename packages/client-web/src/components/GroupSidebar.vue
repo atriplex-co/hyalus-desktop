@@ -58,6 +58,7 @@ export default {
   methods: {
     leave() {
       this.$store.dispatch("leaveChannel", this.channel.id);
+      this.$router.push("/app");
     },
   },
   components: {
