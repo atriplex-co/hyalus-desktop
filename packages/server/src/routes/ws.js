@@ -25,6 +25,8 @@ const setup = () => {
     ws.alive = true;
 
     ws.on("message", (msg) => {
+      ws.alive = true;
+
       try {
         msg = msgpack.decode(msg);
       } catch {
@@ -54,14 +56,7 @@ const setup = () => {
       ];
 
       if (!knownTypes.find((t) => t === msg.t)) {
-        ws.send({
-          t: "close",
-          d: {
-            reason: "invalid-type",
-          },
-        });
-
-        return ws.close();
+        return;
       }
 
       try {
