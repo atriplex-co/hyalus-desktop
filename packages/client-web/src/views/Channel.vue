@@ -278,12 +278,13 @@ export default {
         this.typingStatus = "Many users are typing...";
       }
     },
+    updateMessages() {
+      if (this.channel && !this.channel.updated) {
+        this.$store.dispatch("updateChannel", this.channel.id);
+      }
+    },
   },
   updated() {
-    if (this.channel && !this.channel.updated) {
-      this.$store.dispatch("updateChannel", this.channel.id);
-    }
-
     const msgEl = this.$refs.messages;
     const msgBox = this.$refs.msgBox;
 
@@ -310,12 +311,19 @@ export default {
     this.lastChannel = this.channel;
   },
   beforeMount() {
+    this.updateMessages();
     this.updateTypingStatus();
     this.typingStatusInterval = setInterval(this.updateTypingStatus, 100);
   },
   beforeDestroy() {
     document.title = "Hyalus";
     clearInterval(this.typingStatusInterval);
+  },
+  watch: {
+    $route() {
+      this.updateMessages();
+      this.updateTypingStatus();
+    },
   },
   components: {
     UserAvatar: () => import("../components/UserAvatar"),
