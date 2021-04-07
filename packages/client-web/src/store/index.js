@@ -1439,6 +1439,11 @@ export default new Vuex.Store({
         await stream.peer.addIceCandidate(candidate);
       } else {
         const stream = getters.localStream(data.type);
+
+        if (!stream) {
+          return;
+        }
+
         const peer = stream.peers[data.user];
 
         if (!peer) {
