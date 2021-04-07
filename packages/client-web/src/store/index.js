@@ -1847,7 +1847,7 @@ export default new Vuex.Store({
     async leaveChannel({}, id) {
       await axios.post(`/api/channels/${id}/leave`);
     },
-    toggleDeaf({ getters, commit }) {
+    toggleDeaf({ getters, commit, dispatch }) {
       if (getters.voice.deaf) {
         getters.voice.remoteStreams
           .filter((stream) => stream.track.kind === "audio")
@@ -1867,6 +1867,12 @@ export default new Vuex.Store({
         .map((stream) => {
           stream.track.enabled = false;
         });
+
+      if (getters.localStream("audio")) {
+        dispatch("toggleAudio", {
+          silent: true,
+        });
+      }
 
       try {
         new Audio(sndNavBackwardMin).play();
