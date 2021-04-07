@@ -13,7 +13,7 @@
       <div
         class="max-w-md p-2 rounded-md"
         :class="{
-          'bg-primary-500 text-white': sentByMe,
+          'bg-gradient-to-br from-primary-500 to-primary-600 text-white': sentByMe,
           'bg-gray-800': !sentByMe,
         }"
       >
