@@ -10,6 +10,9 @@
   >
     <video
       class="w-full h-full"
+      :class="{
+        'object-cover': coverEdges,
+      }"
       :srcObject.prop="srcObject"
       v-if="srcObject"
       autoplay
@@ -50,6 +53,9 @@ export default {
       if (this.tile.stream?.track.kind === "video") {
         return new MediaStream([this.tile.stream.track]);
       }
+    },
+    coverEdges() {
+      return this.tile.stream?.type !== "displayVideo";
     },
   },
   methods: {
