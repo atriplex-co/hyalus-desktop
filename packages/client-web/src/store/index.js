@@ -194,6 +194,28 @@ export default new Vuex.Store({
 
       if (!merged.delete) {
         state.friends.push(merged);
+
+        if (state.ready && merged.acceptable) {
+          try {
+            new Audio(sndNotification).play();
+          } catch {}
+
+          if (typeof process === "undefined") {
+            let icon;
+
+            if (merged.user.avatar === "default") {
+              icon = userImage;
+            } else {
+              icon = `${state.baseUrl}/api/avatars/${merged.user.avatar}`;
+            }
+
+            new Notification(merged.user.name, {
+              icon,
+              silent: true,
+              body: "Sent you a friend request",
+            });
+          }
+        }
       }
     },
     setFriendUser(state, friendUser) {
