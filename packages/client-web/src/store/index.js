@@ -514,7 +514,9 @@ export default new Vuex.Store({
       state.voice.queuedIce.push(ice);
     },
     removeQueuedIce(state, ice) {
-      state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
+      if (state.voice) {
+        state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
+      }
     },
     setFavicon(state, href) {
       if (!state.faviconEl) {
