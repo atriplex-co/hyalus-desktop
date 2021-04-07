@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-center group"
+    class="flex items-center justify-center group overflow-hidden"
     :class="{
       'bg-gray-900': srcObject,
       'bg-gray-850': !srcObject,
