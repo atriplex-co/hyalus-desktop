@@ -13,6 +13,8 @@ import userImage from "../images/user.webp";
 import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
+import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
+import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
 
 Vue.use(Vuex);
 
@@ -183,10 +185,15 @@ export default new Vuex.Store({
       }
     },
     setFriend(state, friend) {
-      const oldFriend = state.friends.find((f) => f.id === friend.id);
+      const merged = {
+        ...state.friends.find((f) => f.id === friend.id),
+        ...friend,
+      };
+
       state.friends = state.friends.filter((f) => f.id !== friend.id);
-      if (!friend.delete) {
-        state.friends.push({ ...oldFriend, ...friend });
+
+      if (!merged.delete) {
+        state.friends.push(merged);
       }
     },
     setFriendUser(state, friendUser) {
@@ -455,6 +462,7 @@ export default new Vuex.Store({
           remoteStreams: [],
           started: Date.now(),
           queuedIce: [],
+          deaf: false,
         };
       } else {
         state.voice = null;
@@ -527,6 +535,11 @@ export default new Vuex.Store({
       }
 
       state.faviconEl.href = href;
+    },
+    setDeaf(state, deaf) {
+      if (state.voice) {
+        state.voice.deaf = deaf;
+      }
     },
   },
   actions: {
@@ -1306,6 +1319,10 @@ export default new Vuex.Store({
 
         if (track.kind === "audio") {
           el.setSinkId(getters.audioOutput);
+
+          if (getters.voice.deaf) {
+            track.enabled = false;
+          }
         }
 
         commit("setRemoteStream", {
@@ -1807,6 +1824,33 @@ export default new Vuex.Store({
     },
     async leaveChannel({}, id) {
       await axios.post(`/api/channels/${id}/leave`);
+    },
+    toggleDeaf({ getters, commit }) {
+      if (getters.voice.deaf) {
+        getters.voice.remoteStreams
+          .filter((stream) => stream.track.kind === "audio")
+          .map((stream) => {
+            stream.track.enabled = true;
+          });
+
+        try {
+          new Audio(sndNavForwardMin).play();
+        } catch {}
+
+        return commit("setDeaf", false);
+      }
+
+      getters.voice.remoteStreams
+        .filter((stream) => stream.track.kind === "audio")
+        .map((stream) => {
+          stream.track.enabled = false;
+        });
+
+      try {
+        new Audio(sndNavBackwardMin).play();
+      } catch {}
+
+      commit("setDeaf", true);
     },
   },
 });

@@ -35,7 +35,13 @@
         class="bg-gray-800 flex items-center px-2 rounded-md border-gray-750 border shadow-md text-gray-400"
         v-if="isMuted"
       >
-        <MuteIcon class="w-4 h-4" />
+        <MicOffIcon class="w-4 h-4" />
+      </div>
+      <div
+        class="bg-gray-800 flex items-center px-2 rounded-md border-gray-750 border shadow-md text-gray-400"
+        v-if="isDisplay"
+      >
+        <DisplayIcon class="w-4 h-4" />
       </div>
     </div>
     <div
@@ -58,14 +64,10 @@ export default {
   data() {
     return {
       isFullscreen: false,
+      srcObject: null,
     };
   },
   computed: {
-    srcObject() {
-      if (this.tile.stream?.track.kind === "video") {
-        return new MediaStream([this.tile.stream.track]);
-      }
-    },
     coverEdges() {
       return this.tile.stream?.type !== "displayVideo";
     },
@@ -73,15 +75,28 @@ export default {
       //
     },
     isMuted() {
-      if (this.tile.stream?.type === "displayVideo") {
-        return false;
-      }
-
       if (this.tile.user === this.$store.getters.user) {
+        if (
+          this.tile.stream?.type === "displayVideo" &&
+          this.$store.getters.localStream("video")
+        ) {
+          return false;
+        }
+
         return !this.$store.getters.localStream("audio");
       } else {
+        if (
+          this.tile.stream?.type === "displayVideo" &&
+          this.$store.getters.remoteStream(this.tile.user.id, "video")
+        ) {
+          return false;
+        }
+
         return !this.$store.getters.remoteStream(this.tile.user.id, "audio");
       }
+    },
+    isDisplay() {
+      return this.tile.stream?.type === "displayVideo";
     },
   },
   methods: {
@@ -95,10 +110,16 @@ export default {
       this.isFullscreen = !this.isFullscreen;
     },
   },
+  mounted() {
+    if (this.tile.stream?.track.kind === "video") {
+      this.srcObject = new MediaStream([this.tile.stream.track]);
+    }
+  },
   components: {
     UserAvatar: () => import("./UserAvatar"),
     ExpandIcon: () => import("../icons/Expand"),
-    MuteIcon: () => import("../icons/Mute"),
+    DisplayIcon: () => import("../icons/Display"),
+    MicOffIcon: () => import("../icons/MicOff"),
   },
 };
 </script>

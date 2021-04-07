@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full min-h-0">
     <Sidebar />
-    <div class="flex flex-col flex-1 min-h-0" v-if="channel && voice">
+    <div class="flex flex-col flex-1 min-h-0 p-2" v-if="channel && voice">
       <div class="flex-1 relative" ref="tiles">
         <VoiceTile
           class="absolute"
@@ -10,38 +10,56 @@
           :tile="tile"
         />
       </div>
-      <div class="flex items-center justify-center p-4 space-x-4">
+      <div class="flex items-center justify-center space-x-4 pt-2 pb-3">
         <div @click="toggleAudio">
-          <MicrophoneIcon
-            class="w-12 h-12 p-3 rounded-full cursor-pointer"
+          <div
+            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
-              'text-white bg-gray-600': audioEnabled,
-              'text-gray-400 border border-gray-600': !audioEnabled,
+              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': audioEnabled,
+              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !audioEnabled,
             }"
-          />
+          >
+            <MicIcon v-if="audioEnabled" />
+            <MicOffIcon v-else />
+          </div>
         </div>
         <div @click="toggleVideo">
-          <VideoIcon
-            class="w-12 h-12 p-3 rounded-full cursor-pointer"
+          <div
+            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
-              'text-white bg-gray-600': videoEnabled,
-              'text-gray-400 border border-gray-600': !videoEnabled,
+              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': videoEnabled,
+              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !videoEnabled,
             }"
+          >
+            <VideoIcon v-if="videoEnabled" />
+            <VideoOffIcon v-else />
+          </div>
+        </div>
+        <div @click="leave">
+          <CallEndIcon
+            class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
           />
         </div>
         <div @click="toggleDisplay">
           <DisplayIcon
-            class="w-12 h-12 p-3 rounded-full cursor-pointer"
+            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
-              'text-white bg-gray-600': displayEnabled,
-              'text-gray-400 border border-gray-600': !displayEnabled,
+              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': displayEnabled,
+              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !displayEnabled,
             }"
           />
         </div>
-        <div @click="leave">
-          <PhoneIcon
-            class="w-12 h-12 p-3 text-white bg-red-500 rounded-full cursor-pointer"
-          />
+        <div @click="toggleDeaf">
+          <div
+            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+            :class="{
+              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': isDeaf,
+              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !isDeaf,
+            }"
+          >
+            <AudioOffIcon v-if="isDeaf" />
+            <AudioIcon v-else />
+          </div>
         </div>
       </div>
     </div>
@@ -154,6 +172,9 @@ export default {
 
       return tiles;
     },
+    isDeaf() {
+      return this.$store.getters.voice.deaf;
+    },
   },
   methods: {
     leave() {
@@ -194,7 +215,7 @@ export default {
         return;
       }
 
-      const gap = 10;
+      const gap = 12;
 
       let opts = [];
 
@@ -301,6 +322,9 @@ export default {
         }
       });
     },
+    toggleDeaf() {
+      this.$store.dispatch("toggleDeaf");
+    },
   },
   updated() {
     if (!this.channel || !this.voice) {
@@ -329,12 +353,17 @@ export default {
     Sidebar: () => import("../components/Sidebar"),
     ErrorIcon: () => import("../icons/Error"),
     PhoneIcon: () => import("../icons/Phone"),
-    MicrophoneIcon: () => import("../icons/Microphone"),
     VideoIcon: () => import("../icons/Video"),
     DisplayIcon: () => import("../icons/Display"),
     ScreenshareModal: () => import("../components/ScreenshareModal"),
     VoiceTile: () => import("../components/VoiceTile"),
     WarningIcon: () => import("../icons/Warning"),
+    CallEndIcon: () => import("../icons/CallEnd"),
+    MicIcon: () => import("../icons/Mic"),
+    MicOffIcon: () => import("../icons/MicOff"),
+    VideoOffIcon: () => import("../icons/VideoOff"),
+    AudioIcon: () => import("../icons/Audio"),
+    AudioOffIcon: () => import("../icons/AudioOff"),
   },
 };
 </script>
