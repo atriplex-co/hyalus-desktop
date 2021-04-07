@@ -236,13 +236,12 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-end h-12 mt-4">
-          <div
-            @click="logout"
-            class="flex items-center min-h-0 px-4 py-2 text-sm text-white transition bg-red-500 rounded-md shadow-sm cursor-pointer hover:bg-red-400"
-          >
-            <LogoutIcon class="h-2/3" />
-            <p class="ml-2">Sign out</p>
+        <div class="flex items-center justify-between h-12">
+          <p class="font-bold">Logout</p>
+          <div @click="logout">
+            <LogoutIcon
+              class="w-8 h-8 p-2 rounded-full bg-primary-500 hover:bg-primary-600 transition cursor-pointer"
+            />
           </div>
         </div>
       </div>
