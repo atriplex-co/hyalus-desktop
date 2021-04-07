@@ -106,7 +106,7 @@ const wss = require("./routes/ws")(server, deps);
         if (path.endsWith(".html")) {
           res.set("Cache-Control", "no-cache");
         } else {
-          res.set("Cache-Control", "max-age=31536000");
+          res.set("Cache-Control", "public, max-age=31536000");
         }
       },
     })

@@ -160,8 +160,8 @@ app.get("/:id", async (req, res) => {
     return;
   }
 
-  res.set("Cache-Control", "max-age=31536000");
   res.set("Content-Type", "image/webp");
+  res.set("Cache-Control", "public, max-age=31536000");
   res.send(avatar.img.buffer);
 });
 
