@@ -1,19 +1,16 @@
 <template>
-  <div class="flex h-full">
+  <div class="flex h-full min-h-0">
     <Sidebar />
-    <div class="flex flex-col flex-1" v-if="channel && voice">
-      <div class="flex-1 overflow-auto p-4 space-y-2">
-        <div
-          class="px-4 py-2 text-sm bg-gray-850 rounded-md overflow-hidden border-gray-700 border flex items-center space-x-4 shadow-lg"
-        >
-          <WarningIcon class="w-4 h-4 text-gray-400" />
-          <p>While calls are fairly stable, the UI is not finished yet.</p>
-        </div>
-        <VoiceTile v-for="tile in tiles" v-bind:key="tile.id" :tile="tile" />
+    <div class="flex flex-col flex-1 min-h-0" v-if="channel && voice">
+      <div class="flex-1 relative" ref="tiles">
+        <VoiceTile
+          class="absolute"
+          v-for="tile in tiles"
+          v-bind:key="tile.id"
+          :tile="tile"
+        />
       </div>
-      <div
-        class="flex items-center justify-center p-4 space-x-4 border-t border-gray-800"
-      >
+      <div class="flex items-center justify-center p-4 space-x-4">
         <div @click="toggleAudio">
           <MicrophoneIcon
             class="w-12 h-12 p-3 rounded-full cursor-pointer"
@@ -60,8 +57,6 @@ export default {
   data() {
     return {
       screenshareModal: false,
-      // tiles: [],
-      // updateTilesInterval: null,
     };
   },
   computed: {
@@ -157,6 +152,8 @@ export default {
         tile.id = `${tile.user.id}:${tile.stream?.type || "none"}`;
       });
 
+      console.log({ tiles });
+
       return tiles;
     },
   },
@@ -179,24 +176,156 @@ export default {
 
       this.$store.dispatch("toggleDisplay");
     },
+    updateTitle() {
+      if (this.channel) {
+        document.title = `Hyalus \u2022 ${this.channel.name}`;
+      } else {
+        document.title = "Hyalus";
+      }
+    },
+    updateLayout() {
+      const parent = this.$refs.tiles;
+
+      if (!parent) {
+        return;
+      }
+
+      const len = parent.children.length;
+
+      if (!len) {
+        return;
+      }
+
+      const gap = 10;
+
+      let opts = [];
+
+      for (let i = 0; i < len; i++) {
+        opts[i] = [];
+
+        let pos = 0;
+
+        for (let j = 0; j < len; j++) {
+          if (pos > i) {
+            pos = 0;
+          }
+
+          opts[i][pos] = (opts[i][pos] || 0) + 1;
+
+          pos++;
+        }
+      }
+
+      let bestOpt;
+      let bestOptAvg = 0;
+      let targetRatioWidth = 16;
+      let targetRatioHeight = 9;
+
+      opts.map((opt) => {
+        let sizes = [];
+        let rowSize = parent.offsetHeight / opt.length;
+
+        opt.map((row) => {
+          let colSize = parent.offsetWidth / row;
+          let ratio = colSize / rowSize;
+          let usableWidth;
+          let usableHeight;
+
+          if (ratio >= targetRatioWidth / targetRatioHeight) {
+            usableWidth = (rowSize / targetRatioHeight) * targetRatioWidth;
+            usableHeight = rowSize;
+          } else {
+            usableWidth = colSize;
+            usableHeight = (colSize / targetRatioWidth) * targetRatioHeight;
+          }
+
+          let usable = usableWidth * usableHeight;
+          sizes.push(usable);
+        });
+
+        let total = 0;
+        sizes.map((size) => {
+          total += size;
+        });
+
+        let avg = total / sizes.length;
+
+        if (avg > bestOptAvg) {
+          bestOpt = opt;
+          bestOptAvg = avg;
+        }
+      });
+
+      let width = parent.offsetWidth - (gap * bestOpt[0] + 1);
+      let cellWidth = width / bestOpt[0] - gap / 2;
+      let cellHeight = (cellWidth / targetRatioWidth) * targetRatioHeight;
+      cellWidth = Math.floor(cellWidth);
+      cellHeight = Math.floor(cellHeight);
+      let usedWidth = cellWidth * bestOpt[0] + gap * (bestOpt[0] - 1);
+      let usedHeight = cellHeight * bestOpt.length + gap * (bestOpt.length - 1);
+      let startX = Math.floor((parent.offsetWidth - usedWidth) / 2);
+      let startY = Math.floor((parent.offsetHeight - usedHeight) / 2);
+
+      if (usedHeight + gap * 2 > parent.offsetHeight) {
+        let height = parent.offsetHeight - (gap * bestOpt.length + 1);
+        cellHeight = height / bestOpt.length - gap / 2;
+        cellWidth = (cellHeight / targetRatioHeight) * targetRatioWidth;
+        cellHeight = Math.floor(cellHeight);
+        cellWidth = Math.floor(cellWidth);
+
+        //recalc
+        usedWidth = cellWidth * bestOpt[0] + gap * (bestOpt[0] - 1);
+        usedHeight = cellHeight * bestOpt.length + gap * (bestOpt.length - 1);
+        startX = Math.floor((parent.offsetWidth - usedWidth) / 2);
+        startY = Math.floor((parent.offsetHeight - usedHeight) / 2);
+      }
+
+      let pos = 0;
+
+      Object.entries(bestOpt).map(([row, cols]) => {
+        row = Number(row);
+
+        let rowWidth = cols * cellWidth + gap * (cols - 1);
+        let rowX = startX + Math.floor((usedWidth - rowWidth) / 2);
+        let rowY = startY + row * (cellHeight + gap);
+
+        for (let i = 0; i < cols; i++) {
+          const el = parent.children[pos];
+
+          let cellX = rowX + i * (cellWidth + gap);
+
+          el.style.left = `${cellX}px`;
+          el.style.top = `${rowY}px`;
+          el.style.width = `${cellWidth}px`;
+          el.style.height = `${cellHeight}px`;
+
+          pos++;
+        }
+      });
+    },
   },
   updated() {
     if (!this.channel || !this.voice) {
       this.$router.push(`/channels/${this.$route.params.channel}`);
     }
+
+    this.updateTitle();
+    this.updateLayout();
   },
-  updated() {
-    if (this.channel) {
-      document.title = `Hyalus \u2022 ${this.channel.name}`;
-    } else {
-      document.title = "Hyalus";
-    }
-  },
-  beforeMount() {
-    //
+  mounted() {
+    addEventListener("resize", this.updateLayout);
   },
   beforeDestroy() {
     document.title = "Hyalus";
+    removeEventListener("resize", this.updateLayout);
+  },
+  watch: {
+    channel() {
+      this.updateTitle();
+    },
+    tiles() {
+      this.updateLayout();
+    },
   },
   components: {
     Sidebar: () => import("../components/Sidebar"),
