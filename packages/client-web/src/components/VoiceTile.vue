@@ -18,19 +18,31 @@
       autoplay
     />
     <UserAvatar class="w-32 h-32 rounded-full" :id="tile.user.avatar" v-else />
-    <div class="absolute bottom-0 left-0 p-2">
+    <div class="absolute bottom-0 left-0 p-2 flex space-x-1">
       <div
-        class="bg-gray-800 flex items-center space-x-2 py-1 px-2 rounded-md border-gray-750 border shadow-md"
+        class="bg-gray-800 flex items-center space-x-2 px-2 h-8 rounded-md border-gray-750 border shadow-md"
       >
-        <UserAvatar class="w-4 h-4 rounded-full" :id="tile.user.avatar" />
+        <UserAvatar
+          class="w-5 h-5 rounded-full border-primary-500"
+          :class="{
+            'border-2': isTalking,
+          }"
+          :id="tile.user.avatar"
+        />
         <p class="font-bold text-sm">{{ tile.user.name }}</p>
+      </div>
+      <div
+        class="bg-gray-800 flex items-center px-2 rounded-md border-gray-750 border shadow-md text-gray-400"
+        v-if="isMuted"
+      >
+        <MuteIcon class="w-4 h-4" />
       </div>
     </div>
     <div
       class="absolute bottom-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition"
     >
       <div
-        class="bg-gray-800 flex items-center space-x-1 p-1 rounded-md border-gray-750 border shadow-md text-gray-400"
+        class="bg-gray-800 flex items-center px-2 rounded-md border-gray-750 border shadow-md text-gray-400 h-8"
       >
         <div @click="expand">
           <ExpandIcon class="w-4 h-4 hover:text-gray-200 cursor-pointer" />
@@ -57,6 +69,20 @@ export default {
     coverEdges() {
       return this.tile.stream?.type !== "displayVideo";
     },
+    isTalking() {
+      //
+    },
+    isMuted() {
+      if (this.tile.stream?.type === "displayVideo") {
+        return false;
+      }
+
+      if (this.tile.user === this.$store.getters.user) {
+        return !this.$store.getters.localStream("audio");
+      } else {
+        return !this.$store.getters.remoteStream(this.tile.user.id, "audio");
+      }
+    },
   },
   methods: {
     expand() {
@@ -72,6 +98,7 @@ export default {
   components: {
     UserAvatar: () => import("./UserAvatar"),
     ExpandIcon: () => import("../icons/Expand"),
+    MuteIcon: () => import("../icons/Mute"),
   },
 };
 </script>
