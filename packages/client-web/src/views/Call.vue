@@ -152,8 +152,6 @@ export default {
         tile.id = `${tile.user.id}:${tile.stream?.type || "none"}`;
       });
 
-      console.log({ tiles });
-
       return tiles;
     },
   },
