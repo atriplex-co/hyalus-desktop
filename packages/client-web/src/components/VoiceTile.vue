@@ -4,7 +4,11 @@
   >
     <div class="aspect-w-16 aspect-h-9" />
     <div
-      class="absolute inset-0 flex items-center justify-center bg-gray-900 group"
+      class="absolute inset-0 flex items-center justify-center group"
+      :class="{
+        'bg-gray-900': srcObject,
+        'bg-gray-850': !srcObject,
+      }"
       ref="main"
     >
       <video
@@ -44,7 +48,7 @@
 <script>
 export default {
   props: ["tile"],
-  computed: { 
+  computed: {
     srcObject() {
       if (this.tile.stream?.track.kind === "video") {
         return new MediaStream([this.tile.stream.track]);
