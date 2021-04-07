@@ -170,7 +170,7 @@ export default {
         tile.id = `${tile.user.id}:${tile.stream?.type || "none"}`;
       });
 
-      return tiles;
+      return tiles.sort((a, b) => (a.id > b.id ? 1 : -1));
     },
     isDeaf() {
       return this.$store.getters.voice.deaf;
