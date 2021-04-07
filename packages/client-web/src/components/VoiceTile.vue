@@ -30,7 +30,7 @@
       class="absolute bottom-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition"
     >
       <div
-        class="bg-gray-800 flex items-center space-x-2 p-2 rounded-md border-gray-750 border shadow-md text-gray-400"
+        class="bg-gray-800 flex items-center space-x-1 p-1 rounded-md border-gray-750 border shadow-md text-gray-400"
       >
         <div @click="expand">
           <ExpandIcon class="w-4 h-4 hover:text-gray-200 cursor-pointer" />
