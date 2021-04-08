@@ -227,9 +227,13 @@ export default {
       }
 
       if (!this.$store.getters.localStream("audio")) {
-        await this.$store.dispatch("toggleAudio", {
-          silent: true,
-        });
+        try {
+          await this.$store.dispatch("toggleAudio", {
+            silent: true,
+          });
+        } catch (e) {
+          console.log(e);
+        }
       }
 
       this.$router.push(`/channels/${this.channel.id}/call`);
