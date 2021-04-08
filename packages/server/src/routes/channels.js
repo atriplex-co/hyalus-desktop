@@ -315,7 +315,6 @@ app.get("/:id/messages", session, async (req, res) => {
     }
 
     if (message.type === "file") {
-      console.log(message.body);
       body = message.body.toString();
     }
 
