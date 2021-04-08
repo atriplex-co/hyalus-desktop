@@ -88,10 +88,11 @@ export default {
 
     this.$store.getters.friends
       .filter((friend) => friend.accepted)
-      .filter((friend) =>
-        this.channel.users
-          .filter((user) => !user.removed)
-          .find((user) => user.id !== friend.user.id)
+      .filter(
+        (friend) =>
+          !this.channel.users
+            .filter((user) => !user.removed)
+            .find((user) => user.id === friend.user.id)
       )
       .map((friend) => {
         friends.push({
