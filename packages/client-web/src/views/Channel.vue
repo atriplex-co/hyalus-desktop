@@ -137,13 +137,6 @@
         :selected="channel.users[0].id"
       />
     </div>
-    <div
-      class="flex flex-col items-center justify-center flex-1 space-y-4 text-gray-600"
-      v-else
-    >
-      <ErrorIcon class="w-16 h-16 text-gray-500" />
-      <p>Channel not found</p>
-    </div>
   </div>
 </template>
 
@@ -312,7 +305,7 @@ export default {
     if (this.channel) {
       document.title = `Hyalus \u2022 ${this.channel.name}`;
     } else {
-      document.title = "Hyalus";
+      this.$router.push("/app");
     }
 
     if (msgBox && this.lastChannel !== this.channel) {

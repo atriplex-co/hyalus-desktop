@@ -1,9 +1,8 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
-    <div class="flex-1 px-16 pt-16 overflow-auto">
-      test
-      <div class="pt-16"></div>
+    <div class="flex-1 flex items-center justify-center">
+      <AppIcon class="w-32 h-32 filter grayscale opacity-10" />
     </div>
   </div>
 </template>
@@ -12,6 +11,7 @@
 export default {
   components: {
     Sidebar: () => import("../components/Sidebar"),
+    AppIcon: () => import("../icons/App"),
   },
 };
 </script>
