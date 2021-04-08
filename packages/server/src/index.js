@@ -60,6 +60,15 @@ const wss = require("./routes/ws")(server, deps);
         expireAfterSeconds: 0,
       }
     );
+
+    await db.collection("files").createIndex(
+      {
+        time: 1,
+      },
+      {
+        expireAfterSeconds: 60 * 60 * 24, //24h
+      }
+    );
   } catch (e) {
     log.error(`Error connecting to MongoDB`);
     log.error(e.message);
@@ -111,7 +120,11 @@ const wss = require("./routes/ws")(server, deps);
       },
     })
   );
-  app.use(express.json());
+  app.use(
+    express.json({
+      limit: "20mb",
+    })
+  );
   app.use("/api/me", require("./routes/me"));
   app.use("/api/prelogin", require("./routes/prelogin"));
   app.use("/api/login", require("./routes/login"));

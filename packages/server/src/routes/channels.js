@@ -303,10 +303,20 @@ app.get("/:id/messages", session, async (req, res) => {
 
   for (const message of messages) {
     if (message.keys) {
-      message.body = message.body.toString("base64");
       message.key = message.keys
         .find((k) => k.id.equals(req.session.user))
         .key.toString("base64");
+    }
+
+    let body = null;
+
+    if (message.type === "text" || message.type === "event") {
+      body = message.body.toString("base64");
+    }
+
+    if (message.type === "file") {
+      console.log(message.body);
+      body = message.body.toString();
     }
 
     formatted.push({
@@ -314,7 +324,10 @@ app.get("/:id/messages", session, async (req, res) => {
       time: message.time,
       type: message.type,
       sender: message.sender,
-      body: message.body,
+      body,
+      fileName: message.fileName,
+      fileType: message.fileType,
+      fileLength: message.fileLength,
       key: message.key,
     });
   }
@@ -1052,6 +1065,184 @@ app.post("/:channel/leave", session, async (req, res) => {
   });
 
   res.status(204).end();
+});
+
+app.post(
+  "/:id/files",
+  session,
+  user,
+  validation(
+    Joi.object({
+      body: Joi.string()
+        .required()
+        .base64(),
+      fileName: Joi.string()
+        .required()
+        .base64(),
+      fileType: Joi.string()
+        .required()
+        .base64(),
+      keys: Joi.array()
+        .items(
+          Joi.object({
+            id: Joi.string()
+              .required()
+              .hex()
+              .length(24),
+            key: Joi.string()
+              .required()
+              .base64()
+              .length(96),
+          })
+        )
+        .required(),
+    })
+  ),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
+
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.id),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
+      },
+      writable: true,
+    });
+
+    if (!channel) {
+      res.status(404).json({
+        error: "Channel not found",
+      });
+
+      return;
+    }
+
+    if (
+      channel.users
+        .filter((u) => !u.removed)
+        .map((u) => u.id)
+        .sort()
+        .join() !==
+      req.body.keys
+        .map((k) => k.id)
+        .sort()
+        .join()
+    ) {
+      res.status(400).json({
+        error: "Invalid keys",
+      });
+
+      return;
+    }
+
+    const keys = [];
+
+    for (const key of req.body.keys) {
+      keys.push({
+        id: new ObjectId(key.id),
+        key: Buffer.from(key.key, "base64"),
+      });
+    }
+
+    const file = (
+      await req.deps.db.collection("files").insertOne({
+        time: Date.now(),
+        body: Buffer.from(req.body.body, "base64"),
+        channel: channel._id,
+      })
+    ).ops[0];
+
+    const message = (
+      await req.deps.db.collection("messages").insertOne({
+        time: Date.now(),
+        channel: channel._id,
+        type: "file",
+        sender: req.session.user,
+        body: file._id,
+        fileName: Buffer.from(req.body.fileName, "base64"),
+        fileType: Buffer.from(req.body.fileType, "base64"),
+        fileLength: file.body.length,
+        keys,
+      })
+    ).ops[0];
+
+    for (const channelUser of channel.users.filter((u) => !u.removed)) {
+      req.deps.redis.publish(`user:${channelUser.id}`, {
+        t: "message",
+        d: {
+          channel: channel._id.toString(),
+          id: message._id.toString(),
+          time: message.time,
+          type: message.type,
+          sender: message.sender.toString(),
+          body: message.body.toString(),
+          fileName: message.fileName,
+          fileType: message.fileType,
+          fileLength: message.fileLength,
+          key: message.keys.find((k) => k.id.equals(channelUser.id)).key,
+        },
+      });
+    }
+
+    res.end();
+  }
+);
+
+app.get("/:channel/files/:file", session, async (req, res) => {
+  if (!ObjectId.isValid(req.params.channel)) {
+    return res.status(400).json({
+      error: "Invalid channel",
+    });
+  }
+
+  if (!ObjectId.isValid(req.params.file)) {
+    return res.status(400).json({
+      error: "Invalid file",
+    });
+  }
+
+  const channel = await req.deps.db.collection("channels").findOne({
+    _id: new ObjectId(req.params.channel),
+    users: {
+      $elemMatch: {
+        id: req.session.user,
+        removed: false,
+      },
+    },
+    writable: true,
+  });
+
+  if (!channel) {
+    res.status(404).json({
+      error: "Channel not found",
+    });
+
+    return;
+  }
+
+  const file = await req.deps.db.collection("files").findOne({
+    _id: new ObjectId(req.params.file),
+    channel: channel._id,
+  });
+
+  if (!file) {
+    res.status(404).json({
+      error: "File not found",
+    });
+
+    return;
+  }
+
+  res.set("Content-Type", "application/octet-stream");
+  res.set("Cache-Control", "public, max-age=31536000");
+  res.end(file.body.buffer);
 });
 
 module.exports = app;

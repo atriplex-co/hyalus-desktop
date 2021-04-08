@@ -194,6 +194,9 @@ module.exports = async (ws, msg) => {
         type: lastMessage.type,
         sender: lastMessage.sender.toString(),
         body: lastMessage.body,
+        fileName: lastMessage.fileName?.buffer,
+        fileType: lastMessage.fileType?.buffer,
+        fileLength: lastMessage.fileLength,
         key: lastMessage.key,
       },
     });
