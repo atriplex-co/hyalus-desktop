@@ -1,5 +1,12 @@
 <template>
-  <div class="max-w-lg p-2 mx-auto text-sm text-gray-200" v-if="message.event">
+  <div
+    class="max-w-lg mx-auto text-sm text-gray-200"
+    v-if="message.event"
+    :class="{
+      'pb-4': precedingMessage && precedingMessage.event,
+      'py-4': !precedingMessage || !precedingMessage.event,
+    }"
+  >
     {{ message.event }}
   </div>
   <div class="flex items-end space-x-2" v-else>
@@ -99,14 +106,17 @@ export default {
       return sender;
     },
     precedingMessage() {
-      return this.channel.messages.filter((m) => m.time < this.message.time)[0];
+      return [...this.channel.messages]
+        .reverse()
+        .find((m) => m.id < this.message.id);
     },
     supersedingMessage() {
-      return this.channel.messages.filter((m) => m.time > this.message.time)[0];
+      return this.channel.messages.find((m) => m.id > this.message.id);
     },
     lastFromSender() {
       return (
         !this.supersedingMessage ||
+        this.supersedingMessage.event ||
         this.supersedingMessage.sender !== this.message.sender
       );
     },
