@@ -11,7 +11,7 @@
     <div class="p-4" v-else />
     <div class="flex items-center space-x-4 group">
       <div
-        class="max-w-md p-2 rounded-md"
+        class="max-w-md p-2 rounded-md text-sm"
         :class="{
           'bg-gradient-to-br from-primary-500 to-primary-600 text-white': sentByMe,
           'bg-gray-800': !sentByMe,
@@ -21,15 +21,39 @@
           {{ sender.name }}
         </p>
         <div
-          class="text-sm break-words whitespace-pre-wrap"
+          class="break-words whitespace-pre-wrap"
           v-html="body"
-        ></div>
+          v-if="message.type === 'text'"
+        />
+        <div
+          class="flex items-center space-x-2 py-1"
+          v-if="message.type === 'file'"
+        >
+          <div @click="download">
+            <DownloadIcon
+              class="w-8 h-8 p-2 rounded-full bg-primary-400 text-white cursor-pointer"
+            />
+          </div>
+          <div>
+            <p class="truncate">{{ message.decryptedFileName }}</p>
+            <p
+              class="text-xs"
+              :class="{
+                'text-primary-200': sentByMe,
+                'text-gray-400': !sentByMe,
+              }"
+            >
+              {{ time }} &bull; {{ fileLength }}
+            </p>
+          </div>
+        </div>
         <p
           class="text-xs"
           :class="{
             'text-primary-200': sentByMe,
             'text-gray-400': !sentByMe,
           }"
+          v-if="message.type === 'text'"
         >
           {{ time }}
         </p>
@@ -83,7 +107,6 @@ export default {
     lastFromSender() {
       return (
         !this.supersedingMessage ||
-        this.supersedingMessage.type !== this.message.type ||
         this.supersedingMessage.sender !== this.message.sender
       );
     },
@@ -100,6 +123,19 @@ export default {
     },
     body() {
       return this.message.formatted || "[Failed to decrypt message]";
+    },
+    fileLength() {
+      let len = this.message.fileLength;
+      let unit = "bytes";
+
+      ["KB", "MB", "GB", "TB"].map((u) => {
+        if (len > 1024) {
+          len /= 1024;
+          unit = u;
+        }
+      });
+
+      return `${Math.round(len * 10) / 10} ${unit}`;
     },
   },
   methods: {
@@ -125,6 +161,9 @@ export default {
     async remove() {
       await this.$store.dispatch("deleteMessage", this.message);
     },
+    download() {
+      this.$store.dispatch("downloadFile", this.message);
+    },
   },
   beforeMount() {
     this.updateTime();
@@ -136,6 +175,7 @@ export default {
   components: {
     UserAvatar: () => import("./UserAvatar"),
     TrashIcon: () => import("../icons/Trash"),
+    DownloadIcon: () => import("../icons/Download"),
   },
 };
 </script>

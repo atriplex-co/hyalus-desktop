@@ -282,6 +282,62 @@ export default new Vuex.Store({
       channel.messages = channel.messages.filter((m) => m.id !== message.id);
 
       if (!message.delete) {
+        const sender =
+          channel.users.find((u) => u.id === merged.sender) || state.user;
+
+        const target =
+          channel.users.find((u) => u.id === merged.body) || state.user;
+
+        if (typeof merged.key === "string") {
+          merged.key = nacl.from_base64(
+            merged.key,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (typeof merged.fileName === "string") {
+          merged.fileName = nacl.from_base64(
+            merged.fileName,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (typeof merged.fileType === "string") {
+          merged.fileType = nacl.from_base64(
+            merged.fileType,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (merged.key && !merged.decryptedKey) {
+          merged.decryptedKey = nacl.crypto_box_open_easy(
+            merged.key.slice(24),
+            merged.key.slice(0, 24),
+            sender.publicKey || state.publicKey,
+            state.privateKey
+          );
+        }
+
+        if (merged.fileName && !merged.decryptedFileName) {
+          const decryptedFileName = nacl.crypto_secretbox_open_easy(
+            merged.fileName.slice(24),
+            merged.fileName.slice(0, 24),
+            merged.decryptedKey
+          );
+
+          merged.decryptedFileName = nacl.to_string(decryptedFileName).trim();
+        }
+
+        if (merged.fileType && !merged.decryptedFileType) {
+          const decryptedFileType = nacl.crypto_secretbox_open_easy(
+            merged.fileType.slice(24),
+            merged.fileType.slice(0, 24),
+            merged.decryptedKey
+          );
+
+          merged.decryptedFileType = nacl.to_string(decryptedFileType).trim();
+        }
+
         if (merged.type === "text") {
           if (typeof merged.body === "string") {
             merged.body = nacl.from_base64(
@@ -290,35 +346,11 @@ export default new Vuex.Store({
             );
           }
 
-          if (typeof merged.key === "string") {
-            merged.key = nacl.from_base64(
-              merged.key,
-              nacl.base64_variants.ORIGINAL
-            );
-          }
-
           if (!merged.decrypted) {
-            let senderPublicKey;
-
-            if (merged.sender === state.user.id) {
-              senderPublicKey = state.publicKey;
-            } else {
-              senderPublicKey = channel.users.find(
-                (u) => u.id === merged.sender
-              ).publicKey;
-            }
-
-            const decryptedKey = nacl.crypto_box_open_easy(
-              merged.key.slice(24),
-              merged.key.slice(0, 24),
-              senderPublicKey,
-              state.privateKey
-            );
-
             const decryptedBody = nacl.crypto_secretbox_open_easy(
               merged.body.slice(24),
               merged.body.slice(0, 24),
-              decryptedKey
+              merged.decryptedKey
             );
 
             merged.decrypted = nacl.to_string(decryptedBody);
@@ -347,12 +379,6 @@ export default new Vuex.Store({
               .trim();
           }
         }
-
-        const sender =
-          channel.users.find((u) => u.id === merged.sender) || state.user;
-
-        const target =
-          channel.users.find((u) => u.id === merged.body) || state.user;
 
         if (merged.type === "channelName") {
           merged.event = `${sender.name} renamed the group "${merged.body}"`;
@@ -1879,6 +1905,114 @@ export default new Vuex.Store({
       } catch {}
 
       commit("setDeaf", true);
+    },
+    uploadFile({ getters, commit, dispatch }, channelId) {
+      const channel = getters.channelById(channelId);
+      const el = document.createElement("input");
+
+      el.addEventListener("input", () => {
+        const file = el.files[0];
+        const reader = new FileReader();
+
+        reader.addEventListener("load", async () => {
+          const data = new Uint8Array(reader.result);
+          const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+          const key = nacl.randombytes_buf(nacl.crypto_secretbox_KEYBYTES);
+          const body = new Uint8Array([
+            ...nonce,
+            ...nacl.crypto_secretbox_easy(data, nonce, key),
+          ]);
+          const fileName = new Uint8Array([
+            ...nonce,
+            ...nacl.crypto_secretbox_easy(file.name, nonce, key),
+          ]);
+          const fileType = new Uint8Array([
+            ...nonce,
+            ...nacl.crypto_secretbox_easy(file.type, nonce, key),
+          ]);
+
+          const userKeys = [];
+
+          for (const user of channel.users.filter((u) => !u.removed)) {
+            const userKeyNonce = nacl.randombytes_buf(
+              nacl.crypto_secretbox_NONCEBYTES
+            );
+
+            const userKey = new Uint8Array([
+              ...userKeyNonce,
+              ...nacl.crypto_box_easy(
+                key,
+                userKeyNonce,
+                user.publicKey,
+                getters.privateKey
+              ),
+            ]);
+
+            userKeys.push({
+              id: user.id,
+              key: nacl.to_base64(userKey, nacl.base64_variants.ORIGINAL),
+            });
+          }
+
+          const selfKeyNonce = nacl.randombytes_buf(
+            nacl.crypto_secretbox_NONCEBYTES
+          );
+
+          const selfKey = new Uint8Array([
+            ...selfKeyNonce,
+            ...nacl.crypto_box_easy(
+              key,
+              selfKeyNonce,
+              getters.publicKey,
+              getters.privateKey
+            ),
+          ]);
+
+          userKeys.push({
+            id: getters.user.id,
+            key: nacl.to_base64(selfKey, nacl.base64_variants.ORIGINAL),
+          });
+
+          await axios.post(`/api/channels/${channel.id}/files`, {
+            body: nacl.to_base64(body, nacl.base64_variants.ORIGINAL),
+            fileName: nacl.to_base64(fileName, nacl.base64_variants.ORIGINAL),
+            fileType: nacl.to_base64(fileType, nacl.base64_variants.ORIGINAL),
+            keys: userKeys,
+          });
+        });
+
+        reader.readAsArrayBuffer(file);
+      });
+
+      el.type = "file";
+      el.click();
+    },
+    async downloadFile({ getters, commit, dispatch }, message) {
+      const channel = getters.channelById(message.channel);
+
+      const { data: body } = await axios.get(
+        `/api/channels/${channel.id}/files/${message.body}`,
+        {
+          responseType: "arraybuffer",
+        }
+      );
+
+      const encrypted = new Uint8Array(body);
+
+      const data = nacl.crypto_secretbox_open_easy(
+        encrypted.slice(24),
+        encrypted.slice(0, 24),
+        message.decryptedKey
+      );
+
+      const blob = new Blob([data]);
+
+      const el = document.createElement("a");
+      el.href = URL.createObjectURL(blob);
+      el.target = "_blank";
+      el.rel = "noreferrer noopener";
+      el.download = message.decryptedFileName;
+      el.click();
     },
   },
 });

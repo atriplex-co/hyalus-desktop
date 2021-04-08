@@ -114,9 +114,11 @@
           ref="msgBox"
         />
         <div class="flex space-x-2 text-gray-400">
-          <PaperclipIcon
-            class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-          />
+          <div @click="uploadFile">
+            <PaperclipIcon
+              class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+            />
+          </div>
           <div @click="sendMessage">
             <AirplaneIcon
               class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
@@ -286,6 +288,9 @@ export default {
       if (this.channel && !this.channel.updated) {
         this.$store.dispatch("updateChannel", this.channel.id);
       }
+    },
+    uploadFile() {
+      this.$store.dispatch("uploadFile", this.channel.id);
     },
   },
   updated() {
