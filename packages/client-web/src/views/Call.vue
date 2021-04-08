@@ -10,7 +10,7 @@
           :tile="tile"
         />
       </div>
-      <div class="flex items-center justify-center space-x-4 pt-2 pb-3">
+      <div class="flex items-center justify-center space-x-4 p-2">
         <div @click="toggleAudio">
           <div
             class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
@@ -215,7 +215,7 @@ export default {
         return;
       }
 
-      const gap = 12;
+      const gap = 8;
 
       let opts = [];
 
