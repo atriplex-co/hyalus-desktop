@@ -1,7 +1,13 @@
 <template>
   <div class="flex h-full min-h-0">
     <Sidebar />
-    <div class="flex flex-col flex-1 min-h-0 p-2" v-if="channel && voice">
+    <div
+      class="flex flex-col flex-1 min-h-0 p-2 bg-gray-900"
+      v-if="channel && voice"
+      :class="{
+        '-mt-4': isTitled,
+      }"
+    >
       <div class="flex-1 relative" ref="tiles">
         <VoiceTile
           class="absolute"
@@ -174,6 +180,9 @@ export default {
     },
     isDeaf() {
       return this.$store.getters.voice.deaf;
+    },
+    isTitled() {
+      return typeof process !== "undefined" && this.$store.getters.betaBanner;
     },
   },
   methods: {
