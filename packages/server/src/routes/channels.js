@@ -1007,6 +1007,22 @@ app.post("/:channel/leave", session, async (req, res) => {
 
   if (channel.users.filter((user) => !user.removed).length === 1) {
     await req.deps.db.collection("channels").deleteOne(channel);
+
+    const messages = await (
+      await req.deps.db.collection("messages").find({
+        channel: channel._id,
+      })
+    ).toArray();
+
+    for (const message of messages) {
+      await req.deps.db.collection("messages").deleteOne(message);
+
+      if (message.type === "file") {
+        await req.deps.db.collection("files").deleteOne({
+          _id: message.body,
+        });
+      }
+    }
   } else {
     await req.deps.db.collection("channels").updateOne(
       {
