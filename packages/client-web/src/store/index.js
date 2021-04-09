@@ -15,6 +15,7 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 
 Vue.use(Vuex);
 
@@ -55,6 +56,32 @@ const messageFormatter = new MarkdownIt("zero", {
       rel: "noopener noreferrer",
     },
   });
+
+const ffmpeg = createFFmpeg();
+
+const imageTypes = [
+  //
+  "image/png",
+  "image/gif",
+  "image/jpeg",
+  "image/webp",
+];
+
+const audioTypes = [
+  //
+  "audio/mpeg",
+  "audio/vorbis",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/opus",
+  "audio/flac",
+];
+
+const videoTypes = [
+  //
+  "video/mp4",
+  "video/webm",
+];
 
 export default new Vuex.Store({
   state: {
@@ -357,39 +384,15 @@ export default new Vuex.Store({
 
           merged.decryptedFileType = nacl.to_string(decryptedFileType).trim();
 
-          if (
-            [
-              //
-              "image/png",
-              "image/gif",
-              "image/jpeg",
-              "image/webp",
-            ].find((type) => type === merged.decryptedFileType)
-          ) {
+          if (imageTypes.find((t) => t === merged.decryptedFileType)) {
             merged.fileMediaType = "img";
           }
 
-          if (
-            [
-              //
-              "video/mp4",
-              "video/webm",
-            ].find((type) => type === merged.decryptedFileType)
-          ) {
+          if (videoTypes.find((t) => t === merged.decryptedFileType)) {
             merged.fileMediaType = "video";
           }
 
-          if (
-            [
-              //
-              "audio/mpeg",
-              "audio/vorbis",
-              "audio/mp4",
-              "audio/ogg",
-              "audio/opus",
-              "audio/flac",
-            ].find((type) => type === merged.decryptedFileType)
-          ) {
+          if (audioTypes.find((t) => t === merged.decryptedFileType)) {
             merged.fileMediaType = "audio";
           }
         }
@@ -1958,32 +1961,69 @@ export default new Vuex.Store({
 
       commit("setDeaf", true);
     },
-    uploadFile({ getters, commit, dispatch }, { file, channelId }) {
+    async uploadFile({ getters, commit, dispatch }, { file, channelId }) {
+      console.log({ file });
       const channel = getters.channelById(channelId);
 
-      if (file.size > 1024 * 1024 * 10) {
-        //10mb
-        //before you get excited, this is limited at the server as well.
-        throw new Error("File size too large (10MB max).");
+      let data;
+      let fileType = file.type;
+      let fileName = file.name;
+
+      if (fileType === "video/x-matroska") {
+        fileType = "video/webm";
+        fileName += ".mkv";
+      }
+
+      if (imageTypes.find((t) => t === file.type)) {
+        fileType = "image/webp";
+        fileName += ".webp";
+
+        if (!ffmpeg.isLoaded()) {
+          await ffmpeg.load();
+        }
+
+        ffmpeg.FS("writeFile", file.name, await fetchFile(file));
+
+        await ffmpeg.run(
+          "-i",
+          file.name,
+          "-c:v",
+          "libwebp",
+          "-qscale",
+          "80",
+          fileName
+        );
+
+        data = ffmpeg.FS("readFile", fileName);
       }
 
       const reader = new FileReader();
 
       reader.addEventListener("load", async () => {
-        const data = new Uint8Array(reader.result);
+        if (!data) {
+          data = new Uint8Array(reader.result);
+        }
+
+        if (data.length > 1024 * 1024 * 10) {
+          //10mb
+          //before you get excited, this is limited at the server as well.
+          //TODO: present error to user.
+          throw new Error("File size too large (10MB max).");
+        }
+
         const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
         const key = nacl.randombytes_buf(nacl.crypto_secretbox_KEYBYTES);
         const body = new Uint8Array([
           ...nonce,
           ...nacl.crypto_secretbox_easy(data, nonce, key),
         ]);
-        const fileName = new Uint8Array([
+        fileName = new Uint8Array([
           ...nonce,
-          ...nacl.crypto_secretbox_easy(file.name, nonce, key),
+          ...nacl.crypto_secretbox_easy(fileName, nonce, key),
         ]);
-        const fileType = new Uint8Array([
+        fileType = new Uint8Array([
           ...nonce,
-          ...nacl.crypto_secretbox_easy(file.type, nonce, key),
+          ...nacl.crypto_secretbox_easy(fileType, nonce, key),
         ]);
 
         const userKeys = [];
