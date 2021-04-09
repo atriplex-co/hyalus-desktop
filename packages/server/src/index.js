@@ -113,6 +113,8 @@ const wss = require("./routes/ws")(server, deps);
       setHeaders(res, path) {
         if (path.endsWith(".html")) {
           res.set("Cache-Control", "no-cache");
+          res.set("Cross-Origin-Opener-Policy", "same-origin");
+          res.set("Cross-Origin-Embedder-Policy", "require-corp");
         } else {
           res.set("Cache-Control", "public, max-age=31536000");
         }
