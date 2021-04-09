@@ -1962,7 +1962,6 @@ export default new Vuex.Store({
       commit("setDeaf", true);
     },
     async uploadFile({ getters, commit, dispatch }, { file, channelId }) {
-      console.log({ file });
       const channel = getters.channelById(channelId);
 
       let data;

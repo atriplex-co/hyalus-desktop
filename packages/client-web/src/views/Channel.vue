@@ -301,10 +301,12 @@ export default {
       });
     },
     async processFiles({ items }) {
-      items = [...items].filter((i) => i.kind === "file");
+      const files = [...items]
+        .filter((i) => i.kind === "file")
+        .map((i) => i.getAsFile());
 
-      for (const item of items) {
-        await this.uploadFile(item.getAsFile());
+      for (const file of files) {
+        await this.uploadFile(file);
       }
     },
     attachFile() {
@@ -320,8 +322,6 @@ export default {
 
       el.type = "file";
       el.click();
-
-      this.processFiles();
     },
   },
   updated() {
