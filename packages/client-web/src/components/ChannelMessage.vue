@@ -35,7 +35,7 @@
         :class="{
           'bg-gradient-to-br from-primary-500 to-primary-600 text-white':
             sentByMe && !message.fileMediaType,
-          'bg-gray-800': !sentByMe && !message.fileMediaType,
+          'bg-gray-800': !sentByMe || message.fileMediaType,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
