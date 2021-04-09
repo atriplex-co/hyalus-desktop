@@ -42,13 +42,6 @@ module.exports = {
         pink: colors.pink,
         rose: colors.rose,
       },
-      minWidth: {
-        "1/2": "50%",
-        "1/3": "33%",
-        "1/4": "25%",
-        "1/5": "20%",
-        "1/6": "16%",
-      },
     },
     fontFamily: {
       sans: "Inter, sans-serif",
