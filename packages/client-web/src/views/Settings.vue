@@ -81,7 +81,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="videoQualityMenu"
             >
               <div
@@ -110,7 +110,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="displayQualityMenu"
             >
               <div
@@ -139,7 +139,7 @@
           </div>
           <div class="relative" v-if="audioOutputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="audioOutputMenu"
             >
               <p
@@ -171,7 +171,7 @@
           </div>
           <div class="relative" v-if="audioInputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="audioInputMenu"
             >
               <p
@@ -200,7 +200,7 @@
           </div>
           <div class="relative" v-if="videoInputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="videoInputMenu"
             >
               <p
@@ -236,7 +236,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
               v-if="accentColorMenu"
             >
               <div
