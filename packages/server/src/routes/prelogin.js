@@ -9,9 +9,7 @@ app.post(
     Joi.object({
       username: Joi.string()
         .required()
-        .min(3)
-        .max(32)
-        .alphanum(),
+        .regex(/^[a-zA-Z0-9_.-]{3,32}$/),
     })
   ),
   async (req, res) => {
