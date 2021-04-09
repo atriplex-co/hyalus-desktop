@@ -308,14 +308,14 @@ app.get("/:id/messages", session, async (req, res) => {
         .key.toString("base64");
     }
 
-    let body = null;
+    let body = message.body;
 
-    if (message.type === "text" || message.type === "event") {
-      body = message.body.toString("base64");
+    if (body.buffer) {
+      body = body.toString("base64");
     }
 
-    if (message.type === "file") {
-      body = message.body.toString();
+    if (body instanceof ObjectId) {
+      body = body.toString();
     }
 
     formatted.push({
