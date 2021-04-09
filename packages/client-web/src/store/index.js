@@ -910,6 +910,10 @@ export default new Vuex.Store({
               t: "voiceJoin",
               d: getters.voice?.channel,
             });
+          } else {
+            dispatch("voiceLeave", {
+              silent: true,
+            });
           }
 
           commit("setReady", true);
@@ -1003,6 +1007,9 @@ export default new Vuex.Store({
 
       ws.onclose = () => {
         commit("setReady", false);
+        dispatch("voiceReset", {
+          onlyStopPeers: true,
+        });
 
         setTimeout(() => {
           dispatch("wsConnect");
@@ -1322,21 +1329,9 @@ export default new Vuex.Store({
         return;
       }
 
-      for (const stream of getters.voice.localStreams) {
-        await dispatch("stopLocalStream", {
-          type: stream.type,
-          leaving: true,
-        });
-      }
-
-      for (const stream of getters.voice.remoteStreams) {
-        await dispatch("stopRemoteStream", {
-          user: stream.user,
-          type: stream.type,
-          leaving: false,
-        });
-      }
-
+      dispatch("voiceReset", {
+        leaving: true,
+      });
       commit("setVoice", null);
 
       getters.ws.send({
@@ -1347,6 +1342,22 @@ export default new Vuex.Store({
       try {
         new Audio(sndStateDown).play();
       } catch {}
+    },
+    async voiceReset({ getters, commit, dispatch }, params) {
+      for (const stream of getters.voice.localStreams) {
+        await dispatch("stopLocalStream", {
+          type: stream.type,
+          leaving: params.leaving,
+          onlyStopPeers: params.onlyStopPeers,
+        });
+      }
+
+      for (const stream of getters.voice.remoteStreams) {
+        await dispatch("stopRemoteStream", {
+          user: stream.user,
+          type: stream.type,
+        });
+      }
     },
     async handleVoiceStreamOffer({ getters, commit, dispatch }, data) {
       const channel = getters.channelById(getters.voice.channel);
@@ -1611,8 +1622,6 @@ export default new Vuex.Store({
         return;
       }
 
-      stream.track.stop();
-
       Object.entries(stream.peers).map(([user, peer]) => {
         peer.close();
 
@@ -1623,10 +1632,14 @@ export default new Vuex.Store({
         });
       });
 
-      commit("setLocalStream", {
-        type: params.type,
-        delete: true,
-      });
+      if (!params.onlyStopPeers) {
+        stream.track.stop();
+
+        commit("setLocalStream", {
+          type: params.type,
+          delete: true,
+        });
+      }
 
       if (!params.leaving) {
         getters.ws.send({
