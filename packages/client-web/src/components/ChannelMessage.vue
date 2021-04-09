@@ -87,7 +87,7 @@
           />
         </div>
       </div>
-      <div class="flex items-center space-x-4 pl-2">
+      <div class="flex items-center space-x-3">
         <div
           class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
           v-if="sentByMe"
