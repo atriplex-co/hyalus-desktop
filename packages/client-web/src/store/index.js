@@ -107,6 +107,8 @@ export default new Vuex.Store({
     rtcEcho: localStorage.rtcEcho,
     rtcNoise: localStorage.rtcNoise,
     rtcGain: localStorage.rtcGain,
+    videoQuality: localStorage.videoQuality,
+    displayQuality: localStorage.displayQuality,
   },
   getters: {
     config: (state) => state.config,
@@ -143,6 +145,8 @@ export default new Vuex.Store({
     rtcEcho: (state) => !state.rtcEcho,
     rtcNoise: (state) => !state.rtcNoise,
     rtcGain: (state) => !state.rtcGain,
+    videoQuality: (state) => state.videoQuality || "720p30",
+    displayQuality: (state) => state.displayQuality || "720p30",
   },
   mutations: {
     setUser(state, user) {
@@ -664,6 +668,14 @@ export default new Vuex.Store({
         localStorage.setItem("rtcGain", "a");
       }
     },
+    setVideoQuality(state, val) {
+      state.videoQuality = val;
+      localStorage.setItem("videoQuality", val);
+    },
+    setDisplayQuality(state, val) {
+      state.displayQuality = val;
+      localStorage.setItem("displayQuality", val);
+    },
   },
   actions: {
     async register({ commit, dispatch }, data) {
@@ -1046,9 +1058,10 @@ export default new Vuex.Store({
         // }
       };
 
-      ws.onclose = () => {
+      ws.onclose = async () => {
         commit("setReady", false);
-        dispatch("voiceReset", {
+
+        await dispatch("voiceReset", {
           onlyStopPeers: true,
         });
 
@@ -1370,9 +1383,10 @@ export default new Vuex.Store({
         return;
       }
 
-      dispatch("voiceReset", {
+      await dispatch("voiceReset", {
         leaving: true,
       });
+
       commit("setVoice", null);
 
       getters.ws.send({
@@ -1830,16 +1844,15 @@ export default new Vuex.Store({
         return;
       }
 
+      const [height, fps] = getters.videoQuality.split("p");
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: {
-            max: 1280,
-          },
           height: {
-            max: 720,
+            max: Number(height),
           },
           frameRate: {
-            max: 30,
+            max: Number(fps),
           },
           deviceId: getters.videoInput,
         },
@@ -1877,6 +1890,8 @@ export default new Vuex.Store({
 
       let stream;
 
+      const [height, fps] = getters.displayQuality.split("p");
+
       if (params) {
         if (params.audio) {
           try {
@@ -1885,9 +1900,8 @@ export default new Vuex.Store({
                 mandatory: {
                   chromeMediaSource: "desktop",
                   chromeMediaSourceId: params.sourceId,
-                  maxWidth: 1280,
-                  maxHeight: 720,
-                  maxFrameRate: 30,
+                  maxHeight: Number(height),
+                  maxFrameRate: Number(fps),
                 },
               },
               audio: {
@@ -1910,9 +1924,8 @@ export default new Vuex.Store({
               mandatory: {
                 chromeMediaSource: "desktop",
                 chromeMediaSourceId: params.sourceId,
-                maxWidth: 1280,
-                maxHeight: 720,
-                maxFrameRate: 30,
+                maxHeight: Number(height),
+                maxFrameRate: Number(fps),
               },
             },
           });
@@ -1920,14 +1933,11 @@ export default new Vuex.Store({
       } else {
         stream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: {
-              max: 1280,
-            },
             height: {
-              max: 720,
+              max: Number(height),
             },
             frameRate: {
-              max: 30,
+              max: Number(fps),
             },
           },
           audio: true,

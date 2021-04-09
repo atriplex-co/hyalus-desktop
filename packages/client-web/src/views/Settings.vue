@@ -64,6 +64,64 @@
         <Toggle v-model="rtcGain" />
       </div>
       <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Video Quality</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="videoQualityMenu = !videoQualityMenu"
+          >
+            <div class="flex items-center space-x-2">
+              {{ videoQuality }}
+            </div>
+            <ArrowDownIcon class="h-4" />
+          </div>
+          <div class="relative">
+            <div
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="videoQualityMenu"
+            >
+              <div
+                class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
+                v-for="usableVideoMode in usableVideoModes"
+                v-bind:key="usableVideoMode"
+                @click="setVideoQuality(usableVideoMode)"
+              >
+                {{ usableVideoMode }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Screenshare Quality</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="displayQualityMenu = !displayQualityMenu"
+          >
+            <div class="flex items-center space-x-2">
+              {{ displayQuality }}
+            </div>
+            <ArrowDownIcon class="h-4" />
+          </div>
+          <div class="relative">
+            <div
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="displayQualityMenu"
+            >
+              <div
+                class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
+                v-for="usableVideoMode in usableVideoModes"
+                v-bind:key="usableVideoMode"
+                @click="setDisplayQuality(usableVideoMode)"
+              >
+                {{ usableVideoMode }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between h-12">
         <p class="font-bold">Speakers</p>
         <div class="flex flex-col">
           <div
@@ -263,6 +321,21 @@ export default {
         "pink",
         "rose",
       ],
+      usableVideoModes: [
+        "360p15",
+        "360p30",
+        "360p60",
+        "480p30",
+        "480p60",
+        "720p30",
+        "720p60",
+        "1080p30",
+        "1080p60",
+        "2160p30",
+        "2160p60",
+      ],
+      videoQualityMenu: false,
+      displayQualityMenu: false,
     };
   },
   computed: {
@@ -341,6 +414,12 @@ export default {
         this.$store.commit("setRtcGain", val);
       },
     },
+    videoQuality() {
+      return this.$store.getters.videoQuality;
+    },
+    displayQuality() {
+      return this.$store.getters.displayQuality;
+    },
   },
   methods: {
     async logout() {
@@ -365,6 +444,14 @@ export default {
     setAccentColor(accentColor) {
       this.$store.dispatch("setAccentColor", accentColor);
       this.accentColorMenu = false;
+    },
+    setVideoQuality(val) {
+      this.$store.commit("setVideoQuality", val);
+      this.videoQualityMenu = false;
+    },
+    setDisplayQuality(val) {
+      this.$store.commit("setDisplayQuality", val);
+      this.displayQualityMenu = false;
     },
   },
   async mounted() {
