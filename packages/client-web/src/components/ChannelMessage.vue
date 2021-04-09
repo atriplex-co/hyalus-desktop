@@ -17,7 +17,7 @@
         @mouseover.native="showSenderCard = true"
         @mouseleave.native="showSenderCard = false"
       />
-      <div class="absolute pb-10 bottom-0 w-72" v-if="showSenderCard">
+      <div class="absolute bottom-10 w-72" v-if="showSenderCard">
         <div
           class="bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
         >
