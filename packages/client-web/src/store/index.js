@@ -336,6 +336,42 @@ export default new Vuex.Store({
           );
 
           merged.decryptedFileType = nacl.to_string(decryptedFileType).trim();
+
+          if (
+            [
+              //
+              "image/png",
+              "image/gif",
+              "image/jpeg",
+              "image/webp",
+            ].find((type) => type === merged.decryptedFileType)
+          ) {
+            merged.fileMediaType = "img";
+          }
+
+          if (
+            [
+              //
+              "video/mp4",
+              "video/webm",
+            ].find((type) => type === merged.decryptedFileType)
+          ) {
+            merged.fileMediaType = "video";
+          }
+
+          if (
+            [
+              //
+              "audio/mpeg",
+              "audio/vorbis",
+              "audio/mp4",
+              "audio/ogg",
+              "audio/opus",
+              "audio/flac",
+            ].find((type) => type === merged.decryptedFileType)
+          ) {
+            merged.fileMediaType = "audio";
+          }
         }
 
         if (merged.type === "text") {
@@ -1912,6 +1948,13 @@ export default new Vuex.Store({
 
       el.addEventListener("input", () => {
         const file = el.files[0];
+
+        if (file.size > 1024 * 1024 * 10) {
+          //10mb
+          //before you get excited, this is limited at the server as well.
+          throw new Error("File size too large (10MB max).");
+        }
+
         const reader = new FileReader();
 
         reader.addEventListener("load", async () => {
@@ -1987,7 +2030,7 @@ export default new Vuex.Store({
       el.type = "file";
       el.click();
     },
-    async downloadFile({ getters, commit, dispatch }, message) {
+    async fetchFile({ getters, commit, dispatch }, message) {
       const channel = getters.channelById(message.channel);
 
       const { data: body } = await axios.get(
@@ -2005,14 +2048,16 @@ export default new Vuex.Store({
         message.decryptedKey
       );
 
-      const blob = new Blob([data]);
+      const blob = new Blob([data], {
+        type: message.decryptedFileType,
+      });
 
-      const el = document.createElement("a");
-      el.href = URL.createObjectURL(blob);
-      el.target = "_blank";
-      el.rel = "noreferrer noopener";
-      el.download = message.decryptedFileName;
-      el.click();
+      commit("setMessage", {
+        id: message.id,
+        channel: message.channel,
+        decrypted: URL.createObjectURL(blob),
+        silent: true,
+      });
     },
   },
 });

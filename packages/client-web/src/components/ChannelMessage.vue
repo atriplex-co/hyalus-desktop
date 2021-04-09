@@ -10,67 +10,106 @@
     {{ message.event }}
   </div>
   <div class="flex items-end space-x-2" v-else>
-    <UserAvatar
-      class="w-8 h-8 rounded-full"
-      :id="sender.avatar"
-      v-if="lastFromSender"
-    />
+    <div class="w-8 h-8 relative" v-if="lastFromSender">
+      <UserAvatar
+        class="rounded-full"
+        :id="sender.avatar"
+        @mouseover.native="showSenderCard = true"
+      />
+      <div
+        class="absolute pb-10 bottom-0 w-72"
+        v-if="showSenderCard"
+        @mouseleave="showSenderCard = false"
+      >
+        <div
+          class="bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
+        >
+          <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
+          <div>
+            <p class="font-bold truncate">{{ sender.name }}</p>
+            <p class="text-xs text-gray-400">@{{ sender.username }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="p-4" v-else />
     <div class="flex items-center space-x-4 group">
       <div
-        class="max-w-md p-2 rounded-md text-sm"
+        class="max-w-xs lg:max-w-sm xl:max-w-lg rounded-md text-sm overflow-hidden"
         :class="{
-          'bg-gradient-to-br from-primary-500 to-primary-600 text-white': sentByMe,
-          'bg-gray-800': !sentByMe,
+          'bg-gradient-to-br from-primary-500 to-primary-600 text-white':
+            sentByMe && !message.fileMediaType,
+          'bg-gray-800': !sentByMe && !message.fileMediaType,
         }"
       >
-        <p v-if="!sentByMe && lastFromSender" class="text-xs text-gray-400">
-          {{ sender.name }}
-        </p>
+        <div class="p-2" v-if="message.type === 'text'">
+          <div class="break-words whitespace-pre-wrap" v-html="body" />
+        </div>
         <div
-          class="break-words whitespace-pre-wrap"
-          v-html="body"
-          v-if="message.type === 'text'"
-        />
-        <div
-          class="flex items-center space-x-2 py-1"
-          v-if="message.type === 'file'"
+          class="p-2"
+          v-if="message.type === 'file' && !message.fileMediaType"
         >
-          <div @click="download">
-            <DownloadIcon
-              class="w-8 h-8 p-2 rounded-full bg-primary-400 text-white cursor-pointer"
-            />
-          </div>
-          <div>
-            <p class="truncate">{{ message.decryptedFileName }}</p>
-            <p
-              class="text-xs"
-              :class="{
-                'text-primary-200': sentByMe,
-                'text-gray-400': !sentByMe,
-              }"
-            >
-              {{ time }} &bull; {{ fileLength }}
-            </p>
+          <div class="flex items-center space-x-2 py-1">
+            <div @click="saveFile">
+              <DownloadIcon
+                class="w-8 h-8 p-2 rounded-full bg-primary-400 text-white cursor-pointer"
+              />
+            </div>
+            <div>
+              <p class="truncate">{{ message.decryptedFileName }}</p>
+              <p
+                class="text-xs"
+                :class="{
+                  'text-primary-200': sentByMe,
+                  'text-gray-400': !sentByMe,
+                }"
+              >
+                {{ fileLength }}
+              </p>
+            </div>
           </div>
         </div>
+        <div v-if="message.fileMediaType && !message.decrypted">
+          <p>decrypting</p>
+        </div>
+        <div v-if="message.fileMediaType && message.decrypted">
+          <img
+            :src="message.decrypted"
+            v-if="message.fileMediaType === 'img'"
+          />
+          <audio
+            :src="message.decrypted"
+            v-if="message.fileMediaType === 'audio'"
+            controls
+          />
+          <video
+            :src="message.decrypted"
+            v-if="message.fileMediaType === 'video'"
+            controls
+            class="outline-none"
+          />
+        </div>
+      </div>
+      <div class="flex items-center space-x-4 pl-2">
+        <div
+          class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
+          v-if="sentByMe"
+          @click="remove"
+        >
+          <TrashIcon class="w-5 h-5" />
+        </div>
+        <div
+          class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
+          v-if="message.fileMediaType && message.decrypted"
+          @click="saveFile"
+        >
+          <DownloadIcon class="w-5 h-5" />
+        </div>
         <p
-          class="text-xs"
-          :class="{
-            'text-primary-200': sentByMe,
-            'text-gray-400': !sentByMe,
-          }"
-          v-if="message.type === 'text'"
+          class="opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition"
         >
           {{ time }}
         </p>
-      </div>
-      <div
-        class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
-        v-if="sentByMe"
-        @click="remove"
-      >
-        <TrashIcon class="w-5 h-5" />
       </div>
     </div>
   </div>
@@ -85,6 +124,7 @@ export default {
     return {
       time: "",
       timeUpdateInterval: null,
+      showSenderCard: false,
     };
   },
   computed: {
@@ -150,34 +190,32 @@ export default {
   },
   methods: {
     updateTime() {
-      this.time = moment(this.message.time)
-        .fromNow()
-        .replace("a few seconds", "now")
-        .replace(" minutes", "m")
-        .replace(" hours", "h")
-        .replace(" days", "d")
-        .replace(" weeks", "w")
-        .replace(" months", "y")
-        .replace(" years", "y")
-        .replace("a minute", "1m")
-        .replace("an hour", "1h")
-        .replace("a day", "1d")
-        .replace("a week", "1w")
-        .replace("a month", "1m")
-        .replace("a year", "1y")
-        .replace(" ago", "")
-        .replace("in ", "");
+      this.time = moment(this.message.time).calendar();
     },
     async remove() {
       await this.$store.dispatch("deleteMessage", this.message);
     },
-    download() {
-      this.$store.dispatch("downloadFile", this.message);
+    async fetchFile() {
+      await this.$store.dispatch("fetchFile", this.message);
+    },
+    async saveFile() {
+      await this.fetchFile();
+
+      const el = document.createElement("a");
+      el.href = this.message.decrypted;
+      el.target = "_blank";
+      el.rel = "noreferrer noopener";
+      el.download = this.message.decryptedFileName;
+      el.click();
     },
   },
   beforeMount() {
     this.updateTime();
-    this.timeUpdateInterval = setInterval(this.updateTime, 1000);
+    this.timeUpdateInterval = setInterval(this.updateTime, 1000 * 60); //1m
+
+    if (this.message.fileMediaType) {
+      this.$store.dispatch("fetchFile", this.message);
+    }
   },
   beforeDestroy() {
     clearInterval(this.timeUpdateInterval);
