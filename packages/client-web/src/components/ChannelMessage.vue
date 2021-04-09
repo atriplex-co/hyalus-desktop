@@ -72,6 +72,8 @@
           <img
             :src="message.decrypted"
             v-if="message.fileMediaType === 'img'"
+            class="cursor-pointer"
+            @click="showImageView = true"
           />
           <audio
             :src="message.decrypted"
@@ -109,6 +111,11 @@
         </p>
       </div>
     </div>
+    <ImageView
+      :image="message.decrypted"
+      v-if="showImageView"
+      @close="showImageView = false"
+    />
   </div>
 </template>
 
@@ -122,6 +129,7 @@ export default {
       time: "",
       timeUpdateInterval: null,
       showSenderCard: false,
+      showImageView: false,
     };
   },
   computed: {
@@ -221,6 +229,7 @@ export default {
     UserAvatar: () => import("./UserAvatar"),
     TrashIcon: () => import("../icons/Trash"),
     DownloadIcon: () => import("../icons/Download"),
+    ImageView: () => import("./ImageView"),
   },
 };
 </script>
