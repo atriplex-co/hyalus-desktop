@@ -491,7 +491,7 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
 
   if (message.type === "file") {
     await req.deps.db.collection("files").deleteOne({
-      _id: new ObjectId(message.body),
+      _id: message.body,
     });
   }
 
