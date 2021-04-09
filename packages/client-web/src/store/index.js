@@ -825,6 +825,8 @@ export default new Vuex.Store({
       if (token) {
         dispatch("wsConnect");
       }
+
+      await ffmpeg.load();
     },
     async logout({ dispatch }) {
       await axios.get("/api/logout");
@@ -1976,10 +1978,6 @@ export default new Vuex.Store({
       if (imageTypes.find((t) => t === file.type)) {
         fileType = "image/webp";
         fileName += ".webp";
-
-        if (!ffmpeg.isLoaded()) {
-          await ffmpeg.load();
-        }
 
         ffmpeg.FS("writeFile", file.name, await fetchFile(file));
 
