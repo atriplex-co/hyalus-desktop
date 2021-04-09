@@ -489,7 +489,11 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
 
   await req.deps.db.collection("messages").deleteOne(message);
 
-  res.end();
+  if (message.type === "file") {
+    await req.deps.db.collection("files").deleteOne({
+      _id: new ObjectId(message.body),
+    });
+  }
 
   for (const channelUser of channel.users.filter((u) => !u.removed)) {
     req.deps.redis.publish(`user:${channelUser.id}`, {
@@ -501,6 +505,8 @@ app.delete("/:channel/messages/:message", session, user, async (req, res) => {
       },
     });
   }
+
+  res.status(204).end();
 });
 
 app.post("/:channel/avatar", session, async (req, res) => {
