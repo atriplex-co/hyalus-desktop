@@ -218,7 +218,7 @@ export default {
     this.updateTime();
     this.timeUpdateInterval = setInterval(this.updateTime, 1000 * 60); //1m
 
-    if (this.message.fileMediaType) {
+    if (this.message.fileMediaType && !this.message.decrypted) {
       this.$store.dispatch("fetchFile", this.message);
     }
   },
