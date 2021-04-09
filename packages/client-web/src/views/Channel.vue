@@ -1,7 +1,15 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
-    <div class="flex flex-col flex-1 min-h-0 overflow-auto" v-if="channel">
+    <div
+      class="flex flex-col flex-1 min-h-0 overflow-auto"
+      v-if="channel"
+      @paste="processFiles($event.clipboardData)"
+      @drop.prevent="processFiles($event.dataTransfer)"
+      @dragover.prevent
+      @dragstart.prevent
+      @dragsend.prevent
+    >
       <div
         class="flex items-center justify-between p-4 border-b border-gray-800"
       >
@@ -114,7 +122,7 @@
           ref="msgBox"
         />
         <div class="flex space-x-2 text-gray-400">
-          <div @click="uploadFile">
+          <div @click="attachFile">
             <PaperclipIcon
               class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
             />
@@ -286,8 +294,34 @@ export default {
         this.$store.dispatch("updateChannel", this.channel.id);
       }
     },
-    uploadFile() {
-      this.$store.dispatch("uploadFile", this.channel.id);
+    async uploadFile(file) {
+      await this.$store.dispatch("uploadFile", {
+        file,
+        channelId: this.channel.id,
+      });
+    },
+    async processFiles({ items }) {
+      items = [...items].filter((i) => i.kind === "file");
+
+      for (const item of items) {
+        await this.uploadFile(item.getAsFile());
+      }
+    },
+    attachFile() {
+      const el = document.createElement("input");
+
+      el.addEventListener("input", async () => {
+        for (const file of el.files) {
+          await this.uploadFile(file);
+        }
+
+        el.remove();
+      });
+
+      el.type = "file";
+      el.click();
+
+      this.processFiles();
     },
   },
   updated() {

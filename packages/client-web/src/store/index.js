@@ -1955,93 +1955,85 @@ export default new Vuex.Store({
 
       commit("setDeaf", true);
     },
-    uploadFile({ getters, commit, dispatch }, channelId) {
+    uploadFile({ getters, commit, dispatch }, { file, channelId }) {
       const channel = getters.channelById(channelId);
-      const el = document.createElement("input");
 
-      el.addEventListener("input", () => {
-        const file = el.files[0];
+      if (file.size > 1024 * 1024 * 10) {
+        //10mb
+        //before you get excited, this is limited at the server as well.
+        throw new Error("File size too large (10MB max).");
+      }
 
-        if (file.size > 1024 * 1024 * 10) {
-          //10mb
-          //before you get excited, this is limited at the server as well.
-          throw new Error("File size too large (10MB max).");
-        }
+      const reader = new FileReader();
 
-        const reader = new FileReader();
+      reader.addEventListener("load", async () => {
+        const data = new Uint8Array(reader.result);
+        const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+        const key = nacl.randombytes_buf(nacl.crypto_secretbox_KEYBYTES);
+        const body = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(data, nonce, key),
+        ]);
+        const fileName = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(file.name, nonce, key),
+        ]);
+        const fileType = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(file.type, nonce, key),
+        ]);
 
-        reader.addEventListener("load", async () => {
-          const data = new Uint8Array(reader.result);
-          const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
-          const key = nacl.randombytes_buf(nacl.crypto_secretbox_KEYBYTES);
-          const body = new Uint8Array([
-            ...nonce,
-            ...nacl.crypto_secretbox_easy(data, nonce, key),
-          ]);
-          const fileName = new Uint8Array([
-            ...nonce,
-            ...nacl.crypto_secretbox_easy(file.name, nonce, key),
-          ]);
-          const fileType = new Uint8Array([
-            ...nonce,
-            ...nacl.crypto_secretbox_easy(file.type, nonce, key),
-          ]);
+        const userKeys = [];
 
-          const userKeys = [];
-
-          for (const user of channel.users.filter((u) => !u.removed)) {
-            const userKeyNonce = nacl.randombytes_buf(
-              nacl.crypto_secretbox_NONCEBYTES
-            );
-
-            const userKey = new Uint8Array([
-              ...userKeyNonce,
-              ...nacl.crypto_box_easy(
-                key,
-                userKeyNonce,
-                user.publicKey,
-                getters.privateKey
-              ),
-            ]);
-
-            userKeys.push({
-              id: user.id,
-              key: nacl.to_base64(userKey, nacl.base64_variants.ORIGINAL),
-            });
-          }
-
-          const selfKeyNonce = nacl.randombytes_buf(
+        for (const user of channel.users.filter((u) => !u.removed)) {
+          const userKeyNonce = nacl.randombytes_buf(
             nacl.crypto_secretbox_NONCEBYTES
           );
 
-          const selfKey = new Uint8Array([
-            ...selfKeyNonce,
+          const userKey = new Uint8Array([
+            ...userKeyNonce,
             ...nacl.crypto_box_easy(
               key,
-              selfKeyNonce,
-              getters.publicKey,
+              userKeyNonce,
+              user.publicKey,
               getters.privateKey
             ),
           ]);
 
           userKeys.push({
-            id: getters.user.id,
-            key: nacl.to_base64(selfKey, nacl.base64_variants.ORIGINAL),
+            id: user.id,
+            key: nacl.to_base64(userKey, nacl.base64_variants.ORIGINAL),
           });
+        }
 
-          await axios.post(`/api/channels/${channel.id}/files`, {
-            body: nacl.to_base64(body, nacl.base64_variants.ORIGINAL),
-            fileName: nacl.to_base64(fileName, nacl.base64_variants.ORIGINAL),
-            fileType: nacl.to_base64(fileType, nacl.base64_variants.ORIGINAL),
-            keys: userKeys,
-          });
+        const selfKeyNonce = nacl.randombytes_buf(
+          nacl.crypto_secretbox_NONCEBYTES
+        );
+
+        const selfKey = new Uint8Array([
+          ...selfKeyNonce,
+          ...nacl.crypto_box_easy(
+            key,
+            selfKeyNonce,
+            getters.publicKey,
+            getters.privateKey
+          ),
+        ]);
+
+        userKeys.push({
+          id: getters.user.id,
+          key: nacl.to_base64(selfKey, nacl.base64_variants.ORIGINAL),
         });
 
-        reader.readAsArrayBuffer(file);
+        await axios.post(`/api/channels/${channel.id}/files`, {
+          body: nacl.to_base64(body, nacl.base64_variants.ORIGINAL),
+          fileName: nacl.to_base64(fileName, nacl.base64_variants.ORIGINAL),
+          fileType: nacl.to_base64(fileType, nacl.base64_variants.ORIGINAL),
+          keys: userKeys,
+        });
       });
 
-      el.type = "file";
-      el.click();
+      reader.readAsArrayBuffer(file);
     },
     async fetchFile({ getters, commit, dispatch }, message) {
       const channel = getters.channelById(message.channel);
