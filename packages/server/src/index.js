@@ -5,12 +5,11 @@ const express = require("express");
 const morgan = require("morgan");
 const Redis = require("ioredis");
 const msgpack = require("msgpack-lite");
+const dotenv = require("dotenv");
 
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({
-    path: "../../.env",
-  });
-}
+dotenv.config({
+  path: "../../.env",
+});
 
 const log = winston.createLogger({
   levels: {
@@ -134,6 +133,7 @@ const wss = require("./routes/ws")(server, deps);
   app.use("/api/friends", require("./routes/friends"));
   app.use("/api/channels", require("./routes/channels"));
   app.use("/api/totp", require("./routes/totp"));
+  app.disable("x-powered-by");
 
   deps.log = log;
   deps.app = app;
