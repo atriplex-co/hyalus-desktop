@@ -25,7 +25,9 @@ app.post("/", session, user, async (req, res) => {
       try {
         img = await sharp(Buffer.concat(bufs))
           .resize(256, 256)
-          .toFormat("webp")
+          .toFormat("webp", {
+            quality: 80,
+          })
           .toBuffer();
       } catch {
         res.status(400).json({
