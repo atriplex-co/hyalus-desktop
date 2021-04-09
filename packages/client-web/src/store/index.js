@@ -89,11 +89,11 @@ export default new Vuex.Store({
     salt: null,
     publicKey: null,
     privateKey: null,
-    token: localStorage.getItem("token"),
-    betaBanner: localStorage.getItem("betaBanner") != null,
-    audioOutput: localStorage.getItem("audioOutput"),
-    audioInput: localStorage.getItem("audioInput"),
-    videoInput: localStorage.getItem("videoInput"),
+    token: localStorage.token,
+    betaBanner: localStorage.betaBanner != null,
+    audioOutput: localStorage.audioOutput,
+    audioInput: localStorage.audioInput,
+    videoInput: localStorage.videoInput,
     friends: [],
     channels: [],
     ws: null,
@@ -104,6 +104,9 @@ export default new Vuex.Store({
     baseUrl: null,
     ready: false,
     faviconEl: null,
+    rtcEcho: localStorage.rtcEcho,
+    rtcNoise: localStorage.rtcNoise,
+    rtcGain: localStorage.rtcGain,
   },
   getters: {
     config: (state) => state.config,
@@ -137,6 +140,9 @@ export default new Vuex.Store({
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
     accentColor: (state) => state.user?.accentColor || "green",
+    rtcEcho: (state) => !state.rtcEcho,
+    rtcNoise: (state) => !state.rtcNoise,
+    rtcGain: (state) => !state.rtcGain,
   },
   mutations: {
     setUser(state, user) {
@@ -629,6 +635,33 @@ export default new Vuex.Store({
     setDeaf(state, deaf) {
       if (state.voice) {
         state.voice.deaf = deaf;
+      }
+    },
+    setRtcEcho(state, val) {
+      state.rtcEcho = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcEcho");
+      } else {
+        localStorage.setItem("rtcEcho", "a");
+      }
+    },
+    setRtcNoise(state, val) {
+      state.rtcNoise = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcNoise");
+      } else {
+        localStorage.setItem("rtcNoise", "a");
+      }
+    },
+    setRtcGain(state, val) {
+      state.rtcGain = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcGain");
+      } else {
+        localStorage.setItem("rtcGain", "a");
       }
     },
   },
@@ -1765,6 +1798,9 @@ export default new Vuex.Store({
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: getters.audioInput,
+          echoCancellation: getters.rtcEcho,
+          noiseSuppression: getters.rtcNoise,
+          autoGainControl: getters.rtcGain,
         },
       });
 

@@ -12,7 +12,7 @@ console.log("%c[!] Console is for developers.", `color:#f55;`);
 console.log("%c[!] Pasting here may comprimise security!", `color:#f55;`);
 
 (async () => {
-  await store.dispatch("refresh", localStorage.getItem("token"));
+  await store.dispatch("refresh", localStorage.token);
 
   new Vue({
     el: "#app",

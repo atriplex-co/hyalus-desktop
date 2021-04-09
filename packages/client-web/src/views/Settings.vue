@@ -2,247 +2,209 @@
   <div class="flex h-full">
     <Sidebar />
     <div class="flex-1 px-16 pt-16 overflow-auto">
-      <p class="text-4xl font-bold">Settings</p>
-      <div class="flex my-8 space-x-8 text-gray-400 border-b border-gray-800">
-        <p
-          @click="view = 'general'"
-          class="px-1 pb-4 cursor-pointer"
-          :class="
-            view === 'general' &&
-              '-mb-px font-bold border-b-2 border-primary-500 text-primary-500'
-          "
-        >
-          General
-        </p>
-        <p
-          @click="view = 'notifications'"
-          class="px-1 pb-4 cursor-pointer"
-          :class="
-            view === 'notifications' &&
-              '-mb-px font-bold border-b-2 border-primary-500 text-primary-500'
-          "
-        >
-          Notifications
-        </p>
-        <p
-          @click="view = 'media'"
-          class="px-1 pb-4 cursor-pointer"
-          :class="
-            view === 'media' &&
-              '-mb-px font-bold border-b-2 border-primary-500 text-primary-500'
-          "
-        >
-          Audio &amp; Video
-        </p>
-        <p
-          @click="view = 'support'"
-          class="px-1 pb-4 cursor-pointer"
-          :class="
-            view === 'support' &&
-              '-mb-px font-bold border-b-2 border-primary-500 text-primary-500'
-          "
-        >
-          Support
+      <p class="text-4xl font-bold mb-8">Settings</p>
+      <div class="flex items-center justify-between h-12">
+        <div class="flex items-center">
+          <p class="w-48 font-bold">Avatar</p>
+          <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatar" />
+        </div>
+        <p class="cursor-pointer text-primary-500" @click="setAvatar">
+          Change
         </p>
       </div>
-      <div class="flex flex-col" v-if="view === 'general'">
-        <div class="flex items-center justify-between h-12">
-          <div class="flex items-center">
-            <p class="w-48 font-bold">Avatar</p>
-            <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatar" />
-          </div>
-          <p class="cursor-pointer text-primary-500" @click="setAvatar">
-            Change
+      <div class="flex items-center justify-between h-12">
+        <div class="flex">
+          <p class="w-48 font-bold">Name</p>
+          <p class="text-gray-400">{{ user.name }}</p>
+        </div>
+        <p class="cursor-pointer text-primary-500" @click="setNameModal = true">
+          Change
+        </p>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <div class="flex">
+          <p class="w-48 font-bold">Username</p>
+          <p class="text-gray-400">@{{ user.username }}</p>
+        </div>
+        <p
+          class="cursor-pointer text-primary-500"
+          @click="setUsernameModal = true"
+        >
+          Change
+        </p>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <div class="flex">
+          <p class="w-48 font-bold">Password</p>
+          <p class="text-gray-400">
+            Updated {{ new Date(user.updatedAt).toLocaleString() }}
           </p>
         </div>
-        <div class="flex items-center justify-between h-12">
-          <div class="flex">
-            <p class="w-48 font-bold">Name</p>
-            <p class="text-gray-400">{{ user.name }}</p>
-          </div>
-          <p
-            class="cursor-pointer text-primary-500"
-            @click="setNameModal = true"
+        <p
+          class="cursor-pointer text-primary-500"
+          @click="setPasswordModal = true"
+        >
+          Change
+        </p>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">2FA</p>
+        <Toggle v-model="totpEnabled" />
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">RTC Echo Cancellation</p>
+        <Toggle v-model="rtcEcho" />
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">RTC Noise Suppression</p>
+        <Toggle v-model="rtcNoise" />
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">RTC Gain Control</p>
+        <Toggle v-model="rtcGain" />
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Speakers</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="audioOutputMenu = !audioOutputMenu"
           >
-            Change
-          </p>
-        </div>
-        <div class="flex items-center justify-between h-12">
-          <div class="flex">
-            <p class="w-48 font-bold">Username</p>
-            <p class="text-gray-400">@{{ user.username }}</p>
-          </div>
-          <p
-            class="cursor-pointer text-primary-500"
-            @click="setUsernameModal = true"
-          >
-            Change
-          </p>
-        </div>
-        <div class="flex items-center justify-between h-12">
-          <div class="flex">
-            <p class="w-48 font-bold">Password</p>
-            <p class="text-gray-400">
-              Updated {{ new Date(user.updatedAt).toLocaleString() }}
+            <p class="truncate">
+              {{ audioOutput.label }}
             </p>
+            <ArrowDownIcon class="h-4" />
           </div>
-          <p
-            class="cursor-pointer text-primary-500"
-            @click="setPasswordModal = true"
+          <div class="relative" v-if="audioOutputDevices">
+            <div
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="audioOutputMenu"
+            >
+              <p
+                class="px-2 py-1 cursor-pointer hover:bg-gray-800"
+                v-for="device in audioOutputDevices"
+                v-bind:key="device.deviceId"
+                @click="
+                  setAudioOutput(device.deviceId);
+                  audioOutputMenu = false;
+                "
+              >
+                {{ device.label }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Microphone</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="audioInputMenu = !audioInputMenu"
           >
-            Change
-          </p>
-        </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">2FA</p>
-          <Toggle v-model="totpEnabled" />
-        </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">Speakers</p>
-          <div class="flex flex-col">
+            <p class="truncate">
+              {{ audioInput.label }}
+            </p>
+            <ArrowDownIcon class="h-4" />
+          </div>
+          <div class="relative" v-if="audioInputDevices">
             <div
-              class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-              @click="audioOutputMenu = !audioOutputMenu"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="audioInputMenu"
             >
-              <p class="truncate">
-                {{ audioOutput.label }}
-              </p>
-              <ArrowDownIcon class="h-4" />
-            </div>
-            <div class="relative" v-if="audioOutputDevices">
-              <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
-                v-if="audioOutputMenu"
+              <p
+                class="px-2 py-1 cursor-pointer hover:bg-gray-800"
+                v-for="device in audioInputDevices"
+                v-bind:key="device.deviceId"
+                @click="setAudioInput(device.deviceId)"
               >
-                <p
-                  class="px-2 py-1 cursor-pointer hover:bg-gray-800"
-                  v-for="device in audioOutputDevices"
-                  v-bind:key="device.deviceId"
-                  @click="
-                    setAudioOutput(device.deviceId);
-                    audioOutputMenu = false;
-                  "
-                >
-                  {{ device.label }}
-                </p>
-              </div>
+                {{ device.label }}
+              </p>
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">Microphone</p>
-          <div class="flex flex-col">
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Webcam</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="videoInputMenu = !videoInputMenu"
+          >
+            <p class="truncate">
+              {{ videoInput.label }}
+            </p>
+            <ArrowDownIcon class="h-4" />
+          </div>
+          <div class="relative" v-if="videoInputDevices">
             <div
-              class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-              @click="audioInputMenu = !audioInputMenu"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="videoInputMenu"
             >
-              <p class="truncate">
-                {{ audioInput.label }}
-              </p>
-              <ArrowDownIcon class="h-4" />
-            </div>
-            <div class="relative" v-if="audioInputDevices">
-              <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
-                v-if="audioInputMenu"
+              <p
+                class="px-2 py-1 cursor-pointer hover:bg-gray-800"
+                v-for="device in videoInputDevices"
+                v-bind:key="device.deviceId"
+                @click="setVideoInput(device.deviceId)"
               >
-                <p
-                  class="px-2 py-1 cursor-pointer hover:bg-gray-800"
-                  v-for="device in audioInputDevices"
-                  v-bind:key="device.deviceId"
-                  @click="setAudioInput(device.deviceId)"
-                >
-                  {{ device.label }}
-                </p>
-              </div>
+                {{ device.label }}
+              </p>
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">Webcam</p>
-          <div class="flex flex-col">
-            <div
-              class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-              @click="videoInputMenu = !videoInputMenu"
-            >
-              <p class="truncate">
-                {{ videoInput.label }}
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">UI Color</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="accentColorMenu = !accentColorMenu"
+          >
+            <div class="flex items-center space-x-2">
+              <div class="p-2 rounded-full" :class="`bg-${accentColor}-500`" />
+              <p>
+                {{
+                  `${accentColor.slice(0, 1).toUpperCase()}${accentColor.slice(
+                    1
+                  )}`
+                }}
               </p>
-              <ArrowDownIcon class="h-4" />
             </div>
-            <div class="relative" v-if="videoInputDevices">
-              <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
-                v-if="videoInputMenu"
-              >
-                <p
-                  class="px-2 py-1 cursor-pointer hover:bg-gray-800"
-                  v-for="device in videoInputDevices"
-                  v-bind:key="device.deviceId"
-                  @click="setVideoInput(device.deviceId)"
-                >
-                  {{ device.label }}
-                </p>
-              </div>
-            </div>
+            <ArrowDownIcon class="h-4" />
           </div>
-        </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">UI Color</p>
-          <div class="flex flex-col">
+          <div class="relative">
             <div
-              class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-              @click="accentColorMenu = !accentColorMenu"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              v-if="accentColorMenu"
             >
-              <div class="flex items-center space-x-2">
+              <div
+                class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
+                v-for="usableAccent in usableAccentColors"
+                v-bind:key="usableAccent"
+                @click="setAccentColor(usableAccent)"
+              >
                 <div
                   class="p-2 rounded-full"
-                  :class="`bg-${accentColor}-500`"
+                  :class="`bg-${usableAccent}-500`"
                 />
                 <p>
                   {{
-                    `${accentColor
+                    `${usableAccent
                       .slice(0, 1)
-                      .toUpperCase()}${accentColor.slice(1)}`
+                      .toUpperCase()}${usableAccent.slice(1)}`
                   }}
                 </p>
-              </div>
-              <ArrowDownIcon class="h-4" />
-            </div>
-            <div class="relative">
-              <div
-                class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
-                v-if="accentColorMenu"
-              >
-                <div
-                  class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
-                  v-for="usableAccent in usableAccentColors"
-                  v-bind:key="usableAccent"
-                  @click="setAccentColor(usableAccent)"
-                >
-                  <div
-                    class="p-2 rounded-full"
-                    :class="`bg-${usableAccent}-500`"
-                  />
-                  <p>
-                    {{
-                      `${usableAccent
-                        .slice(0, 1)
-                        .toUpperCase()}${usableAccent.slice(1)}`
-                    }}
-                  </p>
-                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-between h-12">
-          <p class="font-bold">Logout</p>
-          <div @click="logout">
-            <LogoutIcon
-              class="w-8 h-8 p-2 rounded-full bg-primary-500 hover:bg-primary-600 transition cursor-pointer"
-            />
-          </div>
+      </div>
+      <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Logout</p>
+        <div @click="logout">
+          <LogoutIcon
+            class="w-8 h-8 p-2 rounded-full bg-primary-500 hover:bg-primary-600 transition cursor-pointer"
+          />
         </div>
       </div>
       <div class="pt-16"></div>
@@ -354,6 +316,30 @@ export default {
     },
     accentColor() {
       return this.$store.getters.accentColor;
+    },
+    rtcEcho: {
+      get() {
+        return this.$store.getters.rtcEcho;
+      },
+      set(val) {
+        this.$store.commit("setRtcEcho", val);
+      },
+    },
+    rtcNoise: {
+      get() {
+        return this.$store.getters.rtcNoise;
+      },
+      set(val) {
+        this.$store.commit("setRtcNoise", val);
+      },
+    },
+    rtcGain: {
+      get() {
+        return this.$store.getters.rtcGain;
+      },
+      set(val) {
+        this.$store.commit("setRtcGain", val);
+      },
     },
   },
   methods: {
