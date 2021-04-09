@@ -52,6 +52,10 @@
         <Toggle v-model="totpEnabled" />
       </div>
       <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Send Typing Indicators</p>
+        <Toggle v-model="sendTyping" />
+      </div>
+      <div class="flex items-center justify-between h-12">
         <p class="font-bold">RTC Echo Cancellation</p>
         <Toggle v-model="rtcEcho" />
       </div>
@@ -419,6 +423,14 @@ export default {
     },
     displayQuality() {
       return this.$store.getters.displayQuality;
+    },
+    sendTyping: {
+      get() {
+        return this.$store.getters.sendTyping;
+      },
+      set(val) {
+        this.$store.commit("setSendTyping", val);
+      },
     },
   },
   methods: {

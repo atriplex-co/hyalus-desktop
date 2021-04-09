@@ -195,7 +195,10 @@ export default {
       this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
 
       //send messageTyping every 1s
-      if (Date.now() - 1000 > this.lastTyping) {
+      if (
+        this.$store.getters.sendTyping &&
+        Date.now() - 1000 > this.lastTyping
+      ) {
         this.$store.dispatch("sendMessageTyping", this.channel.id);
         this.lastTyping = Date.now();
       }

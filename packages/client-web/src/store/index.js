@@ -109,6 +109,7 @@ export default new Vuex.Store({
     rtcGain: localStorage.rtcGain,
     videoQuality: localStorage.videoQuality,
     displayQuality: localStorage.displayQuality,
+    sendTyping: localStorage.sendTyping,
   },
   getters: {
     config: (state) => state.config,
@@ -147,6 +148,7 @@ export default new Vuex.Store({
     rtcGain: (state) => !state.rtcGain,
     videoQuality: (state) => state.videoQuality || "720p30",
     displayQuality: (state) => state.displayQuality || "720p30",
+    sendTyping: (state) => !state.sendTyping,
   },
   mutations: {
     setUser(state, user) {
@@ -675,6 +677,15 @@ export default new Vuex.Store({
     setDisplayQuality(state, val) {
       state.displayQuality = val;
       localStorage.setItem("displayQuality", val);
+    },
+    setSendTyping(state, val) {
+      state.sendTyping = !val;
+
+      if (val) {
+        localStorage.removeItem("sendTyping");
+      } else {
+        localStorage.setItem("sendTyping", "a");
+      }
     },
   },
   actions: {
