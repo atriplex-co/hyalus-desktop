@@ -17,15 +17,14 @@
         @mouseover.native="showSenderCard = true"
         @mouseleave.native="showSenderCard = false"
       />
-      <div class="absolute bottom-10 w-72" v-if="showSenderCard">
-        <div
-          class="bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
-        >
-          <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
-          <div>
-            <p class="font-bold truncate">{{ sender.name }}</p>
-            <p class="text-xs text-gray-400">@{{ sender.username }}</p>
-          </div>
+      <div
+        class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
+        v-if="showSenderCard"
+      >
+        <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
+        <div>
+          <p class="font-bold truncate">{{ sender.name }}</p>
+          <p class="text-xs text-gray-400">@{{ sender.username }}</p>
         </div>
       </div>
     </div>
