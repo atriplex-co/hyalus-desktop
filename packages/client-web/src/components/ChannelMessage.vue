@@ -77,6 +77,7 @@
             :src="message.decrypted"
             v-if="message.fileMediaType === 'audio'"
             controls
+            class="outline-none"
           />
           <video
             :src="message.decrypted"
