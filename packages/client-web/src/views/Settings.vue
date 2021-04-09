@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
-    <div class="flex-1 px-16 pt-16 overflow-auto">
+    <div class="flex-1 px-12 pt-16 overflow-auto">
       <p class="text-4xl font-bold mb-8">Settings</p>
       <div class="flex items-center justify-between h-12">
         <div class="flex items-center">
@@ -81,7 +81,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="videoQualityMenu"
             >
               <div
@@ -110,7 +110,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="displayQualityMenu"
             >
               <div
@@ -139,7 +139,7 @@
           </div>
           <div class="relative" v-if="audioOutputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="audioOutputMenu"
             >
               <p
@@ -171,7 +171,7 @@
           </div>
           <div class="relative" v-if="audioInputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="audioInputMenu"
             >
               <p
@@ -200,7 +200,7 @@
           </div>
           <div class="relative" v-if="videoInputDevices">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="videoInputMenu"
             >
               <p
@@ -236,7 +236,7 @@
           </div>
           <div class="relative">
             <div
-              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-48 overflow-auto"
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto"
               v-if="accentColorMenu"
             >
               <div
@@ -269,7 +269,7 @@
           />
         </div>
       </div>
-      <div class="pt-16"></div>
+      <div class="pt-20"></div>
     </div>
     <SetNameModal v-if="setNameModal" @close="setNameModal = false" />
     <SetUsernameModal
