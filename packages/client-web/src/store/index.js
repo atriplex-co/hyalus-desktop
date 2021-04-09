@@ -1974,10 +1974,6 @@ export default new Vuex.Store({
       }
 
       if (imageTypes.find((t) => t === file.type)) {
-        //max width & height.
-        const mw = 2560;
-        const mh = 1440;
-
         fileType = "image/webp";
         fileName += ".webp";
 
@@ -1994,8 +1990,6 @@ export default new Vuex.Store({
           "libwebp",
           "-qscale",
           "80",
-          "-vf",
-          `scale='if(gt(a,${mw}/${mh}),${mw},-1)':'if(gt(a,${mw}/${mh}),-1,${mh})'`,
           fileName
         );
 
