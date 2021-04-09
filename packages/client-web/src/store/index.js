@@ -36,6 +36,26 @@ const iceServers = [
   },
 ];
 
+const messageFormatter = new MarkdownIt("zero", {
+  html: false,
+  linkify: true,
+})
+  .enable([
+    //
+    "emphasis",
+    "strikethrough",
+    "backticks",
+    "fence",
+    "linkify",
+  ])
+  .use(MarkdownItEmoji)
+  .use(MarkdownItLinkAttr, {
+    attrs: {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
+  });
+
 export default new Vuex.Store({
   state: {
     user: null,
@@ -393,24 +413,7 @@ export default new Vuex.Store({
           }
 
           if (!merged.formatted && merged.decrypted) {
-            merged.formatted = new MarkdownIt("zero", {
-              html: false,
-              linkify: true,
-            })
-              .enable([
-                "emphasis",
-                "strikethrough",
-                "backticks",
-                "fence",
-                "linkify",
-              ])
-              .use(MarkdownItEmoji)
-              .use(MarkdownItLinkAttr, {
-                attrs: {
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                },
-              })
+            merged.formatted = messageFormatter
               .renderInline(merged.decrypted)
               .trim();
           }
