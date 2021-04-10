@@ -336,7 +336,7 @@ app.get(
 
       let body = message.body;
 
-      if (body.buffer) {
+      if (body?.buffer) {
         body = body.toString("base64");
       }
 
