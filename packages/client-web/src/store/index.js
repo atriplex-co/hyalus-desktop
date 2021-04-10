@@ -1093,12 +1093,25 @@ export default new Vuex.Store({
     setUsername: ({}, username) => axios.post("/api/me", { username }),
     setBetaBanner: ({ commit }, betaBanner) =>
       commit("setBetaBanner", betaBanner),
-    setAudioOutput: ({ commit }, audioOutput) =>
-      commit("setAudioOutput", audioOutput),
-    setVideoInput: ({ commit }, videoInput) =>
-      commit("setVideoInput", videoInput),
-    setAudioInput: ({ commit }, audioInput) =>
-      commit("setAudioInput", audioInput),
+    async setAudioOutput({ getters, commit, dispatch }, audioOutput) {
+      commit("setAudioOutput", audioOutput);
+
+      if (getters.voice) {
+        getters.voice.remoteStreams
+          .filter((s) => s.track.kind === "audio")
+          .map((stream) => {
+            stream.el.setSinkId(audioOutput);
+          });
+      }
+    },
+    async setVideoInput({ getters, commit, dispatch }, videoInput) {
+      commit("setVideoInput", videoInput);
+      await dispatch("restartLocalStream", "video");
+    },
+    async setAudioInput({ getters, commit, dispatch }, audioInput) {
+      commit("setAudioInput", audioInput);
+      await dispatch("restartLocalStream", "audio");
+    },
     setAvatar({}) {
       const el = document.createElement("input");
 
@@ -2166,6 +2179,36 @@ export default new Vuex.Store({
         decrypted: URL.createObjectURL(blob),
         silent: true,
       });
+    },
+    async restartLocalStream({ getters, commit, dispatch }, type) {
+      if (getters.voice && getters.localStream(type)) {
+        let action;
+
+        if (type === "audio") {
+          action = "toggleAudio";
+        }
+
+        if (type === "video") {
+          action = "toggleVideo";
+        }
+
+        if (type === "display") {
+          action = "toggleDisplay";
+        }
+
+        for (let i = 0; i < 2; i++) {
+          await dispatch(action, {
+            silent: true,
+          });
+        }
+      }
+    },
+    async setVideoQuality({ getters, commit, dispatch }, quality) {
+      commit("setVideoQuality", quality);
+      await dispatch("restartLocalStream", "video");
+    },
+    async setDisplayQuality({ getters, commit, dispatch }, quality) {
+      commit("setDisplayQuality", quality);
     },
   },
 });

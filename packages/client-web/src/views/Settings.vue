@@ -458,11 +458,11 @@ export default {
       this.accentColorMenu = false;
     },
     setVideoQuality(val) {
-      this.$store.commit("setVideoQuality", val);
+      this.$store.dispatch("setVideoQuality", val);
       this.videoQualityMenu = false;
     },
     setDisplayQuality(val) {
-      this.$store.commit("setDisplayQuality", val);
+      this.$store.dispatch("setDisplayQuality", val);
       this.displayQualityMenu = false;
     },
   },
