@@ -81,6 +81,7 @@ const videoTypes = [
   //
   "video/mp4",
   "video/webm",
+  "video/quicktime",
 ];
 
 export default new Vuex.Store({
