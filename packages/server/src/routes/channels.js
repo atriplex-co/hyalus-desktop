@@ -368,7 +368,7 @@ app.post(
     scope: "user",
     tag: "messageCreate",
     max: 20,
-    time: 60,
+    time: 10,
     params: true,
   }),
   user,
@@ -482,8 +482,8 @@ app.delete(
   ratelimit({
     scope: "user",
     tag: "messageDelete",
-    max: 100,
-    time: 60,
+    max: 20,
+    time: 15,
     params: true,
   }),
   user,
@@ -561,7 +561,7 @@ app.post(
   ratelimit({
     scope: "user",
     tag: "setChannelAvatar",
-    max: 3,
+    max: 5,
     time: 60,
     params: true,
   }),

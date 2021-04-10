@@ -81,8 +81,23 @@ const wss = require("./routes/ws")(server, deps);
     redisSub = new Redis(process.env.REDIS);
 
     redis._publish = redis.publish;
-    redis.publish = (chan, msg) => {
-      redis._publish(chan, msgpack.encode(msg));
+    redis.publish = async (chan, msg) => {
+      await redis._publish(chan, msgpack.encode(msg));
+    };
+
+    redis._set = redis.set;
+    redis.set = async (key, val, ...rest) => {
+      await redis._set(key, msgpack.encode(val), ...rest);
+    };
+
+    redis.get = async (key) => {
+      let val = await redis.getBuffer(key);
+
+      if (val) {
+        val = msgpack.decode(val);
+      }
+
+      return val;
     };
 
     redisSub.on("messageBuffer", require("./events/redisMessage")(deps));
