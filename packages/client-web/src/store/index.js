@@ -15,7 +15,6 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 
 Vue.use(Vuex);
 
@@ -56,8 +55,6 @@ const messageFormatter = new MarkdownIt("zero", {
       rel: "noopener noreferrer",
     },
   });
-
-const ffmpeg = createFFmpeg();
 
 const imageTypes = [
   //
@@ -882,8 +879,6 @@ export default new Vuex.Store({
       if (token) {
         dispatch("wsConnect");
       }
-
-      await ffmpeg.load();
     },
     async logout({ dispatch }) {
       await axios.get("/api/logout");
@@ -2050,27 +2045,6 @@ export default new Vuex.Store({
       if (fileType === "video/x-matroska") {
         fileType = "video/webm";
         fileName += ".mkv";
-      }
-
-      if (imageTypes.find((t) => t === file.type)) {
-        fileType = "image/webp";
-        fileName += ".webp";
-
-        ffmpeg.FS("writeFile", file.name, await fetchFile(file));
-
-        await ffmpeg.run(
-          "-i",
-          file.name,
-          "-c:v",
-          "libwebp",
-          "-qscale",
-          "80",
-          "-loop",
-          "0",
-          fileName
-        );
-
-        data = ffmpeg.FS("readFile", fileName);
       }
 
       const reader = new FileReader();
