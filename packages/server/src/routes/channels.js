@@ -8,10 +8,17 @@ const { ObjectId } = require("mongodb");
 const Busboy = require("busboy");
 const sharp = require("sharp");
 const crypto = require("crypto");
+const ratelimit = require("../middleware/ratelimit");
 
 app.post(
   "/",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "groupCreate",
+    max: 5,
+    time: 60 * 15, //15m
+  }),
   user,
   validation(
     Joi.object({
@@ -143,6 +150,13 @@ app.post(
 app.post(
   "/:channel/meta",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "setChannelName",
+    max: 3,
+    time: 60,
+    params: true,
+  }),
   validation(
     Joi.object({
       name: Joi.string()
@@ -236,107 +250,127 @@ app.post(
   }
 );
 
-app.get("/:id/messages", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
+app.get(
+  "/:id/messages",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "editChannel",
+    max: 600,
+    time: 60 * 60, //1h
+    params: true,
+  }),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
 
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.id),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.id),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
       },
-    },
-  });
-
-  if (!channel) {
-    res.status(404).json({
-      error: "Channel does not exist",
     });
 
-    return;
-  }
+    if (!channel) {
+      res.status(404).json({
+        error: "Channel does not exist",
+      });
 
-  const channelUser = channel.users.find((u) => u.id.equals(req.session.user));
+      return;
+    }
 
-  const query = {
-    channel: channel._id,
-    time: {
-      $gte: channelUser.added,
-    },
-    $or: [
-      {
-        keys: null,
+    const channelUser = channel.users.find((u) =>
+      u.id.equals(req.session.user)
+    );
+
+    const query = {
+      channel: channel._id,
+      time: {
+        $gte: channelUser.added,
       },
-      {
-        keys: {
-          $elemMatch: {
-            id: req.session.user,
+      $or: [
+        {
+          keys: null,
+        },
+        {
+          keys: {
+            $elemMatch: {
+              id: req.session.user,
+            },
           },
         },
-      },
-    ],
-  };
-
-  if (ObjectId.isValid(req.query.before)) {
-    query._id = {
-      $lt: new ObjectId(req.query.before),
+      ],
     };
+
+    if (ObjectId.isValid(req.query.before)) {
+      query._id = {
+        $lt: new ObjectId(req.query.before),
+      };
+    }
+
+    const messages = (
+      await (
+        await req.deps.db.collection("messages").find(query, {
+          limit: 50,
+          sort: {
+            time: -1,
+          },
+        })
+      ).toArray()
+    ).reverse();
+
+    const formatted = [];
+
+    for (const message of messages) {
+      if (message.keys) {
+        message.key = message.keys
+          .find((k) => k.id.equals(req.session.user))
+          .key.toString("base64");
+      }
+
+      let body = message.body;
+
+      if (body.buffer) {
+        body = body.toString("base64");
+      }
+
+      if (body instanceof ObjectId) {
+        body = body.toString();
+      }
+
+      formatted.push({
+        id: message._id,
+        time: message.time,
+        type: message.type,
+        sender: message.sender,
+        body,
+        fileName: message.fileName,
+        fileType: message.fileType,
+        fileLength: message.fileLength,
+        key: message.key,
+      });
+    }
+
+    res.json(formatted);
   }
-
-  const messages = (
-    await (
-      await req.deps.db.collection("messages").find(query, {
-        limit: 50,
-        sort: {
-          time: -1,
-        },
-      })
-    ).toArray()
-  ).reverse();
-
-  const formatted = [];
-
-  for (const message of messages) {
-    if (message.keys) {
-      message.key = message.keys
-        .find((k) => k.id.equals(req.session.user))
-        .key.toString("base64");
-    }
-
-    let body = message.body;
-
-    if (body.buffer) {
-      body = body.toString("base64");
-    }
-
-    if (body instanceof ObjectId) {
-      body = body.toString();
-    }
-
-    formatted.push({
-      id: message._id,
-      time: message.time,
-      type: message.type,
-      sender: message.sender,
-      body,
-      fileName: message.fileName,
-      fileType: message.fileType,
-      fileLength: message.fileLength,
-      key: message.key,
-    });
-  }
-
-  res.json(formatted);
-});
+);
 
 app.post(
   "/:id/messages",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "messageCreate",
+    max: 20,
+    time: 60,
+    params: true,
+  }),
   user,
   validation(
     Joi.object({
@@ -442,209 +476,239 @@ app.post(
   }
 );
 
-app.delete("/:channel/messages/:message", session, user, async (req, res) => {
-  if (!ObjectId.isValid(req.params.channel)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
+app.delete(
+  "/:channel/messages/:message",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "messageDelete",
+    max: 100,
+    time: 60,
+    params: true,
+  }),
+  user,
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
 
-  if (!ObjectId.isValid(req.params.message)) {
-    return res.status(400).json({
-      error: "Invalid message",
-    });
-  }
+    if (!ObjectId.isValid(req.params.message)) {
+      return res.status(400).json({
+        error: "Invalid message",
+      });
+    }
 
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.channel),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
-      },
-    },
-  });
-
-  if (!channel) {
-    res.status(400).json({
-      error: "Channel does not exist",
-    });
-
-    return;
-  }
-
-  const message = await req.deps.db.collection("messages").findOne({
-    _id: new ObjectId(req.params.message),
-    channel: channel._id,
-    sender: req.session.user,
-  });
-
-  if (!message) {
-    res.status(400).json({
-      error: "Message does not exists",
-    });
-
-    return;
-  }
-
-  await req.deps.db.collection("messages").deleteOne(message);
-
-  if (message.type === "file") {
-    await req.deps.db.collection("files").deleteOne({
-      _id: message.body,
-    });
-  }
-
-  for (const channelUser of channel.users.filter((u) => !u.removed)) {
-    req.deps.redis.publish(`user:${channelUser.id}`, {
-      t: "message",
-      d: {
-        channel: channel._id.toString(),
-        id: message._id.toString(),
-        delete: true,
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.channel),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
       },
     });
-  }
 
-  res.status(204).end();
-});
-
-app.post("/:channel/avatar", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.channel)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
-
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.channel),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
-      },
-    },
-  });
-
-  if (!channel) {
-    res.status(404).json({
-      error: "Channel not found",
-    });
-
-    return;
-  }
-
-  if (channel.type === "dm") {
-    res.status(400).json({
-      error: "Can't set channel avatar on DMs",
-    });
-
-    return;
-  }
-
-  if (!channel.users.find((u) => u.id.equals(req.session.user)).admin) {
-    res.status(400).json({
-      error: "Must be channel administrator",
-    });
-
-    return;
-  }
-
-  const bb = new Busboy({
-    headers: req.headers,
-  });
-
-  bb.on("file", (name, file) => {
-    const bufs = [];
-
-    file.on("data", (b) => {
-      bufs.push(b);
-    });
-
-    file.on("end", async () => {
-      let img;
-
-      try {
-        img = await sharp(Buffer.concat(bufs))
-          .resize(256, 256)
-          .toFormat("webp", {
-            quality: 80,
-          })
-          .toBuffer();
-      } catch {
-        res.status(400).json({
-          error: "Unsupported or invalid image data",
-        });
-
-        return;
-      }
-
-      const hash = crypto
-        .createHash("sha256")
-        .update(img)
-        .digest();
-
-      let avatar = await req.deps.db.collection("avatars").findOne({
-        hash,
+    if (!channel) {
+      res.status(400).json({
+        error: "Channel does not exist",
       });
 
-      if (!avatar) {
-        avatar = (
-          await req.deps.db.collection("avatars").insertOne({
-            hash,
-            img,
-          })
-        ).ops[0];
-      }
+      return;
+    }
 
-      await req.deps.db.collection("channels").updateOne(channel, {
-        $set: {
-          avatar: avatar._id,
+    const message = await req.deps.db.collection("messages").findOne({
+      _id: new ObjectId(req.params.message),
+      channel: channel._id,
+      sender: req.session.user,
+    });
+
+    if (!message) {
+      res.status(400).json({
+        error: "Message does not exists",
+      });
+
+      return;
+    }
+
+    await req.deps.db.collection("messages").deleteOne(message);
+
+    if (message.type === "file") {
+      await req.deps.db.collection("files").deleteOne({
+        _id: message.body,
+      });
+    }
+
+    for (const channelUser of channel.users.filter((u) => !u.removed)) {
+      req.deps.redis.publish(`user:${channelUser.id}`, {
+        t: "message",
+        d: {
+          channel: channel._id.toString(),
+          id: message._id.toString(),
+          delete: true,
         },
       });
+    }
 
-      const message = (
-        await req.deps.db.collection("messages").insertOne({
-          channel: channel._id,
-          sender: req.session.user,
-          time: Date.now(),
-          type: "channelAvatar",
-          body: null,
-          keys: null,
-        })
-      ).ops[0];
+    res.status(204).end();
+  }
+);
 
-      for (const user of channel.users.filter((u) => !u.removed)) {
-        req.deps.redis.publish(`user:${user.id}`, {
-          t: "channel",
-          d: {
-            id: channel._id.toString(),
-            avatar: avatar._id.toString(),
-          },
-        });
+app.post(
+  "/:channel/avatar",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "setChannelAvatar",
+    max: 3,
+    time: 60,
+    params: true,
+  }),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
 
-        req.deps.redis.publish(`user:${user.id}`, {
-          t: "message",
-          d: {
-            channel: channel._id.toString(),
-            id: message._id.toString(),
-            sender: message.sender.toString(),
-            time: message.time,
-            type: message.type,
-          },
-        });
-      }
-
-      res.end();
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.channel),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
+      },
     });
-  });
 
-  req.pipe(bb);
-});
+    if (!channel) {
+      res.status(404).json({
+        error: "Channel not found",
+      });
+
+      return;
+    }
+
+    if (channel.type === "dm") {
+      res.status(400).json({
+        error: "Can't set channel avatar on DMs",
+      });
+
+      return;
+    }
+
+    if (!channel.users.find((u) => u.id.equals(req.session.user)).admin) {
+      res.status(400).json({
+        error: "Must be channel administrator",
+      });
+
+      return;
+    }
+
+    const bb = new Busboy({
+      headers: req.headers,
+    });
+
+    bb.on("file", (name, file) => {
+      const bufs = [];
+
+      file.on("data", (b) => {
+        bufs.push(b);
+      });
+
+      file.on("end", async () => {
+        let img;
+
+        try {
+          img = await sharp(Buffer.concat(bufs))
+            .resize(256, 256)
+            .toFormat("webp", {
+              quality: 80,
+            })
+            .toBuffer();
+        } catch {
+          res.status(400).json({
+            error: "Unsupported or invalid image data",
+          });
+
+          return;
+        }
+
+        const hash = crypto
+          .createHash("sha256")
+          .update(img)
+          .digest();
+
+        let avatar = await req.deps.db.collection("avatars").findOne({
+          hash,
+        });
+
+        if (!avatar) {
+          avatar = (
+            await req.deps.db.collection("avatars").insertOne({
+              hash,
+              img,
+            })
+          ).ops[0];
+        }
+
+        await req.deps.db.collection("channels").updateOne(channel, {
+          $set: {
+            avatar: avatar._id,
+          },
+        });
+
+        const message = (
+          await req.deps.db.collection("messages").insertOne({
+            channel: channel._id,
+            sender: req.session.user,
+            time: Date.now(),
+            type: "channelAvatar",
+            body: null,
+            keys: null,
+          })
+        ).ops[0];
+
+        for (const user of channel.users.filter((u) => !u.removed)) {
+          req.deps.redis.publish(`user:${user.id}`, {
+            t: "channel",
+            d: {
+              id: channel._id.toString(),
+              avatar: avatar._id.toString(),
+            },
+          });
+
+          req.deps.redis.publish(`user:${user.id}`, {
+            t: "message",
+            d: {
+              channel: channel._id.toString(),
+              id: message._id.toString(),
+              sender: message.sender.toString(),
+              time: message.time,
+              type: message.type,
+            },
+          });
+        }
+
+        res.end();
+      });
+    });
+
+    req.pipe(bb);
+  }
+);
 
 app.post(
   "/:channel/users",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "addChannelUser",
+    max: 50,
+    time: 60 * 5,
+    params: true,
+  }),
   user,
   validation(
     Joi.object({
@@ -846,192 +910,86 @@ app.post(
   }
 );
 
-app.delete("/:channel/users/:user", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.channel)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
+app.delete(
+  "/:channel/users/:user",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "removeChannelUser",
+    max: 100,
+    time: 60 * 5,
+  }),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
 
-  if (!ObjectId.isValid(req.params.user)) {
-    return res.status(400).json({
-      error: "Invalid user",
-    });
-  }
+    if (!ObjectId.isValid(req.params.user)) {
+      return res.status(400).json({
+        error: "Invalid user",
+      });
+    }
 
-  if (req.session.user.equals(req.params.user)) {
-    res.status(400).json({
-      error: "You can't remove yourself",
-    });
+    if (req.session.user.equals(req.params.user)) {
+      res.status(400).json({
+        error: "You can't remove yourself",
+      });
 
-    return;
-  }
+      return;
+    }
 
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.channel),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
-      },
-    },
-  });
-
-  if (!channel) {
-    res.status(404).json({
-      error: "Channel not found",
-    });
-
-    return;
-  }
-
-  if (channel.type === "dm") {
-    res.status(400).json({
-      error: "Users can't be removed from DMs",
-    });
-
-    return;
-  }
-
-  if (!channel.users.find((u) => u.id.equals(req.session.user)).admin) {
-    res.status(400).json({
-      error: "Must be a channel administrator",
-    });
-
-    return;
-  }
-
-  if (!channel.users.find((u) => u.id.equals(new ObjectId(req.params.user)))) {
-    res.status(404).json({
-      error: "Channel user not found",
-    });
-
-    return;
-  }
-
-  await req.deps.db.collection("channels").updateOne(
-    {
+    const channel = await req.deps.db.collection("channels").findOne({
       _id: new ObjectId(req.params.channel),
       users: {
         $elemMatch: {
-          id: new ObjectId(req.params.user),
+          id: req.session.user,
+          removed: false,
         },
       },
-    },
-    {
-      $set: {
-        "users.$.removed": true,
-      },
-    }
-  );
+    });
 
-  const message = (
-    await req.deps.db.collection("messages").insertOne({
-      channel: channel._id,
-      time: Date.now(),
-      type: "channelUserRemove",
-      sender: req.session.user,
-      body: new ObjectId(req.params.user),
-      keys: null,
-    })
-  ).ops[0];
-
-  channel.users
-    .filter((u) => !u.removed)
-    .filter((u) => !u.id.equals(req.params.user))
-    .map((user) => {
-      req.deps.redis.publish(`user:${user.id}`, {
-        t: "message",
-        d: {
-          channel: message.channel.toString(),
-          id: message._id.toString(),
-          time: message.time,
-          type: message.type,
-          sender: message.sender.toString(),
-          body: message.body.toString(),
-        },
+    if (!channel) {
+      res.status(404).json({
+        error: "Channel not found",
       });
 
-      req.deps.redis.publish(`user:${user.id}`, {
-        t: "channelUser",
-        d: {
-          channel: message.channel.toString(),
-          id: req.params.user,
-          removed: true,
-          voiceConnected: false,
-        },
-      });
-    });
-
-  req.deps.redis.publish(`user:${req.params.user}`, {
-    t: "voiceKick",
-  });
-
-  req.deps.redis.publish(`user:${req.params.user}`, {
-    t: "channel",
-    d: {
-      id: channel._id.toString(),
-      delete: true,
-    },
-  });
-
-  res.status(204).end();
-});
-
-app.post("/:channel/leave", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.channel)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
-
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.channel),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
-      },
-    },
-  });
-
-  if (!channel) {
-    return res.status(404).json({
-      error: "Channel not found",
-    });
-  }
-
-  if (channel.type === "dm") {
-    return res.status(400).json({
-      error: "You cannot leave a DM channel",
-    });
-  }
-
-  if (channel.users.filter((user) => !user.removed).length === 1) {
-    await req.deps.db.collection("channels").deleteOne(channel);
-
-    const messages = await (
-      await req.deps.db.collection("messages").find({
-        channel: channel._id,
-      })
-    ).toArray();
-
-    for (const message of messages) {
-      await req.deps.db.collection("messages").deleteOne(message);
-
-      if (message.type === "file") {
-        await req.deps.db.collection("files").deleteOne({
-          _id: message.body,
-        });
-      }
+      return;
     }
-  } else {
+
+    if (channel.type === "dm") {
+      res.status(400).json({
+        error: "Users can't be removed from DMs",
+      });
+
+      return;
+    }
+
+    if (!channel.users.find((u) => u.id.equals(req.session.user)).admin) {
+      res.status(400).json({
+        error: "Must be a channel administrator",
+      });
+
+      return;
+    }
+
+    if (
+      !channel.users.find((u) => u.id.equals(new ObjectId(req.params.user)))
+    ) {
+      res.status(404).json({
+        error: "Channel user not found",
+      });
+
+      return;
+    }
+
     await req.deps.db.collection("channels").updateOne(
       {
-        _id: channel._id,
+        _id: new ObjectId(req.params.channel),
         users: {
           $elemMatch: {
-            id: req.session.user,
+            id: new ObjectId(req.params.user),
           },
         },
       },
@@ -1045,54 +1003,188 @@ app.post("/:channel/leave", session, async (req, res) => {
     const message = (
       await req.deps.db.collection("messages").insertOne({
         channel: channel._id,
-        sender: req.session.user,
-        type: "channelUserLeave",
         time: Date.now(),
-        body: null,
+        type: "channelUserRemove",
+        sender: req.session.user,
+        body: new ObjectId(req.params.user),
         keys: null,
       })
     ).ops[0];
 
-    for (const user of channel.users
-      .filter((user) => !user.removed)
-      .filter((user) => !user.id.equals(req.session.user))) {
-      await req.deps.redis.publish(`user:${user.id}`, {
-        t: "channelUser",
-        d: {
-          channel: channel._id.toString(),
-          id: req.session.user.toString(),
-          removed: true,
-        },
+    channel.users
+      .filter((u) => !u.removed)
+      .filter((u) => !u.id.equals(req.params.user))
+      .map((user) => {
+        req.deps.redis.publish(`user:${user.id}`, {
+          t: "message",
+          d: {
+            channel: message.channel.toString(),
+            id: message._id.toString(),
+            time: message.time,
+            type: message.type,
+            sender: message.sender.toString(),
+            body: message.body.toString(),
+          },
+        });
+
+        req.deps.redis.publish(`user:${user.id}`, {
+          t: "channelUser",
+          d: {
+            channel: message.channel.toString(),
+            id: req.params.user,
+            removed: true,
+            voiceConnected: false,
+          },
+        });
       });
 
-      await req.deps.redis.publish(`user:${user.id}`, {
-        t: "message",
-        d: {
-          channel: channel._id.toString(),
-          id: message._id.toString(),
-          sender: message.sender.toString(),
-          type: message.type,
-          body: message.body,
-          key: null,
-        },
+    req.deps.redis.publish(`user:${req.params.user}`, {
+      t: "voiceKick",
+    });
+
+    req.deps.redis.publish(`user:${req.params.user}`, {
+      t: "channel",
+      d: {
+        id: channel._id.toString(),
+        delete: true,
+      },
+    });
+
+    res.status(204).end();
+  }
+);
+
+app.post(
+  "/:channel/leave",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "leaveChannel",
+    max: 20,
+    time: 60,
+  }),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
       });
     }
+
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.channel),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
+      },
+    });
+
+    if (!channel) {
+      return res.status(404).json({
+        error: "Channel not found",
+      });
+    }
+
+    if (channel.type === "dm") {
+      return res.status(400).json({
+        error: "You cannot leave a DM channel",
+      });
+    }
+
+    if (channel.users.filter((user) => !user.removed).length === 1) {
+      await req.deps.db.collection("channels").deleteOne(channel);
+
+      const messages = await (
+        await req.deps.db.collection("messages").find({
+          channel: channel._id,
+        })
+      ).toArray();
+
+      for (const message of messages) {
+        await req.deps.db.collection("messages").deleteOne(message);
+
+        if (message.type === "file") {
+          await req.deps.db.collection("files").deleteOne({
+            _id: message.body,
+          });
+        }
+      }
+    } else {
+      await req.deps.db.collection("channels").updateOne(
+        {
+          _id: channel._id,
+          users: {
+            $elemMatch: {
+              id: req.session.user,
+            },
+          },
+        },
+        {
+          $set: {
+            "users.$.removed": true,
+          },
+        }
+      );
+
+      const message = (
+        await req.deps.db.collection("messages").insertOne({
+          channel: channel._id,
+          sender: req.session.user,
+          type: "channelUserLeave",
+          time: Date.now(),
+          body: null,
+          keys: null,
+        })
+      ).ops[0];
+
+      for (const user of channel.users
+        .filter((user) => !user.removed)
+        .filter((user) => !user.id.equals(req.session.user))) {
+        await req.deps.redis.publish(`user:${user.id}`, {
+          t: "channelUser",
+          d: {
+            channel: channel._id.toString(),
+            id: req.session.user.toString(),
+            removed: true,
+          },
+        });
+
+        await req.deps.redis.publish(`user:${user.id}`, {
+          t: "message",
+          d: {
+            channel: channel._id.toString(),
+            id: message._id.toString(),
+            sender: message.sender.toString(),
+            type: message.type,
+            body: message.body,
+            key: null,
+          },
+        });
+      }
+    }
+
+    await req.deps.redis.publish(`user:${req.session.user}`, {
+      t: "channel",
+      d: {
+        id: channel._id.toString(),
+        delete: true,
+      },
+    });
+
+    res.status(204).end();
   }
-
-  await req.deps.redis.publish(`user:${req.session.user}`, {
-    t: "channel",
-    d: {
-      id: channel._id.toString(),
-      delete: true,
-    },
-  });
-
-  res.status(204).end();
-});
+);
 
 app.post(
   "/:id/files",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "uploadFile",
+    max: 20,
+    time: 60 * 5,
+  }),
   user,
   validation(
     Joi.object({
@@ -1218,54 +1310,71 @@ app.post(
   }
 );
 
-app.get("/:channel/files/:file", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.channel)) {
-    return res.status(400).json({
-      error: "Invalid channel",
-    });
-  }
+app.get(
+  "/:channel/files/:file",
+  session,
+  ratelimit({
+    scope: "user",
+    tag: "getFile",
+    max: 100,
+    time: 60 * 5,
+  }),
+  ratelimit({
+    scope: "user",
+    tag: "getFile",
+    max: 5,
+    time: 60,
+    params: true,
+  }),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.channel)) {
+      return res.status(400).json({
+        error: "Invalid channel",
+      });
+    }
 
-  if (!ObjectId.isValid(req.params.file)) {
-    return res.status(400).json({
-      error: "Invalid file",
-    });
-  }
+    if (!ObjectId.isValid(req.params.file)) {
+      return res.status(400).json({
+        error: "Invalid file",
+      });
+    }
 
-  const channel = await req.deps.db.collection("channels").findOne({
-    _id: new ObjectId(req.params.channel),
-    users: {
-      $elemMatch: {
-        id: req.session.user,
-        removed: false,
+    const channel = await req.deps.db.collection("channels").findOne({
+      _id: new ObjectId(req.params.channel),
+      users: {
+        $elemMatch: {
+          id: req.session.user,
+          removed: false,
+        },
       },
-    },
-    writable: true,
-  });
-
-  if (!channel) {
-    res.status(404).json({
-      error: "Channel not found",
+      writable: true,
     });
 
-    return;
-  }
+    if (!channel) {
+      res.status(404).json({
+        error: "Channel not found",
+      });
 
-  const file = await req.deps.db.collection("files").findOne({
-    _id: new ObjectId(req.params.file),
-    channel: channel._id,
-  });
+      return;
+    }
 
-  if (!file) {
-    res.status(404).json({
-      error: "File not found",
+    const file = await req.deps.db.collection("files").findOne({
+      _id: new ObjectId(req.params.file),
+      channel: channel._id,
     });
 
-    return;
-  }
+    if (!file) {
+      res.status(404).json({
+        error: "File not found",
+      });
 
-  res.set("Content-Type", "application/octet-stream");
-  res.set("Cache-Control", "public, max-age=31536000");
-  res.end(file.body.buffer);
-});
+      return;
+    }
+
+    res.set("Content-Type", "application/octet-stream");
+    res.set("Cache-Control", "public, max-age=31536000");
+    res.end(file.body.buffer);
+  }
+);
 
 module.exports = app;

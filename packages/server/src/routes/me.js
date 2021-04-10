@@ -4,10 +4,17 @@ const session = require("../middleware/session");
 const user = require("../middleware/user");
 const validation = require("../middleware/validation");
 const Joi = require("joi");
+const ratelimit = require("../middleware/ratelimit");
 
 app.post(
   "/",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "updateUser",
+    max: 50,
+    time: 60 * 5,
+  }),
   user,
   validation(
     Joi.object({

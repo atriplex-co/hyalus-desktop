@@ -5,10 +5,17 @@ const session = require("../middleware/session");
 const user = require("../middleware/user");
 const validation = require("../middleware/validation");
 const { ObjectId } = require("mongodb");
+const ratelimit = require("../middleware/ratelimit");
 
 app.post(
   "/",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "addFriend",
+    max: 20,
+    time: 60 * 15,
+  }),
   user,
   validation(
     Joi.object({
@@ -114,6 +121,12 @@ app.post(
 app.post(
   "/accept",
   session,
+  ratelimit({
+    scope: "user",
+    tag: "addFriend",
+    max: 50,
+    time: 60 * 15,
+  }),
   user,
   validation(
     Joi.object({
@@ -284,82 +297,92 @@ app.post(
   }
 );
 
-app.delete("/:id", session, async (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      error: "Invalid friend",
+app.delete(
+  "/:id",
+  ratelimit({
+    scope: "user",
+    tag: "addFriend",
+    max: 100,
+    time: 60 * 5,
+  }),
+  session,
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        error: "Invalid friend",
+      });
+    }
+
+    const friend = await req.deps.db.collection("friends").findOne({
+      _id: new ObjectId(req.params.id),
     });
-  }
 
-  const friend = await req.deps.db.collection("friends").findOne({
-    _id: new ObjectId(req.params.id),
-  });
+    if (!friend) {
+      res.status(404).json({
+        error: "Friend does not exist",
+      });
 
-  if (!friend) {
-    res.status(404).json({
-      error: "Friend does not exist",
-    });
+      return;
+    }
 
-    return;
-  }
+    await req.deps.db.collection("friends").deleteOne(friend);
 
-  await req.deps.db.collection("friends").deleteOne(friend);
-
-  req.deps.redis.publish(`user:${friend.initiator}`, {
-    t: "friend",
-    d: {
-      id: friend._id.toString(),
-      delete: true,
-    },
-  });
-
-  req.deps.redis.publish(`user:${friend.target}`, {
-    t: "friend",
-    d: {
-      id: friend._id.toString(),
-      delete: true,
-    },
-  });
-
-  const dmChannel = await req.deps.db.collection("channels").findOne({
-    type: "dm",
-    $and: [
-      {
-        users: {
-          $elemMatch: {
-            id: friend.initiator,
-          },
-        },
-      },
-      {
-        users: {
-          $elemMatch: {
-            id: friend.target,
-          },
-        },
-      },
-    ],
-  });
-
-  if (dmChannel) {
-    await req.deps.db.collection("channels").updateOne(dmChannel, {
-      $set: {
-        writable: false,
-      },
-    });
-  }
-
-  for (const dmChannelUser of dmChannel.users) {
-    req.deps.redis.publish(`user:${dmChannelUser.id}`, {
-      t: "channel",
+    req.deps.redis.publish(`user:${friend.initiator}`, {
+      t: "friend",
       d: {
-        id: dmChannel._id.toString(),
-        writable: false,
+        id: friend._id.toString(),
+        delete: true,
       },
     });
-  }
 
-  res.end();
-});
+    req.deps.redis.publish(`user:${friend.target}`, {
+      t: "friend",
+      d: {
+        id: friend._id.toString(),
+        delete: true,
+      },
+    });
+
+    const dmChannel = await req.deps.db.collection("channels").findOne({
+      type: "dm",
+      $and: [
+        {
+          users: {
+            $elemMatch: {
+              id: friend.initiator,
+            },
+          },
+        },
+        {
+          users: {
+            $elemMatch: {
+              id: friend.target,
+            },
+          },
+        },
+      ],
+    });
+
+    if (dmChannel) {
+      await req.deps.db.collection("channels").updateOne(dmChannel, {
+        $set: {
+          writable: false,
+        },
+      });
+    }
+
+    for (const dmChannelUser of dmChannel.users) {
+      req.deps.redis.publish(`user:${dmChannelUser.id}`, {
+        t: "channel",
+        d: {
+          id: dmChannel._id.toString(),
+          writable: false,
+        },
+      });
+    }
+
+    res.end();
+  }
+);
 
 module.exports = app;

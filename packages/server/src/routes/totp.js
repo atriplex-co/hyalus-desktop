@@ -7,37 +7,55 @@ const Joi = require("joi");
 const { authenticator } = require("otplib");
 const { ObjectId } = require("mongodb");
 const crypto = require("crypto");
+const ratelimit = require("../middleware/ratelimit");
 
-app.get("/init", sessionMiddleware, userMiddleware, async (req, res) => {
-  if (req.user.totpSecret) {
-    res.status(400).json({
-      error: "TOTP is already enabled on your account",
+app.get(
+  "/init",
+  sessionMiddleware,
+  ratelimit({
+    scope: "user",
+    tag: "totpInit",
+    max: 50,
+    time: 60 * 15,
+  }),
+  userMiddleware,
+  async (req, res) => {
+    if (req.user.totpSecret) {
+      res.status(400).json({
+        error: "TOTP is already enabled on your account",
+      });
+
+      return;
+    }
+
+    const secret = authenticator.generateSecret();
+
+    const ticket = (
+      await req.deps.db.collection("tickets").insertOne({
+        type: "totpEnable",
+        user: req.user._id,
+        expires: new Date(Date.now() + 1000 * 60 * 15), //15m
+        token: crypto.randomBytes(32),
+        totpSecret: secret,
+      })
+    ).ops[0];
+
+    res.json({
+      ticket: ticket.token.toString("base64"),
+      secret: ticket.totpSecret,
     });
-
-    return;
   }
-
-  const secret = authenticator.generateSecret();
-
-  const ticket = (
-    await req.deps.db.collection("tickets").insertOne({
-      type: "totpEnable",
-      user: req.user._id,
-      expires: new Date(Date.now() + 1000 * 60 * 15), //15m
-      token: crypto.randomBytes(32),
-      totpSecret: secret,
-    })
-  ).ops[0];
-
-  res.json({
-    ticket: ticket.token.toString("base64"),
-    secret: ticket.totpSecret,
-  });
-});
+);
 
 app.post(
   "/enable",
   sessionMiddleware,
+  ratelimit({
+    scope: "user",
+    tag: "totpEnable",
+    max: 5,
+    time: 60 * 15,
+  }),
   userMiddleware,
   validMiddleware(
     Joi.object({
@@ -117,6 +135,12 @@ app.post(
 app.post(
   "/disable",
   sessionMiddleware,
+  ratelimit({
+    scope: "user",
+    tag: "totpDisable",
+    max: 5,
+    time: 60 * 15,
+  }),
   userMiddleware,
   validMiddleware(
     Joi.object({
@@ -164,6 +188,12 @@ app.post(
 
 app.post(
   "/login",
+  ratelimit({
+    scope: "ip",
+    tag: "totpLogin",
+    max: 10,
+    time: 60 * 5,
+  }),
   validMiddleware(
     Joi.object({
       ticket: Joi.string()

@@ -3,9 +3,16 @@ const express = require("express");
 const validation = require("../middleware/validation");
 const Joi = require("joi");
 const app = express.Router();
+const ratelimit = require("../middleware/ratelimit");
 
 app.post(
   "/",
+  ratelimit({
+    scope: "ip",
+    tag: "login",
+    max: 10,
+    time: 60 * 5,
+  }),
   validation(
     Joi.object({
       username: Joi.string()
