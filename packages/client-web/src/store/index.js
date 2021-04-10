@@ -2210,5 +2210,17 @@ export default new Vuex.Store({
     async setDisplayQuality({ getters, commit, dispatch }, quality) {
       commit("setDisplayQuality", quality);
     },
+    async setRtcEcho({ getters, commit, dispatch }, val) {
+      commit("setRtcEcho", val);
+      await dispatch("restartLocalStream", "audio");
+    },
+    async setRtcNoise({ getters, commit, dispatch }, val) {
+      commit("setRtcNoise", val);
+      await dispatch("restartLocalStream", "audio");
+    },
+    async setRtcGain({ getters, commit, dispatch }, val) {
+      commit("setRtcGain", val);
+      await dispatch("restartLocalStream", "audio");
+    },
   },
 });

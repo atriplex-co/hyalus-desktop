@@ -399,7 +399,7 @@ export default {
         return this.$store.getters.rtcEcho;
       },
       set(val) {
-        this.$store.commit("setRtcEcho", val);
+        this.$store.dispatch("setRtcEcho", val);
       },
     },
     rtcNoise: {
@@ -407,7 +407,7 @@ export default {
         return this.$store.getters.rtcNoise;
       },
       set(val) {
-        this.$store.commit("setRtcNoise", val);
+        this.$store.dispatch("setRtcNoise", val);
       },
     },
     rtcGain: {
@@ -415,7 +415,7 @@ export default {
         return this.$store.getters.rtcGain;
       },
       set(val) {
-        this.$store.commit("setRtcGain", val);
+        this.$store.dispatch("setRtcGain", val);
       },
     },
     videoQuality() {
