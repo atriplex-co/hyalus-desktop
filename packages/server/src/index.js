@@ -87,7 +87,13 @@ const wss = require("./routes/ws")(server, deps);
 
     redis._set = redis.set;
     redis.set = async (key, val, ...rest) => {
-      await redis._set(key, msgpack.encode(val), ...rest);
+      //why?
+      //mongodb ObjectIDs..
+      val = JSON.stringify(val);
+      val = JSON.parse(val);
+      val = msgpack.encode(val);
+
+      await redis._set(key, val, ...rest);
     };
 
     redis.get = async (key) => {
