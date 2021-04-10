@@ -65,9 +65,6 @@
             </div>
           </div>
         </div>
-        <div v-if="message.fileMediaType && !message.decrypted">
-          <p>decrypting</p>
-        </div>
         <div v-if="message.fileMediaType && message.decrypted">
           <img
             :src="message.decrypted"
