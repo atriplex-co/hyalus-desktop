@@ -2065,6 +2065,8 @@ export default new Vuex.Store({
           "libwebp",
           "-qscale",
           "80",
+          "-loop",
+          "0",
           fileName
         );
 
