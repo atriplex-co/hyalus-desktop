@@ -1070,8 +1070,6 @@ export default new Vuex.Store({
       };
 
       ws.onclose = async () => {
-        commit("setReady", false);
-
         if (getters.voice) {
           await dispatch("voiceReset", {
             onlyStopPeers: true,
@@ -1080,7 +1078,13 @@ export default new Vuex.Store({
 
         setTimeout(() => {
           dispatch("wsConnect");
-        }, 1000 * 3); //3s
+        }, 1000 * 5); //5s
+
+        setTimeout(() => {
+          if (getters.ws?.readyState !== WebSocket.OPEN) {
+            commit("setReady", false);
+          }
+        }, 1000 * 15); //15s
       };
 
       commit("setWs", ws);
