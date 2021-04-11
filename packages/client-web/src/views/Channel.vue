@@ -393,8 +393,5 @@ export default {
     ToggleSidebar: () => import("../components/ToggleSidebar"),
     PencilIcon: () => import("../icons/Pencil"),
   },
-  props: {
-    hideSidebar: false 
-  },
 };
 </script>
