@@ -376,6 +376,7 @@ app.post(
     Joi.object({
       body: Joi.string()
         .required()
+        .max(Math.ceil(((5000 + 24) / 3) * 4)) //5000 chars, 24-byte nonce, base64'd
         .base64(),
       keys: Joi.array()
         .items(
