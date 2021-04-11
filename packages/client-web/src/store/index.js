@@ -388,6 +388,7 @@ export default new Vuex.Store({
           );
 
           merged.decryptedFileName = nacl.to_string(decryptedFileName).trim();
+          merged.decrypted = merged.decryptedFileName;
         }
 
         if (merged.fileType && !merged.decryptedFileType) {
@@ -2265,7 +2266,7 @@ export default new Vuex.Store({
       commit("setMessage", {
         id: message.id,
         channel: message.channel,
-        decrypted: URL.createObjectURL(blob),
+        blob: URL.createObjectURL(blob),
         silent: true,
       });
     },
