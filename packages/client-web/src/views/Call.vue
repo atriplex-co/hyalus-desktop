@@ -327,6 +327,10 @@ export default {
           el.style.width = `${cellWidth}px`;
           el.style.height = `${cellHeight}px`;
 
+          if (!el.style.transition) {
+            el.style.transition = "all 0.05s ease";
+          }
+
           pos++;
         }
       });
