@@ -33,8 +33,9 @@
       <div
         class="max-w-xs lg:max-w-sm xl:max-w-lg rounded-md text-sm overflow-hidden"
         :class="{
-          'bg-gradient-to-br from-primary-500 to-primary-600': sentByMe,
-          'bg-gray-800': !sentByMe,
+          'bg-gradient-to-br from-primary-500 to-primary-600':
+            sentByMe && !message.fileMediaType,
+          'bg-gray-800': !sentByMe && !message.fileMediaType,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
