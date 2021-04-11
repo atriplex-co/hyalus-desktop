@@ -55,6 +55,7 @@ const messageFormatter = new MarkdownIt("zero", {
     attrs: {
       target: "_blank",
       rel: "noopener noreferrer",
+      class: "font-medium underline",
     },
   });
 
