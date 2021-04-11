@@ -2,7 +2,7 @@
   <div
     class="flex flex-col items-center justify-center h-full space-y-8 text-sm text-gray-400"
   >
-    <img class="w-24 h-24" src="../images/icon.webp" />
+    <AppIcon class="w-24 h-24" />
     <svg
       class="w-6 h-6 text-white animate-spin"
       fill="none"
@@ -24,3 +24,11 @@
     </svg>
   </div>
 </template>
+
+<script>
+export default {
+  components: {
+    AppIcon: () => import("../icons/App"),
+  },
+};
+</script>

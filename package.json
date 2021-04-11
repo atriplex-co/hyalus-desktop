@@ -21,5 +21,9 @@
     "stop": "yarn workspace server stop",
     "restart": "yarn workspace server restart",
     "logs": "yarn workspace server logs"
+  },
+  "dependencies": {
+    "@tailwindcss/forms": "^0.3.2",
+    "webpack": "^5.31.2"
   }
 }

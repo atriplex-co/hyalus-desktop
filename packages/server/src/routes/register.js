@@ -3,6 +3,7 @@ const express = require("express");
 const app = express.Router();
 const validation = require("../middleware/validation");
 const Joi = require("joi");
+const ratelimit = require("../middleware/ratelimit");
 
 app.post(
   "/",
@@ -27,6 +28,12 @@ app.post(
         .required()
         .length(96)
         .base64(),
+    }),
+    ratelimit({
+      scope: "ip",
+      tag: "register",
+      max: 3,
+      time: 60 * 60 * 12,
     })
   ),
   async (req, res, next) => {

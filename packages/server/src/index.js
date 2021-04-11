@@ -2,16 +2,14 @@ const http = require("http");
 const winston = require("winston");
 const { MongoClient } = require("mongodb");
 const express = require("express");
-const WebSocket = require("ws");
 const morgan = require("morgan");
 const Redis = require("ioredis");
 const msgpack = require("msgpack-lite");
+const dotenv = require("dotenv");
 
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({
-    path: "../../.env",
-  });
-}
+dotenv.config({
+  path: "../../.env",
+});
 
 const log = winston.createLogger({
   levels: {
@@ -35,19 +33,6 @@ const log = winston.createLogger({
 const deps = {};
 const app = express();
 const server = http.createServer(app);
-
-// const wss = new WebSocket.Server({
-//   server,
-//   path: "/api/ws",
-// });
-
-// wss.send = (filter, message) => {
-//   for (const ws of [...wss.clients].filter(filter)) {
-//     ws.send(message);
-//   }
-// };
-
-// wss.on("connection", require("./routes/socket")(deps));
 
 const wss = require("./routes/ws")(server, deps);
 
@@ -74,6 +59,15 @@ const wss = require("./routes/ws")(server, deps);
         expireAfterSeconds: 0,
       }
     );
+
+    await db.collection("files").createIndex(
+      {
+        time: 1,
+      },
+      {
+        expireAfterSeconds: 60 * 60 * 24, //24h
+      }
+    );
   } catch (e) {
     log.error(`Error connecting to MongoDB`);
     log.error(e.message);
@@ -87,8 +81,29 @@ const wss = require("./routes/ws")(server, deps);
     redisSub = new Redis(process.env.REDIS);
 
     redis._publish = redis.publish;
-    redis.publish = (chan, msg) => {
-      redis._publish(chan, msgpack.encode(msg));
+    redis.publish = async (chan, msg) => {
+      await redis._publish(chan, msgpack.encode(msg));
+    };
+
+    redis._set = redis.set;
+    redis.set = async (key, val, ...rest) => {
+      //why?
+      //mongodb ObjectIDs..
+      val = JSON.stringify(val);
+      val = JSON.parse(val);
+      val = msgpack.encode(val);
+
+      await redis._set(key, val, ...rest);
+    };
+
+    redis.get = async (key) => {
+      let val = await redis.getBuffer(key);
+
+      if (val) {
+        val = msgpack.decode(val);
+      }
+
+      return val;
     };
 
     redisSub.on("messageBuffer", require("./events/redisMessage")(deps));
@@ -114,8 +129,24 @@ const wss = require("./routes/ws")(server, deps);
       },
     })
   );
-  app.use(express.static("../client-web/dist"));
-  app.use(express.json());
+  app.use(
+    express.static("../client-web/dist", {
+      setHeaders(res, path) {
+        if (path.endsWith(".html")) {
+          res.set("Cache-Control", "no-cache");
+          res.set("Cross-Origin-Opener-Policy", "same-origin");
+          res.set("Cross-Origin-Embedder-Policy", "require-corp");
+        } else {
+          res.set("Cache-Control", "public, max-age=31536000");
+        }
+      },
+    })
+  );
+  app.use(
+    express.json({
+      limit: "20mb",
+    })
+  );
   app.use("/api/me", require("./routes/me"));
   app.use("/api/prelogin", require("./routes/prelogin"));
   app.use("/api/login", require("./routes/login"));
@@ -125,6 +156,8 @@ const wss = require("./routes/ws")(server, deps);
   app.use("/api/friends", require("./routes/friends"));
   app.use("/api/channels", require("./routes/channels"));
   app.use("/api/totp", require("./routes/totp"));
+  app.disable("x-powered-by");
+  app.enable("trust proxy");
 
   deps.log = log;
   deps.app = app;

@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { ObjectId } = require("mongodb");
 
 module.exports = async (ws, msg) => {
   if (
@@ -173,10 +174,19 @@ module.exports = async (ws, msg) => {
     );
 
     if (lastMessage?.keys) {
-      lastMessage.body = lastMessage.body.buffer;
       lastMessage.key = lastMessage.keys.find((k) =>
         k.id.equals(ws.session.user)
       ).key.buffer;
+    }
+
+    let body = lastMessage?.body;
+
+    if (body?.buffer) {
+      body = body.toString("base64");
+    }
+
+    if (body instanceof ObjectId) {
+      body = body.toString();
     }
 
     formattedChannels.push({
@@ -193,7 +203,10 @@ module.exports = async (ws, msg) => {
         time: lastMessage.time,
         type: lastMessage.type,
         sender: lastMessage.sender.toString(),
-        body: lastMessage.body,
+        body,
+        fileName: lastMessage.fileName?.buffer,
+        fileType: lastMessage.fileType?.buffer,
+        fileLength: lastMessage.fileLength,
         key: lastMessage.key,
       },
     });

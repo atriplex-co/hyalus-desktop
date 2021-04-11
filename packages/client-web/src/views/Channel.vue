@@ -1,7 +1,15 @@
 <template>
   <div class="flex h-full">
     <Sidebar />
-    <div class="flex flex-col flex-1 min-h-0 overflow-auto" v-if="channel">
+    <div
+      class="flex flex-col flex-1 min-h-0 overflow-auto"
+      v-if="channel"
+      @paste="processFiles($event.clipboardData)"
+      @drop.prevent="processFiles($event.dataTransfer)"
+      @dragover.prevent
+      @dragstart.prevent
+      @dragsend.prevent
+    >
       <div
         class="flex items-center justify-between p-4 border-b border-gray-800"
       >
@@ -18,7 +26,7 @@
               v-if="channel.avatar"
             />
             <div
-              class="flex items-center justify-center w-12 h-12 text-xl font-bold text-white bg-gray-400 rounded-full"
+              class="flex items-center justify-center w-12 h-12 text-xl font-bold bg-primary-500 text-white rounded-full"
               v-else
             >
               {{ channel.name.slice(0, 1).toUpperCase() }}
@@ -91,7 +99,7 @@
           @scroll="messagesScroll"
         >
           <div
-            class="px-4 py-2 text-sm bg-gray-800 w-full z-10 sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4"
+            class="px-4 py-2 text-sm bg-gray-800 w-full sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4 shadow-lg z-10"
             v-if="typingStatus"
           >
             <PencilIcon class="w-4 h-4 text-gray-400" />
@@ -119,9 +127,11 @@
           ref="msgBox"
         />
         <div class="flex space-x-2 text-gray-400">
-          <PaperclipIcon
-            class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-          />
+          <div @click="attachFile">
+            <PaperclipIcon
+              class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+            />
+          </div>
           <div @click="sendMessage">
             <AirplaneIcon
               class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
@@ -139,13 +149,6 @@
         @close="groupCreateModal = false"
         :selected="channel.users[0].id"
       />
-    </div>
-    <div
-      class="flex flex-col items-center justify-center flex-1 space-y-4 text-gray-600"
-      v-else
-    >
-      <ErrorIcon class="w-16 h-16 text-gray-500" />
-      <p>Channel not found</p>
     </div>
   </div>
 </template>
@@ -172,11 +175,11 @@ export default {
     description() {
       let description = "";
 
-      if (this.channel.type === "dm") {
+      if (this.channel?.type === "dm") {
         description = `@${this.channel.users[0].username}`;
       }
 
-      if (this.channel.type === "group") {
+      if (this.channel?.type === "group") {
         const users = this.channel.users.filter((u) => !u.removed);
 
         description = `${users.length + 1} member${users.length ? "s" : ""}`;
@@ -185,10 +188,10 @@ export default {
       return description;
     },
     voiceUsers() {
-      return this.channel.users.filter((u) => u.voiceConnected);
+      return this.channel?.users.filter((u) => u.voiceConnected);
     },
     voiceUsersShown() {
-      return this.voiceUsers.slice(0, this.voiceUsers.length > 4 ? 3 : 4);
+      return this.voiceUsers?.slice(0, this.voiceUsers.length > 4 ? 3 : 4);
     },
   },
   methods: {
@@ -210,7 +213,10 @@ export default {
       this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
 
       //send messageTyping every 1s
-      if (Date.now() - 1000 > this.lastTyping) {
+      if (
+        this.$store.getters.sendTyping &&
+        Date.now() - 1000 > this.lastTyping
+      ) {
         this.$store.dispatch("sendMessageTyping", this.channel.id);
         this.lastTyping = Date.now();
       }
@@ -250,9 +256,13 @@ export default {
       }
 
       if (!this.$store.getters.localStream("audio")) {
-        await this.$store.dispatch("toggleAudio", {
-          silent: true,
-        });
+        try {
+          await this.$store.dispatch("toggleAudio", {
+            silent: true,
+          });
+        } catch (e) {
+          console.log(e);
+        }
       }
 
       this.$router.push(`/channels/${this.channel.id}/call`);
@@ -272,6 +282,10 @@ export default {
       }
     },
     updateTypingStatus() {
+      if (!this.channel) {
+        return;
+      }
+
       const users = this.channel.users
         .filter((u) => u.lastTyping > Date.now() - 1000 * 5)
         .map((u) => u.name);
@@ -301,25 +315,56 @@ export default {
         this.$store.dispatch("updateChannel", this.channel.id);
       }
     },
+    async uploadFile(file) {
+      await this.$store.dispatch("uploadFile", {
+        file,
+        channelId: this.channel.id,
+      });
+    },
+    async processFiles({ items }) {
+      const files = [...items]
+        .filter((i) => i.kind === "file")
+        .map((i) => i.getAsFile());
+
+      for (const file of files) {
+        await this.uploadFile(file);
+      }
+    },
+    attachFile() {
+      const el = document.createElement("input");
+
+      el.addEventListener("input", async () => {
+        for (const file of el.files) {
+          await this.uploadFile(file);
+        }
+
+        el.remove();
+      });
+
+      el.type = "file";
+      el.click();
+    },
   },
   updated() {
     const msgEl = this.$refs.messages;
     const msgBox = this.$refs.msgBox;
 
-    if (
-      (msgEl && msgEl.scrollTop === this.lastScrollTop) ||
-      this.lastChannel !== this.channel
-    ) {
-      msgEl.scrollTop = msgEl.scrollHeight;
-      this.lastScrollTop = msgEl.scrollTop;
-    } else {
-      this.lastScrollTop = msgEl.scrollHeight - msgEl.clientHeight;
+    if (msgEl) {
+      if (
+        msgEl.scrollTop === this.lastScrollTop ||
+        this.lastChannel !== this.channel
+      ) {
+        msgEl.scrollTop = msgEl.scrollHeight;
+        this.lastScrollTop = msgEl.scrollTop;
+      } else {
+        this.lastScrollTop = msgEl.scrollHeight - msgEl.clientHeight;
+      }
     }
 
     if (this.channel) {
       document.title = `Hyalus \u2022 ${this.channel.name}`;
     } else {
-      document.title = "Hyalus";
+      this.$router.push("/app");
     }
 
     if (msgBox && this.lastChannel !== this.channel) {

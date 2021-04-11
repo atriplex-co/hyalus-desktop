@@ -42,9 +42,6 @@ module.exports = {
         pink: colors.pink,
         rose: colors.rose,
       },
-      minWidth: {
-        "1/2": "50%",
-      },
     },
     fontFamily: {
       sans: "Inter, sans-serif",
@@ -55,7 +52,7 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    // require("@tailwindcss/aspect-ratio"),
+    require("@tailwindcss/aspect-ratio"),
     // require("@tailwindcss/typography"),
     // require("@tailwindcss/forms"),
     // require("@tailwindcss/line-clamp"),

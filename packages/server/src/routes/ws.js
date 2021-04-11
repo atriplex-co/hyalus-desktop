@@ -22,8 +22,11 @@ const setup = () => {
     };
 
     ws.id = crypto.randomBytes(32).toString("base64");
+    ws.alive = true;
 
     ws.on("message", (msg) => {
+      ws.alive = true;
+
       try {
         msg = msgpack.decode(msg);
       } catch {
@@ -38,7 +41,7 @@ const setup = () => {
       }
 
       const knownTypes = [
-        "keepalive",
+        "pong",
         "start",
         "voiceJoin",
         "voiceLeave",
@@ -53,14 +56,7 @@ const setup = () => {
       ];
 
       if (!knownTypes.find((t) => t === msg.t)) {
-        ws.send({
-          t: "close",
-          d: {
-            reason: "invalid-type",
-          },
-        });
-
-        return ws.close();
+        return;
       }
 
       try {
@@ -81,8 +77,6 @@ const setup = () => {
     });
 
     ws.on("close", () => {
-      clearInterval(ws.idleTimeout);
-
       require("../events/voiceLeave")(ws, {});
 
       if (ws.session) {
@@ -97,22 +91,20 @@ const setup = () => {
         }
       }
     });
-
-    ws.send({
-      t: "hello",
-      d: {
-        keepalive,
-      },
-    });
-
-    ws.idleTimeout = setInterval(() => {
-      if (Date.now() - ws.lastKeepalive > keepalive * 2) {
-        ws.close();
-      }
-    }, 1000);
-
-    ws.lastKeepalive = Date.now();
   });
+
+  setInterval(() => {
+    [...wss.clients].map((w) => {
+      if (!w.alive) {
+        w.terminate();
+      }
+
+      w.alive = false;
+      w.send({
+        t: "ping",
+      });
+    });
+  }, 3e4);
 
   deps.wss = wss;
 };

@@ -14,7 +14,7 @@ const requireAuth = (to, from, next) => {
 
 const requireNoAuth = (to, from, next) => {
   if (store.getters.token) {
-    return next("/");
+    return next("/app");
   }
 
   next();

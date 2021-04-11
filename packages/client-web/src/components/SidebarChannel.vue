@@ -9,7 +9,7 @@
       v-if="channel.avatar"
     />
     <div
-      class="flex items-center justify-center w-8 h-8 font-bold text-white bg-gray-400 rounded-full"
+      class="flex items-center justify-center w-8 h-8 font-bold bg-primary-500 text-white rounded-full"
       v-else
     >
       {{ channel.name.slice(0, 1).toUpperCase() }}

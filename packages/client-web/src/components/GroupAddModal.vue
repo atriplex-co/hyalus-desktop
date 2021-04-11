@@ -46,7 +46,7 @@
                       </p>
                     </div>
                   </div>
-                  <input type="checkbox" v-model="friend.selected" />
+                  <Checkbox v-model="friend.selected" />
                 </div>
               </div>
               <div
@@ -84,15 +84,22 @@
 export default {
   props: ["channel"],
   data() {
-    const friends = this.$store.getters.friends.filter(
-      (f) =>
-        f.accepted &&
-        !this.channel.users.find((u) => !u.removed && u.id === f.user.id)
-    );
+    const friends = [];
 
-    for (const friend of friends) {
-      friend.selected = false;
-    }
+    this.$store.getters.friends
+      .filter((friend) => friend.accepted)
+      .filter(
+        (friend) =>
+          !this.channel.users
+            .filter((user) => !user.removed)
+            .find((user) => user.id === friend.user.id)
+      )
+      .map((friend) => {
+        friends.push({
+          ...friend,
+          selected: false,
+        });
+      });
 
     return {
       error: null,
@@ -128,6 +135,7 @@ export default {
     UserAddIcon: () => import("../icons/UserAdd"),
     UserAvatar: () => import("./UserAvatar"),
     ErrorIcon: () => import("../icons/Error"),
+    Checkbox: () => import("../components/Checkbox"),
   },
 };
 </script>

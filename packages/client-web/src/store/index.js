@@ -13,6 +13,8 @@ import userImage from "../images/user.webp";
 import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
+import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
+import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
 
 Vue.use(Vuex);
 
@@ -34,17 +36,62 @@ const iceServers = [
   },
 ];
 
+const messageFormatter = new MarkdownIt("zero", {
+  html: false,
+  linkify: true,
+})
+  .enable([
+    //
+    "emphasis",
+    "strikethrough",
+    "backticks",
+    "fence",
+    "linkify",
+  ])
+  .use(MarkdownItEmoji)
+  .use(MarkdownItLinkAttr, {
+    attrs: {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
+  });
+
+const imageTypes = [
+  //
+  "image/png",
+  "image/gif",
+  "image/jpeg",
+  "image/webp",
+];
+
+const audioTypes = [
+  //
+  "audio/mpeg",
+  "audio/vorbis",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/opus",
+  "audio/flac",
+];
+
+const videoTypes = [
+  //
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+];
+
 export default new Vuex.Store({
   state: {
     user: null,
     salt: null,
     publicKey: null,
     privateKey: null,
-    token: localStorage.getItem("token"),
-    betaBanner: localStorage.getItem("betaBanner") != null,
-    audioOutput: localStorage.getItem("audioOutput"),
-    audioInput: localStorage.getItem("audioInput"),
-    videoInput: localStorage.getItem("videoInput"),
+    token: localStorage.token,
+    betaBanner: localStorage.betaBanner != null,
+    audioOutput: localStorage.audioOutput,
+    audioInput: localStorage.audioInput,
+    videoInput: localStorage.videoInput,
     friends: [],
     channels: [],
     ws: null,
@@ -56,6 +103,12 @@ export default new Vuex.Store({
     ready: false,
     showSidebar: true,
     faviconEl: null,
+    rtcEcho: localStorage.rtcEcho,
+    rtcNoise: localStorage.rtcNoise,
+    rtcGain: localStorage.rtcGain,
+    videoQuality: localStorage.videoQuality,
+    displayQuality: localStorage.displayQuality,
+    sendTyping: localStorage.sendTyping,
   },
   getters: {
     config: (state) => state.config,
@@ -90,6 +143,12 @@ export default new Vuex.Store({
     queuedIce: (state) => state.queuedIce,
     showSidebar: (state) => state.showSidebar,
     accentColor: (state) => state.user?.accentColor || "green",
+    rtcEcho: (state) => !state.rtcEcho,
+    rtcNoise: (state) => !state.rtcNoise,
+    rtcGain: (state) => !state.rtcGain,
+    videoQuality: (state) => state.videoQuality || "720p30",
+    displayQuality: (state) => state.displayQuality || "720p30",
+    sendTyping: (state) => !state.sendTyping,
   },
   mutations: {
     setUser(state, user) {
@@ -188,10 +247,37 @@ export default new Vuex.Store({
       }
     },
     setFriend(state, friend) {
-      const oldFriend = state.friends.find((f) => f.id === friend.id);
+      const merged = {
+        ...state.friends.find((f) => f.id === friend.id),
+        ...friend,
+      };
+
       state.friends = state.friends.filter((f) => f.id !== friend.id);
-      if (!friend.delete) {
-        state.friends.push({ ...oldFriend, ...friend });
+
+      if (!merged.delete) {
+        state.friends.push(merged);
+
+        if (state.ready && merged.acceptable) {
+          try {
+            new Audio(sndNotification).play();
+          } catch {}
+
+          if (typeof process === "undefined") {
+            let icon;
+
+            if (merged.user.avatar === "default") {
+              icon = userImage;
+            } else {
+              icon = `${state.baseUrl}/api/avatars/${merged.user.avatar}`;
+            }
+
+            new Notification(merged.user.name, {
+              icon,
+              silent: true,
+              body: "Sent you a friend request",
+            });
+          }
+        }
       }
     },
     setFriendUser(state, friendUser) {
@@ -258,6 +344,74 @@ export default new Vuex.Store({
       channel.messages = channel.messages.filter((m) => m.id !== message.id);
 
       if (!message.delete) {
+        const sender =
+          channel.users.find((u) => u.id === merged.sender) || state.user;
+
+        const target =
+          channel.users.find((u) => u.id === merged.body) || state.user;
+
+        if (typeof merged.key === "string") {
+          merged.key = nacl.from_base64(
+            merged.key,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (typeof merged.fileName === "string") {
+          merged.fileName = nacl.from_base64(
+            merged.fileName,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (typeof merged.fileType === "string") {
+          merged.fileType = nacl.from_base64(
+            merged.fileType,
+            nacl.base64_variants.ORIGINAL
+          );
+        }
+
+        if (merged.key && !merged.decryptedKey) {
+          merged.decryptedKey = nacl.crypto_box_open_easy(
+            merged.key.slice(24),
+            merged.key.slice(0, 24),
+            sender.publicKey || state.publicKey,
+            state.privateKey
+          );
+        }
+
+        if (merged.fileName && !merged.decryptedFileName) {
+          const decryptedFileName = nacl.crypto_secretbox_open_easy(
+            merged.fileName.slice(24),
+            merged.fileName.slice(0, 24),
+            merged.decryptedKey
+          );
+
+          merged.decryptedFileName = nacl.to_string(decryptedFileName).trim();
+        }
+
+        if (merged.fileType && !merged.decryptedFileType) {
+          const decryptedFileType = nacl.crypto_secretbox_open_easy(
+            merged.fileType.slice(24),
+            merged.fileType.slice(0, 24),
+            merged.decryptedKey
+          );
+
+          merged.decryptedFileType = nacl.to_string(decryptedFileType).trim();
+
+          if (imageTypes.find((t) => t === merged.decryptedFileType)) {
+            merged.fileMediaType = "img";
+          }
+
+          if (videoTypes.find((t) => t === merged.decryptedFileType)) {
+            merged.fileMediaType = "video";
+          }
+
+          if (audioTypes.find((t) => t === merged.decryptedFileType)) {
+            merged.fileMediaType = "audio";
+          }
+        }
+
         if (merged.type === "text") {
           if (typeof merged.body === "string") {
             merged.body = nacl.from_base64(
@@ -266,69 +420,22 @@ export default new Vuex.Store({
             );
           }
 
-          if (typeof merged.key === "string") {
-            merged.key = nacl.from_base64(
-              merged.key,
-              nacl.base64_variants.ORIGINAL
-            );
-          }
-
           if (!merged.decrypted) {
-            let senderPublicKey;
-
-            if (merged.sender === state.user.id) {
-              senderPublicKey = state.publicKey;
-            } else {
-              senderPublicKey = channel.users.find(
-                (u) => u.id === merged.sender
-              ).publicKey;
-            }
-
-            const decryptedKey = nacl.crypto_box_open_easy(
-              merged.key.slice(24),
-              merged.key.slice(0, 24),
-              senderPublicKey,
-              state.privateKey
-            );
-
             const decryptedBody = nacl.crypto_secretbox_open_easy(
               merged.body.slice(24),
               merged.body.slice(0, 24),
-              decryptedKey
+              merged.decryptedKey
             );
 
             merged.decrypted = nacl.to_string(decryptedBody);
           }
 
           if (!merged.formatted && merged.decrypted) {
-            merged.formatted = new MarkdownIt("zero", {
-              html: false,
-              linkify: true,
-            })
-              .enable([
-                "emphasis",
-                "strikethrough",
-                "backticks",
-                "fence",
-                "linkify",
-              ])
-              .use(MarkdownItEmoji)
-              .use(MarkdownItLinkAttr, {
-                attrs: {
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                },
-              })
+            merged.formatted = messageFormatter
               .renderInline(merged.decrypted)
               .trim();
           }
         }
-
-        const sender =
-          channel.users.find((u) => u.id === merged.sender) || state.user;
-
-        const target =
-          channel.users.find((u) => u.id === merged.body) || state.user;
 
         if (merged.type === "channelName") {
           merged.event = `${sender.name} renamed the group "${merged.body}"`;
@@ -344,6 +451,10 @@ export default new Vuex.Store({
 
         if (merged.type === "channelUserRemove") {
           merged.event = `${sender.name} removed ${target.name}`;
+        }
+
+        if (merged.type === "channelUserLeave") {
+          merged.event = `${sender.name} left the group`;
         }
 
         channel.messages.push(merged);
@@ -456,6 +567,7 @@ export default new Vuex.Store({
           remoteStreams: [],
           started: Date.now(),
           queuedIce: [],
+          deaf: false,
         };
       } else {
         state.voice = null;
@@ -515,7 +627,9 @@ export default new Vuex.Store({
       state.voice.queuedIce.push(ice);
     },
     removeQueuedIce(state, ice) {
-      state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
+      if (state.voice) {
+        state.voice.queuedIce = state.voice.queuedIce.filter((i) => i !== ice);
+      }
     },
     setFavicon(state, href) {
       if (!state.faviconEl) {
@@ -526,6 +640,55 @@ export default new Vuex.Store({
       }
 
       state.faviconEl.href = href;
+    },
+    setDeaf(state, deaf) {
+      if (state.voice) {
+        state.voice.deaf = deaf;
+      }
+    },
+    setRtcEcho(state, val) {
+      state.rtcEcho = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcEcho");
+      } else {
+        localStorage.setItem("rtcEcho", "a");
+      }
+    },
+    setRtcNoise(state, val) {
+      state.rtcNoise = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcNoise");
+      } else {
+        localStorage.setItem("rtcNoise", "a");
+      }
+    },
+    setRtcGain(state, val) {
+      state.rtcGain = !val;
+
+      if (val) {
+        localStorage.removeItem("rtcGain");
+      } else {
+        localStorage.setItem("rtcGain", "a");
+      }
+    },
+    setVideoQuality(state, val) {
+      state.videoQuality = val;
+      localStorage.setItem("videoQuality", val);
+    },
+    setDisplayQuality(state, val) {
+      state.displayQuality = val;
+      localStorage.setItem("displayQuality", val);
+    },
+    setSendTyping(state, val) {
+      state.sendTyping = !val;
+
+      if (val) {
+        localStorage.removeItem("sendTyping");
+      } else {
+        localStorage.setItem("sendTyping", "a");
+      }
     },
   },
   actions: {
@@ -752,38 +915,26 @@ export default new Vuex.Store({
         }
       };
 
+      ws.onopen = () => {
+        ws.send({
+          t: "start",
+          d: {
+            token: getters.token,
+          },
+        });
+      };
+
       ws.onmessage = ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (Vue.config.devtools && data.t !== "keepaliveAck") {
+        if (Vue.config.devtools && data.t !== "ping") {
           console.log(data);
         }
 
-        if (data.t === "hello") {
-          ws.keepaliveSender = setInterval(() => {
-            ws.send({
-              t: "keepalive",
-            });
-          }, data.d.keepalive);
-
-          ws.idleTimeout = setInterval(() => {
-            if (Date.now() - ws.lastKeepalive > data.d.keepalive * 2) {
-              ws.close();
-            }
-          }, 1000);
-
-          ws.lastKeepalive = Date.now();
-
+        if (data.t === "ping") {
           ws.send({
-            t: "start",
-            d: {
-              token: getters.token,
-            },
+            t: "pong",
           });
-        }
-
-        if (data.t === "keepaliveAck") {
-          ws.lastKeepalive = Date.now();
         }
 
         if (data.t === "close") {
@@ -823,6 +974,10 @@ export default new Vuex.Store({
             ws.send({
               t: "voiceJoin",
               d: getters.voice?.channel,
+            });
+          } else {
+            dispatch("voiceLeave", {
+              silent: true,
             });
           }
 
@@ -915,15 +1070,22 @@ export default new Vuex.Store({
         // }
       };
 
-      ws.onclose = () => {
-        clearInterval(ws.idleTimeout);
-        clearInterval(ws.keepaliveSender);
-
-        commit("setReady", false);
+      ws.onclose = async () => {
+        if (getters.voice) {
+          await dispatch("voiceReset", {
+            onlyStopPeers: true,
+          });
+        }
 
         setTimeout(() => {
           dispatch("wsConnect");
-        }, 1000 * 3); //3s
+        }, 1000 * 5); //5s
+
+        setTimeout(() => {
+          if (getters.ws?.readyState !== WebSocket.OPEN) {
+            commit("setReady", false);
+          }
+        }, 1000 * 15); //15s
       };
 
       commit("setWs", ws);
@@ -932,12 +1094,25 @@ export default new Vuex.Store({
     setUsername: ({}, username) => axios.post("/api/me", { username }),
     setBetaBanner: ({ commit }, betaBanner) =>
       commit("setBetaBanner", betaBanner),
-    setAudioOutput: ({ commit }, audioOutput) =>
-      commit("setAudioOutput", audioOutput),
-    setVideoInput: ({ commit }, videoInput) =>
-      commit("setVideoInput", videoInput),
-    setAudioInput: ({ commit }, audioInput) =>
-      commit("setAudioInput", audioInput),
+    async setAudioOutput({ getters, commit, dispatch }, audioOutput) {
+      commit("setAudioOutput", audioOutput);
+
+      if (getters.voice) {
+        getters.voice.remoteStreams
+          .filter((s) => s.track.kind === "audio")
+          .map((stream) => {
+            stream.el.setSinkId(audioOutput);
+          });
+      }
+    },
+    async setVideoInput({ getters, commit, dispatch }, videoInput) {
+      commit("setVideoInput", videoInput);
+      await dispatch("restartLocalStream", "video");
+    },
+    async setAudioInput({ getters, commit, dispatch }, audioInput) {
+      commit("setAudioInput", audioInput);
+      await dispatch("restartLocalStream", "audio");
+    },
     setAvatar({}) {
       const el = document.createElement("input");
 
@@ -1239,20 +1414,9 @@ export default new Vuex.Store({
         return;
       }
 
-      for (const stream of getters.voice.localStreams) {
-        await dispatch("stopLocalStream", {
-          type: stream.type,
-          leaving: true,
-        });
-      }
-
-      for (const stream of getters.voice.remoteStreams) {
-        await dispatch("stopRemoteStream", {
-          user: stream.user,
-          type: stream.type,
-          leaving: false,
-        });
-      }
+      await dispatch("voiceReset", {
+        leaving: true,
+      });
 
       commit("setVoice", null);
 
@@ -1264,6 +1428,22 @@ export default new Vuex.Store({
       try {
         new Audio(sndStateDown).play();
       } catch {}
+    },
+    async voiceReset({ getters, commit, dispatch }, params) {
+      for (const stream of getters.voice.localStreams) {
+        await dispatch("stopLocalStream", {
+          type: stream.type,
+          leaving: params.leaving,
+          onlyStopPeers: params.onlyStopPeers,
+        });
+      }
+
+      for (const stream of getters.voice.remoteStreams) {
+        await dispatch("stopRemoteStream", {
+          user: stream.user,
+          type: stream.type,
+        });
+      }
     },
     async handleVoiceStreamOffer({ getters, commit, dispatch }, data) {
       const channel = getters.channelById(getters.voice.channel);
@@ -1313,8 +1493,17 @@ export default new Vuex.Store({
       };
 
       peer.ontrack = ({ track }) => {
-        if (Vue.config.devtools) {
-          console.log(track);
+        const el = document.createElement(track.kind);
+        el.srcObject = new MediaStream([track]);
+        el.controls = false;
+        el.play();
+
+        if (track.kind === "audio") {
+          el.setSinkId(getters.audioOutput);
+
+          if (getters.voice.deaf) {
+            track.enabled = false;
+          }
         }
 
         commit("setRemoteStream", {
@@ -1322,6 +1511,7 @@ export default new Vuex.Store({
           type: data.type,
           track,
           peer,
+          el,
         });
       };
 
@@ -1447,6 +1637,11 @@ export default new Vuex.Store({
         await stream.peer.addIceCandidate(candidate);
       } else {
         const stream = getters.localStream(data.type);
+
+        if (!stream) {
+          return;
+        }
+
         const peer = stream.peers[data.user];
 
         if (!peer) {
@@ -1513,8 +1708,6 @@ export default new Vuex.Store({
         return;
       }
 
-      stream.track.stop();
-
       Object.entries(stream.peers).map(([user, peer]) => {
         peer.close();
 
@@ -1525,10 +1718,14 @@ export default new Vuex.Store({
         });
       });
 
-      commit("setLocalStream", {
-        type: params.type,
-        delete: true,
-      });
+      if (!params.onlyStopPeers) {
+        stream.track.stop();
+
+        commit("setLocalStream", {
+          type: params.type,
+          delete: true,
+        });
+      }
 
       if (!params.leaving) {
         getters.ws.send({
@@ -1646,6 +1843,9 @@ export default new Vuex.Store({
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: getters.audioInput,
+          echoCancellation: getters.rtcEcho,
+          noiseSuppression: getters.rtcNoise,
+          autoGainControl: getters.rtcGain,
         },
       });
 
@@ -1675,16 +1875,15 @@ export default new Vuex.Store({
         return;
       }
 
+      const [height, fps] = getters.videoQuality.split("p");
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: {
-            max: 1280,
-          },
           height: {
-            max: 720,
+            max: Number(height),
           },
           frameRate: {
-            max: 30,
+            max: Number(fps),
           },
           deviceId: getters.videoInput,
         },
@@ -1722,6 +1921,8 @@ export default new Vuex.Store({
 
       let stream;
 
+      const [height, fps] = getters.displayQuality.split("p");
+
       if (params) {
         if (params.audio) {
           try {
@@ -1730,9 +1931,8 @@ export default new Vuex.Store({
                 mandatory: {
                   chromeMediaSource: "desktop",
                   chromeMediaSourceId: params.sourceId,
-                  maxWidth: 1280,
-                  maxHeight: 720,
-                  maxFrameRate: 30,
+                  maxHeight: Number(height),
+                  maxFrameRate: Number(fps),
                 },
               },
               audio: {
@@ -1755,9 +1955,8 @@ export default new Vuex.Store({
               mandatory: {
                 chromeMediaSource: "desktop",
                 chromeMediaSourceId: params.sourceId,
-                maxWidth: 1280,
-                maxHeight: 720,
-                maxFrameRate: 30,
+                maxHeight: Number(height),
+                maxFrameRate: Number(fps),
               },
             },
           });
@@ -1765,14 +1964,11 @@ export default new Vuex.Store({
       } else {
         stream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: {
-              max: 1280,
-            },
             height: {
-              max: 720,
+              max: Number(height),
             },
             frameRate: {
-              max: 30,
+              max: Number(fps),
             },
           },
           audio: true,
@@ -1807,6 +2003,206 @@ export default new Vuex.Store({
     async updateFavicon({ getters, commit }) {
       const icon = await import(`../images/icon-${getters.accentColor}.webp`);
       commit("setFavicon", icon.default);
+    },
+    async leaveChannel({}, id) {
+      await axios.post(`/api/channels/${id}/leave`);
+    },
+    toggleDeaf({ getters, commit, dispatch }) {
+      if (getters.voice.deaf) {
+        getters.voice.remoteStreams
+          .filter((stream) => stream.track.kind === "audio")
+          .map((stream) => {
+            stream.track.enabled = true;
+          });
+
+        try {
+          new Audio(sndNavForwardMin).play();
+        } catch {}
+
+        return commit("setDeaf", false);
+      }
+
+      getters.voice.remoteStreams
+        .filter((stream) => stream.track.kind === "audio")
+        .map((stream) => {
+          stream.track.enabled = false;
+        });
+
+      if (getters.localStream("audio")) {
+        dispatch("toggleAudio", {
+          silent: true,
+        });
+      }
+
+      try {
+        new Audio(sndNavBackwardMin).play();
+      } catch {}
+
+      commit("setDeaf", true);
+    },
+    async uploadFile({ getters, commit, dispatch }, { file, channelId }) {
+      const channel = getters.channelById(channelId);
+
+      let data;
+      let fileType = file.type;
+      let fileName = file.name;
+
+      if (fileType === "video/x-matroska") {
+        fileType = "video/webm";
+        fileName += ".mkv";
+      }
+
+      const reader = new FileReader();
+
+      reader.addEventListener("load", async () => {
+        if (!data) {
+          data = new Uint8Array(reader.result);
+        }
+
+        if (data.length > 1024 * 1024 * 10) {
+          //10mb
+          //before you get excited, this is limited at the server as well.
+          //TODO: present error to user.
+          throw new Error("File size too large (10MB max).");
+        }
+
+        const nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+        const key = nacl.randombytes_buf(nacl.crypto_secretbox_KEYBYTES);
+        const body = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(data, nonce, key),
+        ]);
+        fileName = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(fileName, nonce, key),
+        ]);
+        fileType = new Uint8Array([
+          ...nonce,
+          ...nacl.crypto_secretbox_easy(fileType, nonce, key),
+        ]);
+
+        const userKeys = [];
+
+        for (const user of channel.users.filter((u) => !u.removed)) {
+          const userKeyNonce = nacl.randombytes_buf(
+            nacl.crypto_secretbox_NONCEBYTES
+          );
+
+          const userKey = new Uint8Array([
+            ...userKeyNonce,
+            ...nacl.crypto_box_easy(
+              key,
+              userKeyNonce,
+              user.publicKey,
+              getters.privateKey
+            ),
+          ]);
+
+          userKeys.push({
+            id: user.id,
+            key: nacl.to_base64(userKey, nacl.base64_variants.ORIGINAL),
+          });
+        }
+
+        const selfKeyNonce = nacl.randombytes_buf(
+          nacl.crypto_secretbox_NONCEBYTES
+        );
+
+        const selfKey = new Uint8Array([
+          ...selfKeyNonce,
+          ...nacl.crypto_box_easy(
+            key,
+            selfKeyNonce,
+            getters.publicKey,
+            getters.privateKey
+          ),
+        ]);
+
+        userKeys.push({
+          id: getters.user.id,
+          key: nacl.to_base64(selfKey, nacl.base64_variants.ORIGINAL),
+        });
+
+        await axios.post(`/api/channels/${channel.id}/files`, {
+          body: nacl.to_base64(body, nacl.base64_variants.ORIGINAL),
+          fileName: nacl.to_base64(fileName, nacl.base64_variants.ORIGINAL),
+          fileType: nacl.to_base64(fileType, nacl.base64_variants.ORIGINAL),
+          keys: userKeys,
+        });
+      });
+
+      reader.readAsArrayBuffer(file);
+    },
+    async fetchFile({ getters, commit, dispatch }, message) {
+      const channel = getters.channelById(message.channel);
+
+      const { data: body } = await axios.get(
+        `/api/channels/${channel.id}/files/${message.body}`,
+        {
+          responseType: "arraybuffer",
+        }
+      );
+
+      const encrypted = new Uint8Array(body);
+
+      const data = nacl.crypto_secretbox_open_easy(
+        encrypted.slice(24),
+        encrypted.slice(0, 24),
+        message.decryptedKey
+      );
+
+      const blob = new Blob([data], {
+        type: message.decryptedFileType,
+      });
+
+      commit("setMessage", {
+        id: message.id,
+        channel: message.channel,
+        decrypted: URL.createObjectURL(blob),
+        silent: true,
+      });
+    },
+    async restartLocalStream({ getters, commit, dispatch }, type) {
+      if (getters.voice && getters.localStream(type)) {
+        let action;
+
+        if (type === "audio") {
+          action = "toggleAudio";
+        }
+
+        if (type === "video") {
+          action = "toggleVideo";
+        }
+
+        if (type === "display") {
+          action = "toggleDisplay";
+        }
+
+        for (let i = 0; i < 2; i++) {
+          await dispatch(action, {
+            silent: true,
+          });
+        }
+      }
+    },
+    async setVideoQuality({ getters, commit, dispatch }, quality) {
+      commit("setVideoQuality", quality);
+      await dispatch("restartLocalStream", "video");
+    },
+    async setDisplayQuality({ getters, commit, dispatch }, quality) {
+      commit("setDisplayQuality", quality);
+    },
+    async setRtcEcho({ getters, commit, dispatch }, val) {
+      commit("setRtcEcho", val);
+      await dispatch("restartLocalStream", "audio");
+    },
+    async setRtcNoise({ getters, commit, dispatch }, val) {
+      commit("setRtcNoise", val);
+      await dispatch("restartLocalStream", "audio");
+    },
+    async setRtcGain({ getters, commit, dispatch }, val) {
+      commit("setRtcGain", val);
+      await dispatch("restartLocalStream", "audio");
     },
   },
 });
