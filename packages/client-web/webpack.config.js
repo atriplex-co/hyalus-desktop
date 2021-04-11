@@ -47,7 +47,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.(webp|woff|woff2|ogg)$/,
+        test: /\.(webp|woff|woff2|ogg|wasm)$/,
         use: {
           loader: "file-loader",
           options: {
@@ -68,7 +68,7 @@ module.exports = {
     }),
     new ProgressPlugin(),
   ],
-  externals: ["path", "crypto", "os", "electron"],
+  externals: ["path", "crypto", "os", "electron", "fs"],
   cache: {
     type: "filesystem",
     buildDependencies: {

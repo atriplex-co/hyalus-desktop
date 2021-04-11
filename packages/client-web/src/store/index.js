@@ -15,6 +15,8 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
+import Rnnoise from "@hyalusapp/rnnoise";
+import RnnoiseWasm from "@hyalusapp/rnnoise/dist/rnnoise.wasm";
 
 Vue.use(Vuex);
 
@@ -108,6 +110,7 @@ export default new Vuex.Store({
     videoQuality: localStorage.videoQuality,
     displayQuality: localStorage.displayQuality,
     sendTyping: localStorage.sendTyping,
+    vadEnabled: localStorage.vadEnabled,
   },
   getters: {
     config: (state) => state.config,
@@ -147,6 +150,7 @@ export default new Vuex.Store({
     videoQuality: (state) => state.videoQuality || "720p30",
     displayQuality: (state) => state.displayQuality || "720p30",
     sendTyping: (state) => !state.sendTyping,
+    vadEnabled: (state) => !state.vadEnabled,
   },
   mutations: {
     setUser(state, user) {
@@ -683,6 +687,15 @@ export default new Vuex.Store({
         localStorage.removeItem("sendTyping");
       } else {
         localStorage.setItem("sendTyping", "a");
+      }
+    },
+    setVadEnabled(state, val) {
+      state.vadEnabled = !val;
+
+      if (val) {
+        localStorage.removeItem("vadEnabled");
+      } else {
+        localStorage.setItem("vadEnabled", "a");
       }
     },
   },
@@ -1835,7 +1848,7 @@ export default new Vuex.Store({
         return;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      let stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: getters.audioInput,
           echoCancellation: getters.rtcEcho,
@@ -1843,6 +1856,91 @@ export default new Vuex.Store({
           autoGainControl: getters.rtcGain,
         },
       });
+
+      if (getters.vadEnabled) {
+        const rnnoise = await Rnnoise({
+          locateFile: () => RnnoiseWasm,
+        });
+
+        await rnnoise.ready;
+
+        const origStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: getters.audioInput,
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        });
+
+        const procSize = 4096;
+        const sampleLength = 480;
+
+        const origCtx = new AudioContext();
+        const origSource = origCtx.createMediaStreamSource(origStream);
+        const origGain = origCtx.createGain();
+        const origProc = origCtx.createScriptProcessor(procSize, 1, 1);
+
+        const ctx = new AudioContext();
+        const source = ctx.createMediaStreamSource(stream);
+        const delay = ctx.createDelay();
+        const gain = ctx.createGain();
+        const dest = ctx.createMediaStreamDestination();
+
+        const inMemp = rnnoise._malloc(sampleLength * 4);
+        const outMemp = rnnoise._malloc(sampleLength * 4);
+
+        const noise = rnnoise._rnnoise_create();
+
+        let pending = new Float32Array([]);
+
+        origProc.addEventListener("audioprocess", (e) => {
+          let detected;
+
+          const buf = [...pending, ...e.inputBuffer.getChannelData(0)];
+
+          let i = 0;
+
+          for (; i + sampleLength < buf.length; i += sampleLength) {
+            const sample = buf.slice(i, i + sampleLength);
+
+            for (const [i, val] of sample.entries()) {
+              sample[i] = val * 0x7fff;
+            }
+
+            rnnoise.HEAPF32.set(sample, inMemp / 4);
+
+            const out = rnnoise._rnnoise_process_frame(noise, outMemp, inMemp);
+
+            if (out > 0.4) {
+              detected = true;
+            }
+          }
+
+          pending = buf.slice(i);
+
+          if (detected) {
+            gain.gain.setValueAtTime(1, ctx.currentTime);
+          } else {
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+          }
+        });
+
+        const delayTime =
+          1 / (stream.getTracks()[0].getSettings().sampleRate / procSize);
+
+        origSource.connect(origGain);
+        origGain.connect(origProc);
+        origGain.gain.setValueAtTime(2, ctx.currentTime);
+        origProc.connect(origCtx.destination);
+        source.connect(delay);
+        delay.connect(gain);
+        delay.delayTime.setValueAtTime(delayTime, ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.connect(dest);
+
+        stream = dest.stream;
+      }
 
       dispatch("startLocalStream", {
         type: "audio",
@@ -2197,6 +2295,10 @@ export default new Vuex.Store({
     },
     async setRtcGain({ getters, commit, dispatch }, val) {
       commit("setRtcGain", val);
+      await dispatch("restartLocalStream", "audio");
+    },
+    async setVadEnabled({ getters, commit, dispatch }, val) {
+      commit("setVadEnabled", val);
       await dispatch("restartLocalStream", "audio");
     },
   },

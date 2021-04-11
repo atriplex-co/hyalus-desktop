@@ -68,6 +68,10 @@
         <Toggle v-model="rtcGain" />
       </div>
       <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Noise Cancellation</p>
+        <Toggle v-model="vadEnabled" />
+      </div>
+      <div class="flex items-center justify-between h-12">
         <p class="font-bold">Video Quality</p>
         <div class="flex flex-col">
           <div
@@ -430,6 +434,14 @@ export default {
       },
       set(val) {
         this.$store.commit("setSendTyping", val);
+      },
+    },
+    vadEnabled: {
+      get() {
+        return this.$store.getters.vadEnabled;
+      },
+      set(val) {
+        this.$store.dispatch("setVadEnabled", val);
       },
     },
   },
