@@ -15,8 +15,6 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
-import Rnnoise from "@hyalusapp/rnnoise";
-import RnnoiseWasm from "@hyalusapp/rnnoise/dist/rnnoise.wasm";
 
 Vue.use(Vuex);
 
@@ -1858,9 +1856,22 @@ export default new Vuex.Store({
       });
 
       if (getters.vadEnabled) {
-        const rnnoise = await Rnnoise({
-          locateFile: () => RnnoiseWasm,
-        });
+        let rnnoise;
+
+        //why not put the pkg name into a variable?
+        //webpack! :)
+        if (typeof process === "undefined") {
+          const { default: Rnnoise } = await import("@hyalusapp/rnnoise");
+          const { default: RnnoiseWasm } = await import(
+            `@hyalusapp/rnnoise/dist/rnnoise.wasm`
+          );
+
+          rnnoise = await Rnnoise({
+            locateFile: () => RnnoiseWasm,
+          });
+        } else {
+          rnnoise = await eval("require('@hyalusapp/rnnoise')")();
+        }
 
         await rnnoise.ready;
 
