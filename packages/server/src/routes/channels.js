@@ -619,6 +619,14 @@ app.post(
       });
 
       file.on("end", async () => {
+        const data = Buffer.concat(bufs);
+
+        if (data.length > 1024 * 1024 * 5) {
+          res.status(400).json({
+            error: "Avatar too large (5MB max)",
+          });
+        }
+
         let img;
 
         try {
@@ -1191,12 +1199,15 @@ app.post(
     Joi.object({
       body: Joi.string()
         .required()
+        .max(Math.ceil(((1024 * 1024 * 10 + 24) / 3) * 4)) //10MB file size.
         .base64(),
       fileName: Joi.string()
         .required()
+        .max(Math.ceil(((255 + 24) / 3) * 4)) //255 chars is the limit on most platforms.
         .base64(),
       fileType: Joi.string()
         .required()
+        .max(Math.ceil(((127 + 24) / 3) * 4)) //127 chars is the longest mime type.
         .base64(),
       keys: Joi.array()
         .items(

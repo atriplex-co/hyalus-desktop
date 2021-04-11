@@ -31,10 +31,18 @@ app.post(
       });
 
       file.on("end", async () => {
+        const data = Buffer.concat(bufs);
+
+        if (data.length > 1024 * 1024 * 5) {
+          res.status(400).json({
+            error: "Avatar too large (5MB max)",
+          });
+        }
+
         let img;
 
         try {
-          img = await sharp(Buffer.concat(bufs))
+          img = await sharp(data)
             .resize(256, 256)
             .toFormat("webp", {
               quality: 80,
