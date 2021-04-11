@@ -15,9 +15,8 @@
       >
       <div :class="{ 'cursor-pointer': channel.admin }" @click="setAvatar">
         <div class="flex items-center space-x-4">
-          <ToggleSidebar :class="{
-            'hidden': this.$store.getters.showSidebar,
-            'visible': !this.$store.getters.showSidebar,
+          <ToggleSidebar v-bind:class="{
+          'hidden': this.$store.getters.showSidebar
           }"
           class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750 text-gray-400"/>
             <UserAvatar

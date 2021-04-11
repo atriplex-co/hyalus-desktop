@@ -1,5 +1,5 @@
 <template>
-    <div v-bind:class="checkResize" v-on:click="commit">   
+    <div class="visible sm:hidden" v-on:click="commit">   
 <svg
    fill="currentColor"
    viewBox="0 0 20 20">
@@ -26,34 +26,9 @@
 <script>
 export default {
   methods: {
-    //isMobile returns true if the screen is below or equal to 640 pixels wide (320 px is the 
-    // width of the sidebar) OR if the user agent is a mobile browser
-    isMobile() {
-      if (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
-        test(navigator.userAgent)
-        || window.innerWidth <= 640) {
-        return true
-      } else {
-        return false
-      }
-    },
     commit() {
         this.$store.commit('toggleSidebar')
       }
   },
-computed: {
-    // unfortunately this does only check on window open, but it's good enough for now
-  checkResize: function () {
-    return {
-        'hidden': !this.isMobile()
-    }
-  }
-},
-data() {
-  return {
-    showButton: null
-  }
-},
 };
 </script>
