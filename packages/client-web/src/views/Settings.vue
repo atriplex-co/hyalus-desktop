@@ -81,7 +81,7 @@
             <div class="flex items-center space-x-2">
               {{ videoQuality }}
             </div>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative">
             <div
@@ -110,7 +110,7 @@
             <div class="flex items-center space-x-2">
               {{ displayQuality }}
             </div>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative">
             <div
@@ -139,7 +139,7 @@
             <p class="truncate">
               {{ audioOutput.label }}
             </p>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative" v-if="audioOutputDevices">
             <div
@@ -171,7 +171,7 @@
             <p class="truncate">
               {{ audioInput.label }}
             </p>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative" v-if="audioInputDevices">
             <div
@@ -200,7 +200,7 @@
             <p class="truncate">
               {{ videoInput.label }}
             </p>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative" v-if="videoInputDevices">
             <div
@@ -236,7 +236,7 @@
                 }}
               </p>
             </div>
-            <ArrowDownIcon class="h-4" />
+            <ArrowDownIcon class="w-4 h-4" />
           </div>
           <div class="relative">
             <div
