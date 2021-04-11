@@ -18,6 +18,8 @@ import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg
 
 Vue.use(Vuex);
 
+let rnnoise;
+
 const iceServers = [
   {
     urls: ["stun:stun.l.google.com:19302"],
@@ -1856,24 +1858,24 @@ export default new Vuex.Store({
       });
 
       if (getters.vadEnabled) {
-        let rnnoise;
+        if (!rnnoise) {
+          //why not put the pkg name into a variable?
+          //webpack! :)
+          if (typeof process === "undefined") {
+            const { default: Rnnoise } = await import("@hyalusapp/rnnoise");
+            const { default: RnnoiseWasm } = await import(
+              `@hyalusapp/rnnoise/dist/rnnoise.wasm`
+            );
 
-        //why not put the pkg name into a variable?
-        //webpack! :)
-        if (typeof process === "undefined") {
-          const { default: Rnnoise } = await import("@hyalusapp/rnnoise");
-          const { default: RnnoiseWasm } = await import(
-            `@hyalusapp/rnnoise/dist/rnnoise.wasm`
-          );
+            rnnoise = await Rnnoise({
+              locateFile: () => RnnoiseWasm,
+            });
+          } else {
+            rnnoise = await eval("require('@hyalusapp/rnnoise')")();
+          }
 
-          rnnoise = await Rnnoise({
-            locateFile: () => RnnoiseWasm,
-          });
-        } else {
-          rnnoise = await eval("require('@hyalusapp/rnnoise')")();
+          await rnnoise.ready;
         }
-
-        await rnnoise.ready;
 
         const origStream = await navigator.mediaDevices.getUserMedia({
           audio: {
