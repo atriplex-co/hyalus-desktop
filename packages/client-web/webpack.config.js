@@ -47,9 +47,8 @@ module.exports = {
         ],
       },
       {
-        // you know what asineth? some svg's can just be imported like normal people do it
-        // also the background of my svg is transparent so just change the fill of the div
-        test: /\.(webp|woff|woff2|ogg|svg)$/,
+
+        test: /\.(webp|woff|woff2|ogg|wasm)$/,
         use: {
           loader: "file-loader",
           options: {
@@ -70,7 +69,7 @@ module.exports = {
     }),
     new ProgressPlugin(),
   ],
-  externals: ["path", "crypto", "os", "electron"],
+  externals: ["path", "crypto", "os", "electron", "fs"],
   cache: {
     type: "filesystem",
     buildDependencies: {

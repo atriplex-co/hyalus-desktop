@@ -124,7 +124,7 @@ export default {
       const { secret } = this.totpInitData;
 
       this.$refs.qrcode.src = await qrcode.toDataURL(
-        `otpauth://totp/Hyalus:%40${username}2?secret=${secret}&period=30&digits=6&algorithm=SHA1&issuer=Hyalus`
+        `otpauth://totp/Hyalus:%40${username}?secret=${secret}&period=30&digits=6&algorithm=SHA1&issuer=Hyalus`
       );
     }
   },
