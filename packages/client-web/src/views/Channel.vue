@@ -194,19 +194,6 @@ export default {
     },
   },
   methods: {
-    //isMobile returns true if the screen is below or equal to 640 pixels wide (320 px is the 
-    // width of the sidebar) OR if the user agent is a mobile browser
-    isMobile() {
-      if (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
-        test(navigator.userAgent)
-        || screen.width <= 640) {
-        return true
-      } else {
-        return false
-      }
-    },
-
     messageInput() {
       this.$refs.msgBox.style.height = "auto";
       this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
