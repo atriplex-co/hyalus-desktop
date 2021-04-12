@@ -6,6 +6,8 @@ const morgan = require("morgan");
 const Redis = require("ioredis");
 const msgpack = require("msgpack-lite");
 const dotenv = require("dotenv");
+const history = require("connect-history-api-fallback");
+const path = require("path");
 
 dotenv.config({
   path: "../../.env",
@@ -120,6 +122,8 @@ const wss = require("./routes/ws")(server, deps);
     next();
   });
 
+  app.enable("trust proxy");
+  app.disable("x-powered-by");
   app.use(
     morgan("tiny", {
       stream: {
@@ -127,6 +131,33 @@ const wss = require("./routes/ws")(server, deps);
           log.info(message.trim());
         },
       },
+    })
+  );
+  app.use("/api/me", require("./routes/me"));
+  app.use("/api/prelogin", require("./routes/prelogin"));
+  app.use("/api/login", require("./routes/login"));
+  app.use("/api/register", require("./routes/register"));
+  app.use("/api/logout", require("./routes/logout"));
+  app.use("/api/avatars", require("./routes/avatars"));
+  app.use("/api/friends", require("./routes/friends"));
+  app.use("/api/channels", require("./routes/channels"));
+  app.use("/api/totp", require("./routes/totp"));
+  app.use(
+    history({
+      rewrites: [
+        {
+          from: /.*/,
+          to(ctx) {
+            const file = path.basename(ctx.parsedUrl.path.toString());
+
+            if (file.includes(".")) {
+              return `/${file}`;
+            } else {
+              return "/index.html";
+            }
+          },
+        },
+      ],
     })
   );
   app.use(
@@ -147,17 +178,6 @@ const wss = require("./routes/ws")(server, deps);
       limit: "20mb",
     })
   );
-  app.use("/api/me", require("./routes/me"));
-  app.use("/api/prelogin", require("./routes/prelogin"));
-  app.use("/api/login", require("./routes/login"));
-  app.use("/api/register", require("./routes/register"));
-  app.use("/api/logout", require("./routes/logout"));
-  app.use("/api/avatars", require("./routes/avatars"));
-  app.use("/api/friends", require("./routes/friends"));
-  app.use("/api/channels", require("./routes/channels"));
-  app.use("/api/totp", require("./routes/totp"));
-  app.disable("x-powered-by");
-  app.enable("trust proxy");
 
   deps.log = log;
   deps.app = app;

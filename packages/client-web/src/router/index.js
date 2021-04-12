@@ -21,7 +21,7 @@ const requireNoAuth = (to, from, next) => {
 };
 
 export default new VueRouter({
-  mode: "hash",
+  mode: location.protocol === "file:" ? "hash" : "history",
   routes: [
     {
       name: "home",
