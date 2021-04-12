@@ -124,6 +124,7 @@ const wss = require("./routes/ws")(server, deps);
 
   app.enable("trust proxy");
   app.disable("x-powered-by");
+  
   app.use(
     morgan("tiny", {
       stream: {
@@ -131,6 +132,11 @@ const wss = require("./routes/ws")(server, deps);
           log.info(message.trim());
         },
       },
+    })
+  );
+  app.use(
+    express.json({
+      limit: "20mb",
     })
   );
   app.use("/api/me", require("./routes/me"));
@@ -171,11 +177,6 @@ const wss = require("./routes/ws")(server, deps);
           res.set("Cache-Control", "public, max-age=31536000");
         }
       },
-    })
-  );
-  app.use(
-    express.json({
-      limit: "20mb",
     })
   );
 
