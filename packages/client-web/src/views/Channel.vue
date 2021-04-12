@@ -59,7 +59,7 @@
                 class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
               />
             </div>
-            <div @click="voiceJoinVideo">
+            <div @click="voiceJoin(true)">
               <VideoIcon
                 class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
               />
@@ -231,32 +231,27 @@ export default {
         this.groupNameModal = true;
       }
     },
-    async voiceJoin() {
+    async voiceJoin(video) {
       if (this.$store.getters.voice?.channel !== this.channel.id) {
         await this.$store.dispatch("voiceLeave");
         await this.$store.dispatch("voiceJoin", this.channel.id);
-      }
 
-      if (!this.$store.getters.localStream("audio")) {
         try {
           await this.$store.dispatch("toggleAudio", {
             silent: true,
           });
+
+          if (video) {
+            await this.$store.dispatch("toggleVideo", {
+              silent: true,
+            });
+          }
         } catch (e) {
           console.log(e);
         }
       }
 
       this.$router.push(`/channels/${this.channel.id}/call`);
-    },
-    voiceJoinVideo() {
-      this.voiceJoin();
-
-      if (!this.$store.getters.localStream("video")) {
-        this.$store.dispatch("toggleVideo", {
-          silent: true,
-        });
-      }
     },
     messagesScroll({ target }) {
       if (!target.scrollTop && target.scrollHeight !== target.clientHeight) {
