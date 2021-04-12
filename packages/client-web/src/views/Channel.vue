@@ -54,7 +54,7 @@
             </div>
           </div>
           <div class="flex space-x-2">
-            <div @click="voiceJoin">
+            <div @click="voiceJoin(false)">
               <PhoneIcon
                 class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
               />
