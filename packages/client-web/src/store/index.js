@@ -144,7 +144,8 @@ export default new Vuex.Store({
       ),
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
-    accentColor: (state) => state.user?.accentColor || "green",
+    accentColor: (state) =>
+      state.user?.accentColor || localStorage.accentColor || "green",
     rtcEcho: (state) => !state.rtcEcho,
     rtcNoise: (state) => !state.rtcNoise,
     rtcGain: (state) => !state.rtcGain,
@@ -156,6 +157,10 @@ export default new Vuex.Store({
   mutations: {
     setUser(state, user) {
       state.user = { ...state.user, ...user };
+
+      if (user.accentColor) {
+        localStorage.setItem("accentColor", user.accentColor);
+      }
     },
     setToken(state, token) {
       state.token = token;
