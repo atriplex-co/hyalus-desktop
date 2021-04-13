@@ -31,7 +31,7 @@
     <div class="p-4" v-else />
     <div class="flex items-center space-x-4 group">
       <div
-        class="max-w-xs lg:max-w-sm xl:max-w-lg rounded-md text-sm overflow-hidden"
+        class="max-w-xs lg:max-w-md xl:max-w-2xl rounded-md text-sm overflow-hidden"
         :class="{
           'bg-gradient-to-br from-primary-500 to-primary-600':
             sentByMe && !message.fileMediaType,
