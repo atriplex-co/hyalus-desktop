@@ -16,7 +16,7 @@
     <div
       class="flex group items-center space-x-2"
       :class="{
-        'ml-auto flex-row-reverse space-x-reverse': !sentByMe && messageSides,
+        'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
       }"
       v-else
     >
@@ -32,14 +32,14 @@
           class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
           :class="{
             'right-0 flex-row-reverse space-x-reverse':
-              !sentByMe && messageSides,
+              sentByMe && messageSides,
           }"
           v-if="senderCard"
         >
           <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
           <div
             :class="{
-              'flex items-end flex-col': !sentByMe && messageSides,
+              'flex items-end flex-col': sentByMe && messageSides,
             }"
           >
             <p class="font-bold truncate">{{ sender.name }}</p>
@@ -109,8 +109,8 @@
       <div
         class="flex items-center space-x-3"
         :class="{
-          'pl-2': sentByMe || !messageSides,
-          'pr-2 space-x-reverse flex-row-reverse': !sentByMe && messageSides,
+          'pl-2': !sentByMe || !messageSides,
+          'pr-2 space-x-reverse flex-row-reverse': sentByMe && messageSides,
         }"
       >
         <p
