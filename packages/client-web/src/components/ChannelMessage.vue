@@ -18,12 +18,12 @@
         <UserAvatar
           class="rounded-full"
           :id="sender.avatar"
-          @mouseover.native="showSenderCard = true"
-          @mouseleave.native="showSenderCard = false"
+          @mouseover.native="senderCard = true"
+          @mouseleave.native="senderCard = false"
         />
         <div
           class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
-          v-if="showSenderCard"
+          v-if="senderCard"
         >
           <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
           <div>
@@ -133,7 +133,7 @@ export default {
     return {
       ago: "",
       timeUpdateInterval: null,
-      showSenderCard: false,
+      senderCard: false,
       showImageView: false,
     };
   },
