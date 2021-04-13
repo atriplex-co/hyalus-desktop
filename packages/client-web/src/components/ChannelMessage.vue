@@ -4,7 +4,7 @@
       {{ time }}
     </div>
     <div
-      class="max-w-lg mx-auto text-sm text-gray-200"
+      class="text-center text-sm text-gray-400"
       v-if="message.event"
       :class="{
         'pb-4': precedingMessage && precedingMessage.event,
