@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="text-center text-sm text-gray-400 py-6" v-if="showSection">
-      {{ time }}
+    <div class="text-center text-sm text-gray-400 py-6" v-if="section">
+      {{ section }}
     </div>
     <div
       class="text-center text-sm text-gray-400"
@@ -14,7 +14,7 @@
       {{ message.event }}
     </div>
     <div class="flex items-end space-x-2" v-else>
-      <div class="w-8 h-8 relative" v-if="lastFromSender">
+      <div class="w-8 h-8 sticky bottom-0" v-if="lastFromSender">
         <UserAvatar
           class="rounded-full"
           :id="sender.avatar"
@@ -111,7 +111,7 @@
           <p
             class="opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition"
           >
-            {{ time }}
+            {{ date }} &bull; {{ time }}
           </p>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default {
   props: ["message"],
   data() {
     return {
-      time: "",
+      ago: "",
       timeUpdateInterval: null,
       showSenderCard: false,
       showImageView: false,
@@ -186,6 +186,7 @@ export default {
     },
     fileLength() {
       let len = this.message.fileLength;
+
       let unit = "bytes";
 
       ["KB", "MB", "GB", "TB"].map((u) => {
@@ -197,18 +198,23 @@ export default {
 
       return `${Math.round(len * 10) / 10} ${unit}`;
     },
-    showSection() {
-      return (
+    section() {
+      if (
         !this.precedingMessage ||
         moment(this.precedingMessage.time).day() !==
           moment(this.message.time).day()
-      );
+      ) {
+        return moment(this.message.time).fromNow();
+      }
+    },
+    date() {
+      return moment(this.message.time).format("mm/DD/YYYY");
+    },
+    time() {
+      return moment(this.message.time).format("h:MM A");
     },
   },
   methods: {
-    updateTime() {
-      this.time = moment(this.message.time).calendar();
-    },
     async remove() {
       await this.$store.dispatch("deleteMessage", this.message);
     },
@@ -229,15 +235,9 @@ export default {
     },
   },
   beforeMount() {
-    this.updateTime();
-    this.timeUpdateInterval = setInterval(this.updateTime, 1000 * 60); //1m
-
     if (this.message.fileMediaType && !this.message.blob) {
       this.fetchFile();
     }
-  },
-  beforeDestroy() {
-    clearInterval(this.timeUpdateInterval);
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
