@@ -164,6 +164,9 @@ export default new Vuex.Store({
         localStorage.setItem("accentColor", user.accentColor);
       }
     },
+    // toggleSidebar inverts the state of state.showSidebar, this is intended to be used with the addition
+    // of sidebar toggling buttons on mobile clients that will allow a button to appear once the sidebar is hidden
+    // and then for it to hide once the sidebar is opened. This state does directly affect the sidebar as well.
     toggleSidebar (state) {
       state.showSidebar = !state.showSidebar
     },
