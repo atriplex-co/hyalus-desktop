@@ -56,6 +56,10 @@
         <Toggle v-model="sendTyping" />
       </div>
       <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Adaptive Message Layout</p>
+        <Toggle v-model="messageSides" />
+      </div>
+      <div class="flex items-center justify-between h-12">
         <p class="font-bold">RTC Echo Cancellation</p>
         <Toggle v-model="rtcEcho" />
       </div>
@@ -444,6 +448,14 @@ export default {
       },
       set(val) {
         this.$store.dispatch("setVadEnabled", val);
+      },
+    },
+    messageSides: {
+      get() {
+        return this.$store.getters.messageSides;
+      },
+      set(val) {
+        this.$store.commit("setMessageSides", val);
       },
     },
   },

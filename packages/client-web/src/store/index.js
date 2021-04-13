@@ -112,6 +112,7 @@ export default new Vuex.Store({
     displayQuality: localStorage.displayQuality,
     sendTyping: localStorage.sendTyping,
     vadEnabled: localStorage.vadEnabled,
+    messageSides: localStorage.messageSides,
   },
   getters: {
     config: (state) => state.config,
@@ -153,6 +154,7 @@ export default new Vuex.Store({
     displayQuality: (state) => state.displayQuality || "720p30",
     sendTyping: (state) => !state.sendTyping,
     vadEnabled: (state) => !state.vadEnabled,
+    messageSides: (state) => state.messageSides,
   },
   mutations: {
     setUser(state, user) {
@@ -703,6 +705,15 @@ export default new Vuex.Store({
         localStorage.removeItem("vadEnabled");
       } else {
         localStorage.setItem("vadEnabled", "a");
+      }
+    },
+    setMessageSides(state, val) {
+      state.messageSides = val;
+
+      if (!val) {
+        localStorage.removeItem("messageSides");
+      } else {
+        localStorage.setItem("messageSides", "a");
       }
     },
   },
