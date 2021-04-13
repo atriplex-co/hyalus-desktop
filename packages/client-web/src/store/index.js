@@ -55,6 +55,7 @@ const messageFormatter = new MarkdownIt("zero", {
     attrs: {
       target: "_blank",
       rel: "noopener noreferrer",
+      class: "font-medium underline",
     },
   });
 
@@ -145,7 +146,8 @@ export default new Vuex.Store({
     ready: (state) => state.ready,
     queuedIce: (state) => state.queuedIce,
     showSidebar: (state) => state.showSidebar,
-    accentColor: (state) => state.user?.accentColor || "green",
+    accentColor: (state) =>
+      state.user?.accentColor || localStorage.accentColor || "green",
     rtcEcho: (state) => !state.rtcEcho,
     rtcNoise: (state) => !state.rtcNoise,
     rtcGain: (state) => !state.rtcGain,
@@ -157,6 +159,10 @@ export default new Vuex.Store({
   mutations: {
     setUser(state, user) {
       state.user = { ...state.user, ...user };
+
+      if (user.accentColor) {
+        localStorage.setItem("accentColor", user.accentColor);
+      }
     },
     toggleSidebar (state) {
       state.showSidebar = !state.showSidebar
@@ -392,6 +398,7 @@ export default new Vuex.Store({
           );
 
           merged.decryptedFileName = nacl.to_string(decryptedFileName).trim();
+          merged.decrypted = merged.decryptedFileName;
         }
 
         if (merged.fileType && !merged.decryptedFileType) {
@@ -1891,6 +1898,8 @@ export default new Vuex.Store({
           },
         });
 
+        let procTime;
+
         const procSize = 4096;
         const sampleLength = 480;
 
@@ -1913,6 +1922,15 @@ export default new Vuex.Store({
         let pending = new Float32Array([]);
 
         origProc.addEventListener("audioprocess", (e) => {
+          if (procTime && !delay.delayTime.value) {
+            delay.delayTime.setValueAtTime(
+              (Date.now() - procTime) / 1000,
+              ctx.currentTime
+            );
+          } else {
+            procTime = Date.now();
+          }
+
           let detected;
 
           const buf = [...pending, ...e.inputBuffer.getChannelData(0)];
@@ -1944,16 +1962,12 @@ export default new Vuex.Store({
           }
         });
 
-        const delayTime =
-          1 / (stream.getTracks()[0].getSettings().sampleRate / procSize);
-
         origSource.connect(origGain);
         origGain.connect(origProc);
         origGain.gain.setValueAtTime(2, ctx.currentTime);
         origProc.connect(origCtx.destination);
         source.connect(delay);
         delay.connect(gain);
-        delay.delayTime.setValueAtTime(delayTime, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
         gain.connect(dest);
 
@@ -2269,7 +2283,7 @@ export default new Vuex.Store({
       commit("setMessage", {
         id: message.id,
         channel: message.channel,
-        decrypted: URL.createObjectURL(blob),
+        blob: URL.createObjectURL(blob),
         silent: true,
       });
     },

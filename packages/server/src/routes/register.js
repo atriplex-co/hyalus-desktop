@@ -28,14 +28,14 @@ app.post(
         .required()
         .length(96)
         .base64(),
-    }),
-    ratelimit({
-      scope: "ip",
-      tag: "register",
-      max: 3,
-      time: 60 * 60 * 12,
     })
   ),
+  ratelimit({
+    scope: "ip",
+    tag: "register",
+    max: 3,
+    time: 60 * 60 * 12,
+  }),
   async (req, res, next) => {
     req.body.username = req.body.username.toLowerCase();
 

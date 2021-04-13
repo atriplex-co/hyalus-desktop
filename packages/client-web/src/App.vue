@@ -2,7 +2,7 @@
   <!-- listing every accentColor is nessecary for tailwind JIT/purge to work. -->
   <!-- don't try "optimizing" that. -->
   <div
-    class="flex flex-col h-screen min-h-0 antialiased text-white bg-gray-900"
+    class="flex flex-col h-screen min-h-0 text-white bg-gray-900"
     :class="{
       'accent-red': accentColor === 'red',
       'accent-orange': accentColor === 'orange',

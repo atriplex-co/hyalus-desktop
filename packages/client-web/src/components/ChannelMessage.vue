@@ -33,9 +33,9 @@
       <div
         class="max-w-xs lg:max-w-sm xl:max-w-lg rounded-md text-sm overflow-hidden"
         :class="{
-          'bg-gradient-to-br from-primary-500 to-primary-600 text-white':
+          'bg-gradient-to-br from-primary-500 to-primary-600':
             sentByMe && !message.fileMediaType,
-          'bg-gray-800': !sentByMe || message.fileMediaType,
+          'bg-gray-800': !sentByMe && !message.fileMediaType,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
@@ -65,25 +65,28 @@
             </div>
           </div>
         </div>
-        <div v-if="message.fileMediaType && message.decrypted">
+        <div v-if="message.fileMediaType && message.blob">
           <img
-            :src="message.decrypted"
+            :src="message.blob"
             v-if="message.fileMediaType === 'img'"
             class="cursor-pointer"
             @click="showImageView = true"
           />
           <audio
-            :src="message.decrypted"
+            :src="message.blob"
             v-if="message.fileMediaType === 'audio'"
             controls
             class="outline-none"
           />
           <video
-            :src="message.decrypted"
+            :src="message.blob"
             v-if="message.fileMediaType === 'video'"
             controls
             class="outline-none"
           />
+        </div>
+        <div v-if="message.fileMediaType && !message.blob">
+          <LoadingIcon class="w-10 h-10 p-2" />
         </div>
       </div>
       <div class="flex items-center space-x-3">
@@ -96,7 +99,7 @@
         </div>
         <div
           class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
-          v-if="message.fileMediaType && message.decrypted"
+          v-if="message.fileMediaType && message.blob"
           @click="saveFile"
         >
           <DownloadIcon class="w-5 h-5" />
@@ -109,7 +112,7 @@
       </div>
     </div>
     <ImageView
-      :image="message.decrypted"
+      :image="message.blob"
       v-if="showImageView"
       @close="showImageView = false"
     />
@@ -198,13 +201,15 @@ export default {
       await this.$store.dispatch("deleteMessage", this.message);
     },
     async fetchFile() {
-      await this.$store.dispatch("fetchFile", this.message);
+      if (!this.message.blob) {
+        await this.$store.dispatch("fetchFile", this.message);
+      }
     },
     async saveFile() {
-      await this.fetchFile();
+      this.fetchFile();
 
       const el = document.createElement("a");
-      el.href = this.message.decrypted;
+      el.href = this.message.blob;
       el.target = "_blank";
       el.rel = "noreferrer noopener";
       el.download = this.message.decryptedFileName;
@@ -215,8 +220,8 @@ export default {
     this.updateTime();
     this.timeUpdateInterval = setInterval(this.updateTime, 1000 * 60); //1m
 
-    if (this.message.fileMediaType && !this.message.decrypted) {
-      this.$store.dispatch("fetchFile", this.message);
+    if (this.message.fileMediaType && !this.message.blob) {
+      this.fetchFile();
     }
   },
   beforeDestroy() {
@@ -227,6 +232,7 @@ export default {
     TrashIcon: () => import("../icons/Trash"),
     DownloadIcon: () => import("../icons/Download"),
     ImageView: () => import("./ImageView"),
+    LoadingIcon: () => import("../icons/Loading"),
   },
 };
 </script>
