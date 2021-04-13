@@ -1904,8 +1904,6 @@ export default new Vuex.Store({
           },
         });
 
-        let procTime;
-
         const procSize = 4096;
         const sampleLength = 480;
 
@@ -1922,29 +1920,30 @@ export default new Vuex.Store({
 
         const inMemp = rnnoise._malloc(sampleLength * 4);
         const outMemp = rnnoise._malloc(sampleLength * 4);
+        const outMem = new Float32Array(
+          rnnoise.HEAPF32.buffer,
+          outMemp,
+          sampleLength
+        );
 
         const noise = rnnoise._rnnoise_create();
 
-        let pending = new Float32Array([]);
+        let pendingIn = new Float32Array([]);
+
+        let closeTimeout;
 
         origProc.addEventListener("audioprocess", (e) => {
-          if (procTime && !delay.delayTime.value) {
-            delay.delayTime.setValueAtTime(
-              (Date.now() - procTime) / 1000,
-              ctx.currentTime
-            );
-          } else {
-            procTime = Date.now();
-          }
-
           let detected;
 
-          const buf = [...pending, ...e.inputBuffer.getChannelData(0)];
+          const bufIn = new Float32Array([
+            ...pendingIn,
+            ...e.inputBuffer.getChannelData(0),
+          ]);
 
           let i = 0;
 
-          for (; i + sampleLength < buf.length; i += sampleLength) {
-            const sample = buf.slice(i, i + sampleLength);
+          for (; i + sampleLength < bufIn.length; i += sampleLength) {
+            const sample = bufIn.slice(i, i + sampleLength);
 
             for (const [i, val] of sample.entries()) {
               sample[i] = val * 0x7fff;
@@ -1959,23 +1958,29 @@ export default new Vuex.Store({
             }
           }
 
-          pending = buf.slice(i);
+          pendingIn = bufIn.slice(i);
 
           if (detected) {
+            if (closeTimeout) {
+              clearTimeout(closeTimeout);
+            }
+
             gain.gain.setValueAtTime(1, ctx.currentTime);
-          } else {
-            gain.gain.setValueAtTime(0, ctx.currentTime);
+
+            closeTimeout = setTimeout(() => {
+              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+            }, 100);
           }
         });
 
-        origSource.connect(origGain);
-        origGain.connect(origProc);
         origGain.gain.setValueAtTime(2, ctx.currentTime);
-        origProc.connect(origCtx.destination);
-        source.connect(delay);
-        delay.connect(gain);
+        delay.delayTime.setValueAtTime(0.2, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.connect(dest);
+
+        [
+          [origSource, origGain, origProc, origCtx.destination],
+          [source, delay, gain, dest],
+        ].map((c) => c.reduce((a, b) => a.connect(b)));
 
         stream = dest.stream;
       }
