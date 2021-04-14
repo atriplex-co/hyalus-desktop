@@ -1118,7 +1118,7 @@ export default new Vuex.Store({
         }
 
         if (data.t === "voiceKick") {
-          await dispatch("voiceReset");
+          await dispatch("voiceReset", {});
           commit("setVoice", null);
         }
 
@@ -1143,10 +1143,12 @@ export default new Vuex.Store({
             commit("setReady", false);
 
             if (getters.voice) {
-              await dispatch("voiceReset");
+              await dispatch("voiceReset", {
+                onlyStopPeers: true,
+              });
             }
           }
-        }, 1000 * 15); //15s
+        }, 1000 * 5); //15s
       };
 
       commit("setWs", ws);
@@ -1475,7 +1477,7 @@ export default new Vuex.Store({
         return;
       }
 
-      await dispatch("voiceReset");
+      await dispatch("voiceReset", {});
       commit("setVoice", null);
 
       getters.ws.send({
@@ -1492,6 +1494,7 @@ export default new Vuex.Store({
         await dispatch("stopLocalStream", {
           type: stream.type,
           leaving: true,
+          onlyStopPeers: params.onlyStopPeers,
         });
       }
 
