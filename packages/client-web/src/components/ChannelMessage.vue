@@ -227,7 +227,7 @@ export default {
       }
     },
     date() {
-      return moment(this.message.time).format("mm/DD/YYYY");
+      return moment(this.message.time).format("M/D/Y");
     },
     time() {
       return moment(this.message.time).format("h:MM A");
