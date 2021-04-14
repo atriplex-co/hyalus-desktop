@@ -1088,7 +1088,9 @@ export default new Vuex.Store({
             if (data.d.voiceConnected) {
               dispatch("handleVoiceUserJoin", data.d.id);
             } else {
-              dispatch("handleVoiceUserLeave", data.d.id);
+              dispatch("handleVoiceUserLeave", {
+                user: data.d.id,
+              });
             }
           }
 
@@ -1707,49 +1709,56 @@ export default new Vuex.Store({
       }
     },
     async handleVoiceUserJoin({ getters, commit, dispatch }, userId) {
+      const channel = getters.channelById(getters.voice.channel);
+      const user = channel.users.find((u) => u.id === userId);
+
+      if (user.voiceConnected) {
+        await dispatch("handleVoiceUserLeave", {
+          user: userId,
+          silent: true,
+        });
+      } else {
+        try {
+          new Audio(sndStateUp).play();
+        } catch {}
+      }
+
       getters.voice.localStreams.map((stream) => {
         dispatch("sendLocalStream", {
           type: stream.type,
           user: userId,
         });
       });
-
-      const channel = getters.channelById(getters.voice.channel);
-      const user = channel.users.find((u) => u.id === userId);
-
-      if (!user.voiceConnected) {
-        try {
-          new Audio(sndStateUp).play();
-        } catch {}
-      }
     },
-    async handleVoiceUserLeave({ getters, commit, dispatch }, user) {
+    async handleVoiceUserLeave({ getters, commit, dispatch }, params) {
       for (const stream of getters.voice.localStreams) {
-        const peer = stream.peers[user];
+        const peer = stream.peers[params.user];
 
         if (peer) {
           peer.close();
         }
 
         commit("setLocalStreamPeer", {
-          user,
+          user: params.user,
           type: stream.type,
           peer: null,
         });
       }
 
       for (const stream of getters.voice.remoteStreams.filter(
-        (stream) => stream.user === user
+        (stream) => stream.user === params.user
       )) {
         dispatch("stopRemoteStream", {
-          user,
+          user: params.user,
           type: stream.type,
         });
       }
 
-      try {
-        new Audio(sndStateDown).play();
-      } catch {}
+      if (!params.silent) {
+        try {
+          new Audio(sndStateDown).play();
+        } catch {}
+      }
     },
     async startLocalStream({ getters, commit, dispatch }, { type, track }) {
       commit("setLocalStream", {
