@@ -228,7 +228,7 @@ export default {
       return moment(this.message.time).format("M/D/Y");
     },
     time() {
-      return moment(this.message.time).format("h:MM A");
+      return moment(this.message.time).format("h:mm A");
     },
     messageSides() {
       return this.$store.getters.messageSides;
