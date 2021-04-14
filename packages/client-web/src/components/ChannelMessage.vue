@@ -53,6 +53,7 @@
           'bg-gradient-to-br from-primary-500 to-primary-600':
             sentByMe && !message.fileMediaType,
           'bg-gray-800': !sentByMe && !message.fileMediaType,
+          'border border-primary-800': entirelyCode && sentByMe,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
@@ -233,6 +234,25 @@ export default {
     },
     messageSides() {
       return this.$store.getters.messageSides;
+    },
+    startsWithCode() {
+      return (
+        this.message.formatted && this.message.formatted.startsWith("<pre")
+      );
+    },
+    endsWithCode() {
+      return (
+        this.message.formatted && this.message.formatted.endsWith("</pre>")
+      );
+    },
+    entirelyCode() {
+      //means that this message consists of one <pre> wrapped codeblock.
+      return (
+        this.message.formatted &&
+        this.startsWithCode &&
+        this.endsWithCode &&
+        this.message.formatted.split("<pre").length === 2
+      );
     },
   },
   methods: {

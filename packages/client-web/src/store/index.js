@@ -15,6 +15,7 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
+import hljs from "highlight.js";
 
 Vue.use(Vuex);
 
@@ -41,6 +42,18 @@ const iceServers = [
 const messageFormatter = new MarkdownIt("zero", {
   html: false,
   linkify: true,
+  highlight(str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(str, {
+          language: lang,
+          ignoreIllegals: true,
+        }).value;
+      } catch {}
+    }
+
+    return "";
+  },
 })
   .enable([
     //
@@ -49,6 +62,7 @@ const messageFormatter = new MarkdownIt("zero", {
     "backticks",
     "fence",
     "linkify",
+    "block",
   ])
   .use(MarkdownItEmoji)
   .use(MarkdownItLinkAttr, {
@@ -113,6 +127,7 @@ export default new Vuex.Store({
     sendTyping: localStorage.sendTyping,
     vadEnabled: localStorage.vadEnabled,
     messageSides: localStorage.messageSides,
+    syntaxTheme: localStorage.syntaxTheme,
   },
   getters: {
     config: (state) => state.config,
@@ -155,6 +170,7 @@ export default new Vuex.Store({
     sendTyping: (state) => !state.sendTyping,
     vadEnabled: (state) => !state.vadEnabled,
     messageSides: (state) => state.messageSides,
+    syntaxTheme: (state) => state.syntaxTheme || "tomorrow-night",
   },
   mutations: {
     setUser(state, user) {
@@ -440,8 +456,9 @@ export default new Vuex.Store({
 
           if (!merged.formatted && merged.decrypted) {
             merged.formatted = messageFormatter
-              .renderInline(merged.decrypted)
-              .trim();
+              .render(merged.decrypted)
+              .trim()
+              .replaceAll("<pre>", '<pre class="hljs">');
           }
         }
 
@@ -710,10 +727,19 @@ export default new Vuex.Store({
     setMessageSides(state, val) {
       state.messageSides = val;
 
-      if (!val) {
-        localStorage.removeItem("messageSides");
-      } else {
+      if (val) {
         localStorage.setItem("messageSides", "a");
+      } else {
+        localStorage.removeItem("messageSides");
+      }
+    },
+    setSyntaxTheme(state, val) {
+      state.syntaxTheme = val;
+
+      if (val) {
+        localStorage.setItem("syntaxTheme", val);
+      } else {
+        localStorage.removeItem("syntaxTheme");
       }
     },
   },

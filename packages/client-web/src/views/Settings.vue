@@ -270,6 +270,35 @@
         </div>
       </div>
       <div class="flex items-center justify-between h-12">
+        <p class="font-bold">Code Syntax Theme</p>
+        <div class="flex flex-col">
+          <div
+            class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
+            @click="syntaxThemeMenu = !syntaxThemeMenu"
+          >
+            <div class="flex items-center space-x-2">
+              {{ syntaxTheme }}
+            </div>
+            <ArrowDownIcon class="w-4 h-4" />
+          </div>
+          <div class="relative">
+            <div
+              class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
+              v-if="syntaxThemeMenu"
+            >
+              <div
+                class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
+                v-for="usableSyntaxTheme in usableSyntaxThemes"
+                v-bind:key="usableSyntaxTheme.id"
+                @click="setSyntaxTheme(usableSyntaxTheme.id)"
+              >
+                {{ usableSyntaxTheme.name }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between h-12">
         <p class="font-bold">Logout</p>
         <div @click="logout">
           <LogoutIcon
@@ -350,6 +379,24 @@ export default {
       ],
       videoQualityMenu: false,
       displayQualityMenu: false,
+      usableSyntaxThemes: [
+        "One Dark",
+        "One Light",
+        "Dracula",
+        "Github",
+        "Gruvbox Dark",
+        "Gruvbox Light",
+        "Solarized Dark",
+        "Solarized Light",
+        "Tomorrow Night",
+      ].map((name) => ({
+        id: name
+          .toLowerCase()
+          .split(" ")
+          .join("-"),
+        name,
+      })),
+      syntaxThemeMenu: false,
     };
   },
   computed: {
@@ -458,6 +505,11 @@ export default {
         this.$store.commit("setMessageSides", val);
       },
     },
+    syntaxTheme() {
+      return this.usableSyntaxThemes.find(
+        (t) => t.id === this.$store.getters.syntaxTheme
+      ).name;
+    },
   },
   methods: {
     async logout() {
@@ -490,6 +542,10 @@ export default {
     setDisplayQuality(val) {
       this.$store.dispatch("setDisplayQuality", val);
       this.displayQualityMenu = false;
+    },
+    setSyntaxTheme(val) {
+      this.$store.commit("setSyntaxTheme", val);
+      this.syntaxThemeMenu = false;
     },
   },
   async mounted() {
