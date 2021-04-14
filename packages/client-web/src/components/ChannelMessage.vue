@@ -2,7 +2,7 @@
   <div
     class="w-full flex flex-col"
     :class="{
-      'pt-2': firstFromSender,
+      'pt-2': firstFromSender || !precedingRecent,
     }"
   >
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
@@ -22,6 +22,7 @@
       class="flex group items-center space-x-2"
       :class="{
         'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
+        '-mt-0.5': !firstFromSender && precedingRecent,
       }"
       v-else
     >
@@ -31,7 +32,7 @@
           :id="sender.avatar"
           @mouseover.native="senderCard = true"
           @mouseleave.native="senderCard = false"
-          v-if="lastFromSender"
+          v-if="lastFromSender || !supersedingRecent"
         />
         <div
           class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
@@ -151,6 +152,8 @@
 <script>
 import moment from "moment";
 
+const recentThreshold = 1000 * 60 * 15; // 15m
+
 export default {
   props: ["message"],
   data() {
@@ -262,6 +265,14 @@ export default {
         this.startsWithCode &&
         this.endsWithCode &&
         this.message.formatted.split("<pre").length === 2
+      );
+    },
+    precedingRecent() {
+      return this.message.time - this.precedingMessage?.time < recentThreshold;
+    },
+    supersedingRecent() {
+      return (
+        this.supersedingMessage?.time - this.message.time < recentThreshold
       );
     },
   },
