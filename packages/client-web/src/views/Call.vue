@@ -106,6 +106,10 @@ export default {
       }
     },
     tiles() {
+      if (!this.$store.getters.voice) {
+        return [];
+      }
+
       const tiles = [];
 
       const localVideo = this.$store.getters.localStream("video");
