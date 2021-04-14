@@ -1,7 +1,7 @@
 <template>
   <div class="w-full flex flex-col">
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
-      {{ section }}
+      {{ date }}
     </div>
     <div
       class="text-center text-sm text-gray-400"
@@ -218,13 +218,11 @@ export default {
       return `${Math.round(len * 10) / 10} ${unit}`;
     },
     section() {
-      if (
+      return (
         !this.precedingMessage ||
         moment(this.precedingMessage.time).day() !==
           moment(this.message.time).day()
-      ) {
-        return moment(this.message.time).fromNow();
-      }
+      );
     },
     date() {
       return moment(this.message.time).format("M/D/Y");
