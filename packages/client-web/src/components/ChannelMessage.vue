@@ -18,7 +18,8 @@
       :class="{
         'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
         'mb-2': lastFromSender,
-      }"
+        '-mb-0.5': !lastFromSender,
+        }"
     >
       <div class="w-8 h-8 self-end relative">
         <UserAvatar
