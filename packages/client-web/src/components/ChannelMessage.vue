@@ -23,8 +23,8 @@
       class="flex group items-center space-x-2"
       :class="{
         'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
-        }"
-        v-else
+      }"
+      v-else
     >
       <div class="w-8 h-8 self-end relative">
         <UserAvatar
