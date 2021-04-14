@@ -3,6 +3,7 @@
     class="w-full flex flex-col"
     :class="{
       'pt-2': firstFromSender,
+      '-mt-0.5': !firstFromSender,
     }"
   >
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
@@ -22,9 +23,8 @@
       class="flex group items-center space-x-2"
       :class="{
         'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
-        'mb-2': lastFromSender,
-        '-mb-0.5': !lastFromSender,
         }"
+        v-else
     >
       <div class="w-8 h-8 self-end relative">
         <UserAvatar
