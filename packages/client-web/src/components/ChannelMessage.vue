@@ -2,7 +2,7 @@
   <div
     class="w-full flex flex-col"
     :class="{
-      'pt-2': (firstFromSender || !lastMessageRecent),
+      'pt-1.5': (firstFromSender || !lastMessageRecent),
     }"
   >
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
