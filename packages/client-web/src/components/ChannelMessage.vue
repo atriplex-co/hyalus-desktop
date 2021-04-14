@@ -2,8 +2,7 @@
   <div
     class="w-full flex flex-col"
     :class="{
-      'pt-2': firstFromSender,
-      '-mt-0.5': !firstFromSender,
+      'pt-2': (firstFromSender || !lastMessageRecent),
     }"
   >
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
@@ -23,6 +22,7 @@
       class="flex group items-center space-x-2"
       :class="{
         'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
+        '-mt-0.5': (!(firstFromSender) && lastMessageRecent), 
       }"
       v-else
     >
@@ -32,8 +32,9 @@
           :id="sender.avatar"
           @mouseover.native="senderCard = true"
           @mouseleave.native="senderCard = false"
-          v-if="lastFromSender"
+          v-if="lastFromSender || (!firstFromSender && firstMessageOld)"
         />
+        <!--The page that shows up when you hover over an avatar-->
         <div
           class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
           :class="{
@@ -53,6 +54,7 @@
           </div>
         </div>
       </div>
+      
       <div
         class="max-w-xs lg:max-w-md xl:max-w-2xl rounded-md text-sm overflow-hidden"
         :class="{
@@ -201,6 +203,14 @@ export default {
         this.supersedingMessage.event ||
         this.supersedingMessage.sender !== this.message.sender
       );
+    },
+    // return true if the preceeding message was made less than 1800000msec (30 mins) ago
+    lastMessageRecent() {
+      return (this.message.time - this.precedingMessage?.time < 1800000)
+    },
+    // return true if the supersceding message was made more than 1800000msec (30 mins) afterwards
+    firstMessageOld() {
+      return (this.supersedingMessage?.time - this.message.time > 1800000)
     },
     eventTarget() {
       if (this.isEvent) {
