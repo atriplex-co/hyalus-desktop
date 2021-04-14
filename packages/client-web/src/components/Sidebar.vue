@@ -11,6 +11,8 @@
         </div>
       </div>
       <div class="flex items-center space-x-2 text-gray-400">
+        <!--toggleSidebar is a button to allow hiding of the sidebar, originally for mobile devices
+        but now allowed everywhere-->
         <ToggleSidebar class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750"/>
         <router-link class="relative" to="/friends">
           <FriendsIcon

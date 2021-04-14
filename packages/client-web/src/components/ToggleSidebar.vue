@@ -1,5 +1,5 @@
 <template>
-    <div class="visible sm:hidden" v-on:click="commit">   
+    <div class="visible" v-on:click="commit">   
 <svg
    fill="currentColor"
    viewBox="0 0 20 20">
