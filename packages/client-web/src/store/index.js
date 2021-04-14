@@ -742,6 +742,15 @@ export default new Vuex.Store({
         localStorage.removeItem("syntaxTheme");
       }
     },
+    resetUser(state) {
+      state.user = null;
+    },
+    resetChannels(state) {
+      state.channels = [];
+    },
+    resetFriends(state) {
+      state.friends = [];
+    },
   },
   actions: {
     async register({ commit, dispatch }, data) {
@@ -996,7 +1005,12 @@ export default new Vuex.Store({
         }
 
         if (data.t === "ready") {
+          commit("resetUser");
+          commit("resetFriends");
+          commit("resetChannels");
+
           commit("setUser", data.d.user);
+
           dispatch("updateFavicon");
 
           data.d.friends.map((friend) => {
@@ -1031,6 +1045,10 @@ export default new Vuex.Store({
             dispatch("voiceLeave", {
               silent: true,
             });
+          }
+
+          if (router.currentRoute.name === "channel") {
+            dispatch("updateChannel", router.currentRoute.params.channel);
           }
 
           commit("setReady", true);
