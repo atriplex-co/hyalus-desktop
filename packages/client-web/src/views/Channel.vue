@@ -90,7 +90,7 @@
       <div class="flex flex-1 min-h-0 relative">
         <div
           ref="messages"
-          class="flex flex-col flex-1 p-2 space-y-1 overflow-auto"
+          class="flex flex-col flex-1 p-3 space-y-1 overflow-auto"
           @scroll="messagesScroll"
         >
           <div
