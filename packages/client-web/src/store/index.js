@@ -15,6 +15,7 @@ import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
+import hljs from "highlight.js";
 
 Vue.use(Vuex);
 
@@ -41,6 +42,18 @@ const iceServers = [
 const messageFormatter = new MarkdownIt("zero", {
   html: false,
   linkify: true,
+  highlight(str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(str, {
+          language: lang,
+          ignoreIllegals: true,
+        }).value;
+      } catch {}
+    }
+
+    return "";
+  },
 })
   .enable([
     //
@@ -49,6 +62,7 @@ const messageFormatter = new MarkdownIt("zero", {
     "backticks",
     "fence",
     "linkify",
+    "block",
   ])
   .use(MarkdownItEmoji)
   .use(MarkdownItLinkAttr, {
@@ -113,6 +127,8 @@ export default new Vuex.Store({
     displayQuality: localStorage.displayQuality,
     sendTyping: localStorage.sendTyping,
     vadEnabled: localStorage.vadEnabled,
+    messageSides: localStorage.messageSides,
+    syntaxTheme: localStorage.syntaxTheme,
   },
   getters: {
     config: (state) => state.config,
@@ -155,6 +171,8 @@ export default new Vuex.Store({
     displayQuality: (state) => state.displayQuality || "720p30",
     sendTyping: (state) => !state.sendTyping,
     vadEnabled: (state) => !state.vadEnabled,
+    messageSides: (state) => state.messageSides,
+    syntaxTheme: (state) => state.syntaxTheme || "tomorrow-night",
   },
   mutations: {
     setUser(state, user) {
@@ -446,8 +464,9 @@ export default new Vuex.Store({
 
           if (!merged.formatted && merged.decrypted) {
             merged.formatted = messageFormatter
-              .renderInline(merged.decrypted)
-              .trim();
+              .render(merged.decrypted)
+              .trim()
+              .replaceAll("<pre>", '<pre class="hljs">');
           }
         }
 
@@ -713,6 +732,33 @@ export default new Vuex.Store({
         localStorage.setItem("vadEnabled", "a");
       }
     },
+    setMessageSides(state, val) {
+      state.messageSides = val;
+
+      if (val) {
+        localStorage.setItem("messageSides", "a");
+      } else {
+        localStorage.removeItem("messageSides");
+      }
+    },
+    setSyntaxTheme(state, val) {
+      state.syntaxTheme = val;
+
+      if (val) {
+        localStorage.setItem("syntaxTheme", val);
+      } else {
+        localStorage.removeItem("syntaxTheme");
+      }
+    },
+    resetUser(state) {
+      state.user = null;
+    },
+    resetChannels(state) {
+      state.channels = [];
+    },
+    resetFriends(state) {
+      state.friends = [];
+    },
   },
   actions: {
     async register({ commit, dispatch }, data) {
@@ -947,7 +993,7 @@ export default new Vuex.Store({
         });
       };
 
-      ws.onmessage = ({ data }) => {
+      ws.onmessage = async ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
         if (Vue.config.devtools && data.t !== "ping") {
@@ -967,7 +1013,12 @@ export default new Vuex.Store({
         }
 
         if (data.t === "ready") {
+          commit("resetUser");
+          commit("resetFriends");
+          commit("resetChannels");
+
           commit("setUser", data.d.user);
+
           dispatch("updateFavicon");
 
           data.d.friends.map((friend) => {
@@ -1002,6 +1053,10 @@ export default new Vuex.Store({
             dispatch("voiceLeave", {
               silent: true,
             });
+          }
+
+          if (router.currentRoute.name === "channel") {
+            dispatch("updateChannel", router.currentRoute.params.channel);
           }
 
           commit("setReady", true);
@@ -1039,19 +1094,11 @@ export default new Vuex.Store({
         if (data.t === "channelUser") {
           if (getters.voice && data.d.channel === getters.voice.channel) {
             if (data.d.voiceConnected) {
-              try {
-                new Audio(sndStateUp).play();
-              } catch {}
-
               dispatch("handleVoiceUserJoin", data.d.id);
-            }
-
-            if (data.d.voiceConnected === false) {
-              try {
-                new Audio(sndStateDown).play();
-              } catch {}
-
-              dispatch("handleVoiceUserLeave", data.d.id);
+            } else {
+              dispatch("handleVoiceUserLeave", {
+                user: data.d.id,
+              });
             }
           }
 
@@ -1079,7 +1126,8 @@ export default new Vuex.Store({
         }
 
         if (data.t === "voiceKick") {
-          dispatch("voiceLeave");
+          await dispatch("voiceReset", {});
+          commit("setVoice", null);
         }
 
         //TODO: voice stream pausing/resuming capabilities.
@@ -1094,21 +1142,21 @@ export default new Vuex.Store({
       };
 
       ws.onclose = async () => {
-        if (getters.voice) {
-          await dispatch("voiceReset", {
-            onlyStopPeers: true,
-          });
-        }
-
         setTimeout(() => {
           dispatch("wsConnect");
-        }, 1000 * 5); //5s
+        }, 1000 * 3); //3s
 
-        setTimeout(() => {
-          if (getters.ws?.readyState !== WebSocket.OPEN) {
+        setTimeout(async () => {
+          if (getters.ready && getters.ws?.readyState !== WebSocket.OPEN) {
             commit("setReady", false);
+
+            if (getters.voice) {
+              await dispatch("voiceReset", {
+                onlyStopPeers: true,
+              });
+            }
           }
-        }, 1000 * 15); //15s
+        }, 1000 * 5); //15s
       };
 
       commit("setWs", ws);
@@ -1437,10 +1485,7 @@ export default new Vuex.Store({
         return;
       }
 
-      await dispatch("voiceReset", {
-        leaving: true,
-      });
-
+      await dispatch("voiceReset", {});
       commit("setVoice", null);
 
       getters.ws.send({
@@ -1456,7 +1501,7 @@ export default new Vuex.Store({
       for (const stream of getters.voice.localStreams) {
         await dispatch("stopLocalStream", {
           type: stream.type,
-          leaving: params.leaving,
+          leaving: true,
           onlyStopPeers: params.onlyStopPeers,
         });
       }
@@ -1674,37 +1719,57 @@ export default new Vuex.Store({
         await peer.addIceCandidate(candidate);
       }
     },
-    async handleVoiceUserJoin({ getters, commit, dispatch }, user) {
+    async handleVoiceUserJoin({ getters, commit, dispatch }, userId) {
+      const channel = getters.channelById(getters.voice.channel);
+      const user = channel.users.find((u) => u.id === userId);
+
+      if (user.voiceConnected) {
+        await dispatch("handleVoiceUserLeave", {
+          user: userId,
+          silent: true,
+        });
+      } else {
+        try {
+          new Audio(sndStateUp).play();
+        } catch {}
+      }
+
       getters.voice.localStreams.map((stream) => {
         dispatch("sendLocalStream", {
           type: stream.type,
-          user,
+          user: userId,
         });
       });
     },
-    async handleVoiceUserLeave({ getters, commit, dispatch }, user) {
-      getters.voice.localStreams.map((stream) => {
-        const peer = stream.peers[user];
+    async handleVoiceUserLeave({ getters, commit, dispatch }, params) {
+      for (const stream of getters.voice.localStreams) {
+        const peer = stream.peers[params.user];
 
         if (peer) {
           peer.close();
         }
 
         commit("setLocalStreamPeer", {
-          user,
+          user: params.user,
           type: stream.type,
           peer: null,
         });
-      });
+      }
 
-      getters.voice.remoteStreams
-        .filter((stream) => stream.user === user)
-        .map((stream) => {
-          dispatch("stopRemoteStream", {
-            user,
-            type: stream.type,
-          });
+      for (const stream of getters.voice.remoteStreams.filter(
+        (stream) => stream.user === params.user
+      )) {
+        dispatch("stopRemoteStream", {
+          user: params.user,
+          type: stream.type,
         });
+      }
+
+      if (!params.silent) {
+        try {
+          new Audio(sndStateDown).play();
+        } catch {}
+      }
     },
     async startLocalStream({ getters, commit, dispatch }, { type, track }) {
       commit("setLocalStream", {
@@ -1901,8 +1966,6 @@ export default new Vuex.Store({
           },
         });
 
-        let procTime;
-
         const procSize = 4096;
         const sampleLength = 480;
 
@@ -1919,29 +1982,30 @@ export default new Vuex.Store({
 
         const inMemp = rnnoise._malloc(sampleLength * 4);
         const outMemp = rnnoise._malloc(sampleLength * 4);
+        const outMem = new Float32Array(
+          rnnoise.HEAPF32.buffer,
+          outMemp,
+          sampleLength
+        );
 
         const noise = rnnoise._rnnoise_create();
 
-        let pending = new Float32Array([]);
+        let pendingIn = new Float32Array([]);
+
+        let closeTimeout;
 
         origProc.addEventListener("audioprocess", (e) => {
-          if (procTime && !delay.delayTime.value) {
-            delay.delayTime.setValueAtTime(
-              (Date.now() - procTime) / 1000,
-              ctx.currentTime
-            );
-          } else {
-            procTime = Date.now();
-          }
-
           let detected;
 
-          const buf = [...pending, ...e.inputBuffer.getChannelData(0)];
+          const bufIn = new Float32Array([
+            ...pendingIn,
+            ...e.inputBuffer.getChannelData(0),
+          ]);
 
           let i = 0;
 
-          for (; i + sampleLength < buf.length; i += sampleLength) {
-            const sample = buf.slice(i, i + sampleLength);
+          for (; i + sampleLength < bufIn.length; i += sampleLength) {
+            const sample = bufIn.slice(i, i + sampleLength);
 
             for (const [i, val] of sample.entries()) {
               sample[i] = val * 0x7fff;
@@ -1956,23 +2020,29 @@ export default new Vuex.Store({
             }
           }
 
-          pending = buf.slice(i);
+          pendingIn = bufIn.slice(i);
 
           if (detected) {
+            if (closeTimeout) {
+              clearTimeout(closeTimeout);
+            }
+
             gain.gain.setValueAtTime(1, ctx.currentTime);
-          } else {
-            gain.gain.setValueAtTime(0, ctx.currentTime);
+
+            closeTimeout = setTimeout(() => {
+              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+            }, 100);
           }
         });
 
-        origSource.connect(origGain);
-        origGain.connect(origProc);
         origGain.gain.setValueAtTime(2, ctx.currentTime);
-        origProc.connect(origCtx.destination);
-        source.connect(delay);
-        delay.connect(gain);
+        delay.delayTime.setValueAtTime(0.2, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.connect(dest);
+
+        [
+          [origSource, origGain, origProc, origCtx.destination],
+          [source, delay, gain, dest],
+        ].map((c) => c.reduce((a, b) => a.connect(b)));
 
         stream = dest.stream;
       }

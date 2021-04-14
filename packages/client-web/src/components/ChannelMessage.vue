@@ -1,41 +1,64 @@
 <template>
   <div
-    class="max-w-lg mx-auto text-sm text-gray-200"
-    v-if="message.event"
+    class="w-full flex flex-col"
     :class="{
-      'pb-4': precedingMessage && precedingMessage.event,
-      'py-4': !precedingMessage || !precedingMessage.event,
+      'pt-2': firstFromSender,
     }"
   >
-    {{ message.event }}
-  </div>
-  <div class="flex items-end space-x-2" v-else>
-    <div class="w-8 h-8 relative" v-if="lastFromSender">
-      <UserAvatar
-        class="rounded-full"
-        :id="sender.avatar"
-        @mouseover.native="showSenderCard = true"
-        @mouseleave.native="showSenderCard = false"
-      />
-      <div
-        class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
-        v-if="showSenderCard"
-      >
-        <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
-        <div>
-          <p class="font-bold truncate">{{ sender.name }}</p>
-          <p class="text-xs text-gray-400">@{{ sender.username }}</p>
+    <div class="text-center text-sm text-gray-400 py-6" v-if="section">
+      {{ date }}
+    </div>
+    <div
+      class="text-center text-sm text-gray-400"
+      v-if="message.event"
+      :class="{
+        'pb-4': precedingMessage && precedingMessage.event,
+        'py-4': !precedingMessage || !precedingMessage.event,
+      }"
+    >
+      {{ message.event }}
+    </div>
+    <div
+      class="flex group items-center space-x-2"
+      :class="{
+        'ml-auto flex-row-reverse space-x-reverse': sentByMe && messageSides,
+      }"
+      v-else
+    >
+      <div class="w-8 h-8 self-end relative">
+        <UserAvatar
+          class="rounded-full"
+          :id="sender.avatar"
+          @mouseover.native="senderCard = true"
+          @mouseleave.native="senderCard = false"
+          v-if="lastFromSender"
+        />
+        <div
+          class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
+          :class="{
+            'right-0 flex-row-reverse space-x-reverse':
+              sentByMe && messageSides,
+          }"
+          v-if="senderCard"
+        >
+          <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
+          <div
+            :class="{
+              'flex items-end flex-col': sentByMe && messageSides,
+            }"
+          >
+            <p class="font-bold truncate">{{ sender.name }}</p>
+            <p class="text-xs text-gray-400">@{{ sender.username }}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="p-4" v-else />
-    <div class="flex items-center space-x-4 group">
       <div
-        class="max-w-xs lg:max-w-sm xl:max-w-lg rounded-md text-sm overflow-hidden"
+        class="max-w-xs lg:max-w-md xl:max-w-2xl rounded-md text-sm overflow-hidden"
         :class="{
           'bg-gradient-to-br from-primary-500 to-primary-600':
             sentByMe && !message.fileMediaType,
           'bg-gray-800': !sentByMe && !message.fileMediaType,
+          'border border-primary-800': entirelyCode && sentByMe,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
@@ -89,7 +112,18 @@
           <LoadingIcon class="w-10 h-10 p-2" />
         </div>
       </div>
-      <div class="flex items-center space-x-3">
+      <div
+        class="flex items-center space-x-3"
+        :class="{
+          'pl-2': !sentByMe || !messageSides,
+          'pr-2 space-x-reverse flex-row-reverse': sentByMe && messageSides,
+        }"
+      >
+        <p
+          class="opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition"
+        >
+          {{ date }} &bull; {{ time }}
+        </p>
         <div
           class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
           v-if="sentByMe"
@@ -104,18 +138,13 @@
         >
           <DownloadIcon class="w-5 h-5" />
         </div>
-        <p
-          class="opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition"
-        >
-          {{ time }}
-        </p>
       </div>
+      <ImageView
+        :image="message.blob"
+        v-if="showImageView"
+        @close="showImageView = false"
+      />
     </div>
-    <ImageView
-      :image="message.blob"
-      v-if="showImageView"
-      @close="showImageView = false"
-    />
   </div>
 </template>
 
@@ -126,9 +155,9 @@ export default {
   props: ["message"],
   data() {
     return {
-      time: "",
+      ago: "",
       timeUpdateInterval: null,
-      showSenderCard: false,
+      senderCard: false,
       showImageView: false,
     };
   },
@@ -158,6 +187,13 @@ export default {
     supersedingMessage() {
       return this.channel.messages.find((m) => m.id > this.message.id);
     },
+    firstFromSender() {
+      return (
+        !this.precedingMessage ||
+        this.precedingMessage.event ||
+        this.precedingMessage.sender !== this.message.sender
+      );
+    },
     lastFromSender() {
       return (
         !this.supersedingMessage ||
@@ -181,6 +217,7 @@ export default {
     },
     fileLength() {
       let len = this.message.fileLength;
+
       let unit = "bytes";
 
       ["KB", "MB", "GB", "TB"].map((u) => {
@@ -192,11 +229,43 @@ export default {
 
       return `${Math.round(len * 10) / 10} ${unit}`;
     },
+    section() {
+      return (
+        !this.precedingMessage ||
+        moment(this.precedingMessage.time).day() !==
+          moment(this.message.time).day()
+      );
+    },
+    date() {
+      return moment(this.message.time).format("M/D/Y");
+    },
+    time() {
+      return moment(this.message.time).format("h:mm A");
+    },
+    messageSides() {
+      return this.$store.getters.messageSides;
+    },
+    startsWithCode() {
+      return (
+        this.message.formatted && this.message.formatted.startsWith("<pre")
+      );
+    },
+    endsWithCode() {
+      return (
+        this.message.formatted && this.message.formatted.endsWith("</pre>")
+      );
+    },
+    entirelyCode() {
+      //means that this message consists of one <pre> wrapped codeblock.
+      return (
+        this.message.formatted &&
+        this.startsWithCode &&
+        this.endsWithCode &&
+        this.message.formatted.split("<pre").length === 2
+      );
+    },
   },
   methods: {
-    updateTime() {
-      this.time = moment(this.message.time).calendar();
-    },
     async remove() {
       await this.$store.dispatch("deleteMessage", this.message);
     },
@@ -217,15 +286,9 @@ export default {
     },
   },
   beforeMount() {
-    this.updateTime();
-    this.timeUpdateInterval = setInterval(this.updateTime, 1000 * 60); //1m
-
     if (this.message.fileMediaType && !this.message.blob) {
       this.fetchFile();
     }
-  },
-  beforeDestroy() {
-    clearInterval(this.timeUpdateInterval);
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
