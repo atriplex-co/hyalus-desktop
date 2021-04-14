@@ -985,7 +985,7 @@ export default new Vuex.Store({
         });
       };
 
-      ws.onmessage = ({ data }) => {
+      ws.onmessage = async ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
         if (Vue.config.devtools && data.t !== "ping") {
@@ -1086,18 +1086,8 @@ export default new Vuex.Store({
         if (data.t === "channelUser") {
           if (getters.voice && data.d.channel === getters.voice.channel) {
             if (data.d.voiceConnected) {
-              try {
-                new Audio(sndStateUp).play();
-              } catch {}
-
               dispatch("handleVoiceUserJoin", data.d.id);
-            }
-
-            if (data.d.voiceConnected === false) {
-              try {
-                new Audio(sndStateDown).play();
-              } catch {}
-
+            } else {
               dispatch("handleVoiceUserLeave", data.d.id);
             }
           }
@@ -1126,7 +1116,8 @@ export default new Vuex.Store({
         }
 
         if (data.t === "voiceKick") {
-          dispatch("voiceLeave");
+          await dispatch("voiceReset");
+          commit("setVoice", null);
         }
 
         //TODO: voice stream pausing/resuming capabilities.
@@ -1145,14 +1136,12 @@ export default new Vuex.Store({
           dispatch("wsConnect");
         }, 1000 * 3); //3s
 
-        setTimeout(() => {
-          if (getters.ws?.readyState !== WebSocket.OPEN) {
+        setTimeout(async () => {
+          if (getters.ready && getters.ws?.readyState !== WebSocket.OPEN) {
             commit("setReady", false);
 
             if (getters.voice) {
-              await dispatch("voiceReset", {
-                onlyStopPeers: true,
-              });
+              await dispatch("voiceReset");
             }
           }
         }, 1000 * 15); //15s
@@ -1484,10 +1473,7 @@ export default new Vuex.Store({
         return;
       }
 
-      await dispatch("voiceReset", {
-        leaving: true,
-      });
-
+      await dispatch("voiceReset");
       commit("setVoice", null);
 
       getters.ws.send({
@@ -1503,8 +1489,7 @@ export default new Vuex.Store({
       for (const stream of getters.voice.localStreams) {
         await dispatch("stopLocalStream", {
           type: stream.type,
-          leaving: params.leaving,
-          onlyStopPeers: params.onlyStopPeers,
+          leaving: true,
         });
       }
 
@@ -1721,16 +1706,25 @@ export default new Vuex.Store({
         await peer.addIceCandidate(candidate);
       }
     },
-    async handleVoiceUserJoin({ getters, commit, dispatch }, user) {
+    async handleVoiceUserJoin({ getters, commit, dispatch }, userId) {
       getters.voice.localStreams.map((stream) => {
         dispatch("sendLocalStream", {
           type: stream.type,
-          user,
+          user: userId,
         });
       });
+
+      const channel = getters.channelById(getters.voice.channel);
+      const user = channel.users.find((u) => u.id === userId);
+
+      if (!user.voiceConnected) {
+        try {
+          new Audio(sndStateUp).play();
+        } catch {}
+      }
     },
     async handleVoiceUserLeave({ getters, commit, dispatch }, user) {
-      getters.voice.localStreams.map((stream) => {
+      for (const stream of getters.voice.localStreams) {
         const peer = stream.peers[user];
 
         if (peer) {
@@ -1742,16 +1736,20 @@ export default new Vuex.Store({
           type: stream.type,
           peer: null,
         });
-      });
+      }
 
-      getters.voice.remoteStreams
-        .filter((stream) => stream.user === user)
-        .map((stream) => {
-          dispatch("stopRemoteStream", {
-            user,
-            type: stream.type,
-          });
+      for (const stream of getters.voice.remoteStreams.filter(
+        (stream) => stream.user === user
+      )) {
+        dispatch("stopRemoteStream", {
+          user,
+          type: stream.type,
         });
+      }
+
+      try {
+        new Audio(sndStateDown).play();
+      } catch {}
     },
     async startLocalStream({ getters, commit, dispatch }, { type, track }) {
       commit("setLocalStream", {
