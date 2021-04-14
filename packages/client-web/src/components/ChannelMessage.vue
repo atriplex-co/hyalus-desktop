@@ -1,5 +1,10 @@
 <template>
-  <div class="w-full flex flex-col">
+  <div
+    class="w-full flex flex-col"
+    :class="{
+      'pt-2': firstFromSender,
+    }"
+  >
     <div class="text-center text-sm text-gray-400 py-6" v-if="section">
       {{ date }}
     </div>
@@ -181,6 +186,13 @@ export default {
     },
     supersedingMessage() {
       return this.channel.messages.find((m) => m.id > this.message.id);
+    },
+    firstFromSender() {
+      return (
+        !this.precedingMessage ||
+        this.precedingMessage.event ||
+        this.precedingMessage.sender !== this.message.sender
+      );
     },
     lastFromSender() {
       return (
