@@ -2,11 +2,11 @@
   <div
     class="w-full flex flex-col"
     :class="{
-      'pt-2': firstFromSender || !precedingRecent,
+      'pt-2': precedingMessage && (firstFromSender || !precedingRecent),
     }"
   >
-    <div class="text-center text-sm text-gray-400 py-6" v-if="section">
-      {{ date }}
+    <div class="text-xs text-gray-400 pl-10 pb-1" v-if="showSender">
+      {{ sender.name }}
     </div>
     <div
       class="text-center text-sm text-gray-400"
@@ -232,13 +232,6 @@ export default {
 
       return `${Math.round(len * 10) / 10} ${unit}`;
     },
-    section() {
-      return (
-        !this.precedingMessage ||
-        moment(this.precedingMessage.time).day() !==
-          moment(this.message.time).day()
-      );
-    },
     date() {
       return moment(this.message.time).format("M/D/Y");
     },
@@ -273,6 +266,14 @@ export default {
     supersedingRecent() {
       return (
         this.supersedingMessage?.time - this.message.time < recentThreshold
+      );
+    },
+    showSender() {
+      return (
+        this.channel.type !== "dm" &&
+        !this.message.event &&
+        !this.sentByMe &&
+        (this.firstFromSender || !this.precedingRecent)
       );
     },
   },
