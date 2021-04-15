@@ -172,6 +172,9 @@ export default {
       typingStatus: "",
       typingStatusInterval: null,
       lastChannel: null,
+
+      scrolledToBottom: true,
+      lastScrollAutomatic: true,
     };
   },
   computed: {
@@ -264,10 +267,12 @@ export default {
 
       this.$router.push(`/channels/${this.channel.id}/call`);
     },
-    messagesScroll({ target }) {
-      if (!target.scrollTop && target.scrollHeight !== target.clientHeight) {
-        this.$store.dispatch("getChannelHistory", this.channel.id);
-      }
+    messagesScroll(e) {
+      this.scrolledToBottom =
+        this.lastScrollAutomatic ||
+        e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+
+      this.lastScrollAutomatic = false;
     },
     updateTypingStatus() {
       if (!this.channel) {
@@ -338,14 +343,9 @@ export default {
     const msgBox = this.$refs.msgBox;
 
     if (msgEl) {
-      if (
-        msgEl.scrollTop === this.lastScrollTop ||
-        this.lastChannel !== this.channel
-      ) {
+      if (this.scrolledToBottom) {
         msgEl.scrollTop = msgEl.scrollHeight;
-        this.lastScrollTop = msgEl.scrollTop;
-      } else {
-        this.lastScrollTop = msgEl.scrollHeight - msgEl.clientHeight;
+        this.lastScrollAutomatic = true;
       }
     }
 
