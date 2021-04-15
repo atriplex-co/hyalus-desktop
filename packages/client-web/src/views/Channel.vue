@@ -355,6 +355,10 @@ export default {
 
       if (this.lastScrollAutomatic) {
         target.scrollTop = target.scrollHeight;
+      } else {
+        if (target.scrollTop === 0) {
+          this.$store.dispatch("getChannelHistory", this.channel.id);
+        }
       }
     },
   },
