@@ -950,18 +950,16 @@ export default new Vuex.Store({
       await axios.get("/api/logout");
       dispatch("reset");
     },
-    reset({ commit }) {
-      if (typeof process !== "undefined" && process.env.DEV) {
-        console.log("Ignoring reset (DEV=1)");
-        return;
-      }
+    async reset({ getters, commit, dispatch }) {
+      await dispatch("voiceLeave");
 
       commit("setWs", null);
       commit("setUser", null);
       commit("setToken", null);
       commit("setPublicKey", null);
       commit("setPrivateKey", null);
-      location.reload();
+
+      router.push("/login");
     },
     wsConnect({ commit, dispatch, getters }) {
       const wsBaseUrl = getters.baseUrl.replace("http", "ws");
@@ -974,6 +972,12 @@ export default new Vuex.Store({
         if (ws.readyState === WebSocket.OPEN) {
           ws._send(msgpack.encode(data));
         }
+      };
+
+      ws._close = ws.close
+      ws.close = () => {
+        ws.closedManually = true;
+        ws._close();
       };
 
       ws.onopen = () => {
@@ -1000,7 +1004,7 @@ export default new Vuex.Store({
 
         if (data.t === "close") {
           if (data.d.reset) {
-            dispatch("reset");
+            await dispatch("reset");
           }
         }
 
@@ -1136,6 +1140,10 @@ export default new Vuex.Store({
       };
 
       ws.onclose = async () => {
+        if (ws.closedManually) {
+          return;
+        }
+
         setTimeout(() => {
           dispatch("wsConnect");
         }, 1000 * 3); //3s
@@ -1144,11 +1152,9 @@ export default new Vuex.Store({
           if (getters.ready && getters.ws?.readyState !== WebSocket.OPEN) {
             commit("setReady", false);
 
-            if (getters.voice) {
-              await dispatch("voiceReset", {
-                onlyStopPeers: true,
-              });
-            }
+            await dispatch("voiceReset", {
+              onlyStopPeers: true,
+            });
           }
         }, 1000 * 5); //15s
       };
@@ -1492,6 +1498,10 @@ export default new Vuex.Store({
       } catch {}
     },
     async voiceReset({ getters, commit, dispatch }, params) {
+      if (!getters.voice) {
+        return;
+      }
+
       for (const stream of getters.voice.localStreams) {
         await dispatch("stopLocalStream", {
           type: stream.type,

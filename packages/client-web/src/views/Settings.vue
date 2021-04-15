@@ -514,7 +514,6 @@ export default {
   methods: {
     async logout() {
       await this.$store.dispatch("logout");
-      location.reload();
     },
     setAvatar() {
       this.$store.dispatch("setAvatar");
