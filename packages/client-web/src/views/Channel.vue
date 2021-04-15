@@ -336,10 +336,10 @@ export default {
 
       document.title = `Hyalus \u2022 ${this.channel.name}`;
 
-      const { msgBox } = this.$refs;
+      const { messageInput } = this.$refs;
 
-      if (msgBox && this.lastChannel !== this.channel) {
-        msgBox.focus();
+      if (messageInput && this.lastChannel !== this.channel) {
+        messageInput.focus();
       }
 
       if (!this.channel.updated) {
@@ -376,6 +376,8 @@ export default {
       this.messageListObserver.observe(messageList, {
         childList: true,
       });
+
+      messageList.scrollTop = messageList.scrollHeight;
     }
   },
   beforeDestroy() {
