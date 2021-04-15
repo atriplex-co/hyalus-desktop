@@ -1713,27 +1713,24 @@ export default new Vuex.Store({
         await peer.addIceCandidate(candidate);
       }
     },
-    async handleVoiceUserJoin({ getters, commit, dispatch }, userId) {
+    async handleVoiceUserJoin({ getters, commit, dispatch }, user) {
       const channel = getters.channelById(getters.voice.channel);
-      const user = channel.users.find((u) => u.id === userId);
 
-      if (user.voiceConnected) {
-        await dispatch("handleVoiceUserLeave", {
-          user: userId,
-          silent: true,
+      await dispatch("handleVoiceUserLeave", {
+        user,
+        silent: true,
+      });
+
+      for (const stream of getters.voice.localStreams) {
+        await dispatch("sendLocalStream", {
+          user,
+          type: stream.type,
         });
-      } else {
-        try {
-          new Audio(sndStateUp).play();
-        } catch {}
       }
 
-      getters.voice.localStreams.map((stream) => {
-        dispatch("sendLocalStream", {
-          type: stream.type,
-          user: userId,
-        });
-      });
+      try {
+        new Audio(sndStateUp).play();
+      } catch {}
     },
     async handleVoiceUserLeave({ getters, commit, dispatch }, params) {
       for (const stream of getters.voice.localStreams) {
@@ -1753,7 +1750,7 @@ export default new Vuex.Store({
       for (const stream of getters.voice.remoteStreams.filter(
         (stream) => stream.user === params.user
       )) {
-        dispatch("stopRemoteStream", {
+        await dispatch("stopRemoteStream", {
           user: params.user,
           type: stream.type,
         });
