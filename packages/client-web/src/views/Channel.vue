@@ -71,7 +71,6 @@
             />
           </div>
           <div
-            class="relative"
             v-if="channel.type === 'group'"
             @click="groupMembers = !groupMembers"
           >
@@ -88,12 +87,19 @@
         You can't send messages in this channel.
       </p>
       <div class="flex flex-1 min-h-0 relative">
-        <div
-          class="absolute top-0 m-2 px-4 py-2 text-sm bg-gray-800 w-full rounded-md border-gray-750 border flex items-center space-x-4 shadow-lg z-10"
-          v-if="typingStatus"
-        >
-          <PencilIcon class="w-4 h-4 text-gray-400" />
-          <p>{{ typingStatus }}</p>
+        <div class="absolute p-2 z-10 w-full" v-if="typingStatus">
+          <div
+            :class="{
+              'pr-80': groupMembers,
+            }"
+          >
+            <div
+              class="px-4 py-2 text-sm bg-gray-800 rounded-md border border-gray-750 flex items-center space-x-4 shadow-lg w-full"
+            >
+              <PencilIcon class="w-4 h-4 text-gray-400" />
+              <p>{{ typingStatus }}</p>
+            </div>
+          </div>
         </div>
         <div
           ref="messages"
@@ -106,7 +112,12 @@
             :message="message"
           />
         </div>
-        <GroupSidebar v-if="groupMembers" :channel="channel" />
+        <GroupSidebar
+          class="absolute top-0 right-0"
+          v-if="groupMembers"
+          :channel="channel"
+          @close="groupMembers = false"
+        />
       </div>
       <div
         class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"

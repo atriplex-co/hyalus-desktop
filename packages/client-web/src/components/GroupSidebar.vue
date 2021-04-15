@@ -1,40 +1,38 @@
 <template>
-  <div
-    class="w-full h-full max-w-xs overflow-auto text-sm border-l border-gray-800"
-  >
-    <div class="space-y-4 py-4 px-2">
+  <div class="max-w-xs w-full h-full p-2">
+    <div
+      class="bg-gray-800 py-4 px-2 overflow-auto text-sm rounded-md border border-gray-750 shadow-md space-y-4 h-full"
+    >
       <div
         class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
         @click="groupAddModal = true"
       >
         <UserAddIcon
-          class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+          class="w-8 h-8 p-2 transition bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600"
         />
-        <p>Invite friends</p>
+        <p class="text-gray-200">Invite friends</p>
       </div>
       <div
         class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
         @click="leave"
       >
         <TrashIcon
-          class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
+          class="w-8 h-8 p-2 transition bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600"
         />
-        <p>Leave group</p>
+        <p class="text-gray-200">Leave group</p>
       </div>
-    </div>
-    <div class="px-2 space-y-4">
       <GroupUser
         v-for="user in users"
         v-bind:key="user.id"
         :channel="channel"
         :user="user"
       />
+      <GroupAddModal
+        v-if="channel.type === 'group' && groupAddModal"
+        @close="$emit('close')"
+        :channel="channel"
+      />
     </div>
-    <GroupAddModal
-      v-if="channel.type === 'group' && groupAddModal"
-      @close="groupAddModal = false"
-      :channel="channel"
-    />
   </div>
 </template>
 
