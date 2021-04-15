@@ -89,17 +89,17 @@
       </p>
       <div class="flex flex-1 min-h-0 relative">
         <div
+          class="absolute top-0 m-2 px-4 py-2 text-sm bg-gray-800 w-full rounded-md border-gray-750 border flex items-center space-x-4 shadow-lg z-10"
+          v-if="typingStatus"
+        >
+          <PencilIcon class="w-4 h-4 text-gray-400" />
+          <p>{{ typingStatus }}</p>
+        </div>
+        <div
           ref="messages"
           class="flex flex-col flex-1 p-3 space-y-1 overflow-auto"
           @scroll="messagesScroll"
         >
-          <div
-            class="px-4 py-2 text-sm bg-gray-800 w-full sticky top-0 rounded-md border-gray-750 border flex items-center space-x-4 shadow-lg z-10"
-            v-if="typingStatus"
-          >
-            <PencilIcon class="w-4 h-4 text-gray-400" />
-            <p>{{ typingStatus }}</p>
-          </div>
           <ChannelMessage
             v-for="message in channel.messages"
             v-bind:key="message.id"
