@@ -176,7 +176,7 @@ export default new Vuex.Store({
     setUser(state, user) {
       state.user = { ...state.user, ...user };
 
-      if (user.accentColor) {
+      if (user?.accentColor) {
         localStorage.setItem("accentColor", user.accentColor);
       }
     },
