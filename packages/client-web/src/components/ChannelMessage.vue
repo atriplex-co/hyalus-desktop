@@ -158,8 +158,6 @@ export default {
   props: ["message"],
   data() {
     return {
-      ago: "",
-      timeUpdateInterval: null,
       senderCard: false,
       showImageView: false,
     };
@@ -297,7 +295,7 @@ export default {
       el.click();
     },
   },
-  beforeMount() {
+  created() {
     if (this.message.fileMediaType && !this.message.blob) {
       this.fetchFile();
     }

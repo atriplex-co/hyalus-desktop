@@ -102,9 +102,10 @@
           </div>
         </div>
         <div
-          ref="messages"
           class="flex flex-col flex-1 p-3 space-y-1 overflow-auto"
+          @mousewheel="messagesWheel"
           @scroll="messagesScroll"
+          ref="messageList"
         >
           <ChannelMessage
             v-for="message in channel.messages"
@@ -130,7 +131,7 @@
           v-model="message"
           @input="messageInput"
           @keydown="messageKeydown"
-          ref="msgBox"
+          ref="messageInput"
         />
         <div class="flex space-x-2 text-gray-400">
           <div @click="attachFile">
@@ -173,8 +174,9 @@ export default {
       typingStatusInterval: null,
       lastChannel: null,
 
-      scrolledToBottom: true,
-      lastScrollAutomatic: true,
+      //
+      messageListObserver: null,
+      bottomScrolled: true,
     };
   },
   computed: {
@@ -205,8 +207,10 @@ export default {
   },
   methods: {
     messageInput() {
-      this.$refs.msgBox.style.height = "auto";
-      this.$refs.msgBox.style.height = `${this.$refs.msgBox.scrollHeight}px`;
+      const { messageInput } = this.$refs;
+
+      messageInput.style.height = "auto";
+      messageInput.style.height = `${messageInput.scrollHeight}px`;
 
       //send messageTyping every 1s
       if (
@@ -267,13 +271,6 @@ export default {
 
       this.$router.push(`/channels/${this.channel.id}/call`);
     },
-    messagesScroll(e) {
-      this.scrolledToBottom =
-        this.lastScrollAutomatic ||
-        e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
-
-      this.lastScrollAutomatic = false;
-    },
     updateTypingStatus() {
       if (!this.channel) {
         return;
@@ -301,11 +298,6 @@ export default {
 
       if (users.length > 3) {
         this.typingStatus = "Many users are typing...";
-      }
-    },
-    updateMessages() {
-      if (this.channel && !this.channel.updated) {
-        this.$store.dispatch("updateChannel", this.channel.id);
       }
     },
     async uploadFile(file) {
@@ -337,43 +329,66 @@ export default {
       el.type = "file";
       el.click();
     },
-  },
-  updated() {
-    const msgEl = this.$refs.messages;
-    const msgBox = this.$refs.msgBox;
-
-    if (msgEl) {
-      if (this.scrolledToBottom) {
-        msgEl.scrollTop = msgEl.scrollHeight;
-        this.lastScrollAutomatic = true;
+    update() {
+      if (!this.channel) {
+        return this.$router.push("/app");
       }
-    }
 
-    if (this.channel) {
       document.title = `Hyalus \u2022 ${this.channel.name}`;
-    } else {
-      this.$router.push("/app");
-    }
 
-    if (msgBox && this.lastChannel !== this.channel) {
-      msgBox.focus();
-    }
+      const { msgBox } = this.$refs;
 
-    this.lastChannel = this.channel;
+      if (msgBox && this.lastChannel !== this.channel) {
+        msgBox.focus();
+      }
+
+      if (!this.channel.updated) {
+        this.$store.dispatch("updateChannel", this.channel.id);
+      }
+    },
+    messagesWheel() {
+      this.lastScrollAutomatic = false;
+    },
+    messagesScroll({ target }) {
+      this.bottomScrolled =
+        target.scrollTop === target.scrollHeight - target.clientHeight;
+
+      if (this.lastScrollAutomatic) {
+        target.scrollTop = target.scrollHeight;
+      }
+    },
   },
-  beforeMount() {
-    this.updateMessages();
-    this.updateTypingStatus();
+  mounted() {
+    this.update();
     this.typingStatusInterval = setInterval(this.updateTypingStatus, 100);
+
+    const { messageList } = this.$refs;
+
+    if (messageList) {
+      this.messageListObserver = new MutationObserver((muts) => {
+        if (this.bottomScrolled) {
+          messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        this.lastScrollAutomatic = true;
+      });
+
+      this.messageListObserver.observe(messageList, {
+        childList: true,
+      });
+    }
   },
   beforeDestroy() {
     document.title = "Hyalus";
     clearInterval(this.typingStatusInterval);
+
+    if (this.messageListObserver) {
+      this.messageListObserver.disconnect();
+    }
   },
   watch: {
     $route() {
-      this.updateMessages();
-      this.updateTypingStatus();
+      this.update();
     },
   },
   components: {
