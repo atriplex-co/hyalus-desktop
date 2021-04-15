@@ -1087,7 +1087,9 @@ export default new Vuex.Store({
           if (getters.voice && data.d.channel === getters.voice.channel) {
             if (data.d.voiceConnected) {
               dispatch("handleVoiceUserJoin", data.d.id);
-            } else {
+            }
+
+            if (data.d.voiceConnected === false) {
               dispatch("handleVoiceUserLeave", {
                 user: data.d.id,
               });
