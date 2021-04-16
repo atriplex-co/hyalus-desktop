@@ -1046,7 +1046,7 @@ export default new Vuex.Store({
               d: getters.voice?.channel,
             });
 
-            for (const stream of getters.localStream) {
+            for (const stream of getters.voice.localStreams) {
               await dispatch("restartLocalStream", stream.type);
             }
           } else {
