@@ -109,11 +109,19 @@ export default {
 
       this.isFullscreen = !this.isFullscreen;
     },
+    updateTrack() {
+      if (this.tile.stream?.track.kind === "video") {
+        this.srcObject = new MediaStream([this.tile.stream.track]);
+      }
+    },
   },
   mounted() {
-    if (this.tile.stream?.track.kind === "video") {
-      this.srcObject = new MediaStream([this.tile.stream.track]);
-    }
+    this.updateTrack();
+  },
+  watch: {
+    "tile.stream.track"() {
+      this.updateTrack();
+    },
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
