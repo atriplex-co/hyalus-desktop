@@ -1877,13 +1877,17 @@ export default new Vuex.Store({
         }
       };
 
-      peer.onconnectionstatechange = () => {
+      peer.onconnectionstatechange = async () => {
         if (Vue.config.devtools) {
           console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
         }
 
         if (peer.connectionState === "disconnected") {
           peer.restartIce();
+        }
+
+        if (peer.connectionState === "failed") {
+          await dispatch("sendLocalStream", data);
         }
       };
 
