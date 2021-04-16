@@ -94,6 +94,7 @@ export default {
   },
   components: {
     AppIcon: () => import("../icons/App"),
+    ErrorIcon: () => import("../icons/Error"),
   },
 };
 </script>
