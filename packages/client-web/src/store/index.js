@@ -1045,8 +1045,12 @@ export default new Vuex.Store({
               t: "voiceJoin",
               d: getters.voice?.channel,
             });
+
+            for (const stream of getters.localStream) {
+              await dispatch("restartLocalStream", stream.type);
+            }
           } else {
-            dispatch("voiceLeave", {
+            await dispatch("voiceLeave", {
               silent: true,
             });
           }
@@ -1518,6 +1522,12 @@ export default new Vuex.Store({
       }
     },
     async handleVoiceStreamOffer({ getters, commit, dispatch }, data) {
+      const stream = getters.remoteStream(data.user, data.type);
+
+      if (stream) {
+        stream.peer.close();
+      }
+
       const channel = getters.channelById(getters.voice.channel);
       const user = channel.users.find((user) => user.id === data.user);
 
