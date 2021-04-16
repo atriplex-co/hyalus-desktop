@@ -1525,7 +1525,9 @@ export default new Vuex.Store({
       const stream = getters.remoteStream(data.user, data.type);
 
       if (stream) {
-        stream.peer.close();
+        try {
+          stream.peer.close();
+        } catch {}
       }
 
       const channel = getters.channelById(getters.voice.channel);
