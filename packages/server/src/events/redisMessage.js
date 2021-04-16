@@ -8,6 +8,10 @@ module.exports = (deps) => (chan, msg) => {
     [...deps.wss.clients]
       .filter((w) => w.id === chan[1])
       .map((w) => {
+        if (msg.t === "voiceKick") {
+          w.voiceChannel = null;
+        }
+
         w.send(msg);
       });
   }
