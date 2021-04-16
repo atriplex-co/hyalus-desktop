@@ -974,7 +974,7 @@ export default new Vuex.Store({
         }
       };
 
-      ws._close = ws.close
+      ws._close = ws.close;
       ws.close = () => {
         ws.closedManually = true;
         ws._close();
@@ -1599,6 +1599,10 @@ export default new Vuex.Store({
             delete: true,
           });
         }
+
+        if (peer.connectionState === "disconnected") {
+          peer.restartIce();
+        }
       };
 
       await peer.setRemoteDescription(
@@ -1866,6 +1870,10 @@ export default new Vuex.Store({
       peer.onconnectionstatechange = () => {
         if (Vue.config.devtools) {
           console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        }
+
+        if (peer.connectionState === "disconnected") {
+          peer.restartIce();
         }
       };
 
