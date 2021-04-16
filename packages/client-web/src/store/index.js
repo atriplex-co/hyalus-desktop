@@ -1524,10 +1524,8 @@ export default new Vuex.Store({
     async handleVoiceStreamOffer({ getters, commit, dispatch }, data) {
       const stream = getters.remoteStream(data.user, data.type);
 
-      if (stream) {
-        try {
-          stream.peer.close();
-        } catch {}
+      if (stream && stream.peer.connectionState !== "closed") {
+        stream.peer.close();
       }
 
       const channel = getters.channelById(getters.voice.channel);
@@ -1706,7 +1704,7 @@ export default new Vuex.Store({
       if (data.initiator) {
         const stream = getters.remoteStream(data.user, data.type);
 
-        if (!stream) {
+        if (!stream || stream.peer.connectionState === "closed") {
           const queuedIce = {
             user: data.user,
             type: data.type,
