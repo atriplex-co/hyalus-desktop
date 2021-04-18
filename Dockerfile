@@ -1,8 +1,9 @@
 FROM --platform=amd64 node:lts AS build
 WORKDIR /app
-COPY . ./
+COPY package.json yarn.lock ./
+COPY packages/client-web ./
 RUN yarn
-RUN yarn build
+RUN yarn build:web
 
 FROM --platform=amd64 node:lts
 WORKDIR /app
