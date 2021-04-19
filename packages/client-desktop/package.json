@@ -55,7 +55,7 @@
     "postcss-loader": "^5.2.0"
   },
   "dependencies": {
-    "@hyalusapp/rnnoise": "^1.0.0",
+    "@hyalusapp/wasm-rnnoise": "^1.0.0",
     "electron-updater": "^4.3.8"
   }
 }
