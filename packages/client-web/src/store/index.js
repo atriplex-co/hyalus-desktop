@@ -1965,16 +1965,16 @@ export default new Vuex.Store({
           //why not put the pkg name into a variable?
           //webpack! :)
           if (typeof process === "undefined") {
-            const { default: Rnnoise } = await import("@hyalusapp/rnnoise");
+            const { default: Rnnoise } = await import("@hyalusapp/wasm-rnnoise");
             const { default: RnnoiseWasm } = await import(
-              `@hyalusapp/rnnoise/dist/rnnoise.wasm`
+              `@hyalusapp/wasm-rnnoise/dist/rnnoise.wasm`
             );
 
             rnnoise = await Rnnoise({
               locateFile: () => RnnoiseWasm,
             });
           } else {
-            rnnoise = await eval("require('@hyalusapp/rnnoise')")();
+            rnnoise = await eval("require('@hyalusapp/wasm-rnnoise')")();
           }
 
           await rnnoise.ready;

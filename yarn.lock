@@ -909,10 +909,10 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@hyalusapp/rnnoise@^1.0.0":
+"@hyalusapp/wasm-rnnoise@^1.0.0":
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@hyalusapp/rnnoise/-/rnnoise-1.0.0.tgz#b010b9a17835bd33823f38c7a4840ddcd607ad3a"
-  integrity sha512-Bayla56JV0FHYFDSbMu/yE2lamb9ATrA6Cy8ZdzsWyMWdGNLtHSToPCRIt9cssYTrEdUITwgjkX+RrvY6JXxaQ==
+  resolved "https://registry.yarnpkg.com/@hyalusapp/wasm-rnnoise/-/wasm-rnnoise-1.0.0.tgz#a0c538e1cf826c3e77d1d6263753709315d63ca9"
+  integrity sha512-4aiEI+j0BxbUA6DqwJL4u4hJXVZDVpFLA0Kf+mO9bGN4KKiY+iTGoCo2pV31whhcEo/EA5CxssiLoojmmin4HA==
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
