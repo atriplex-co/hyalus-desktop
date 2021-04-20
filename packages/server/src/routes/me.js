@@ -66,7 +66,7 @@ app.post(
       }))
     ) {
       return res.status(400).json({
-        error: "Username already in use.",
+        error: "Username already in use",
       });
     }
 
@@ -96,9 +96,28 @@ app.post(
 
       //fields that should not be saved in the db under the user.
       delete req.body.oldAuthKey;
+
+      //log out all other sessions.
+      const sessions = await (await req.deps.db.collection("sessions").find({
+        _id: {
+          $ne: req.session._id,
+        },
+        user: req.session.user,
+      })).toArray();
+
+      for (const session of sessions) {
+        await req.deps.db.collection("sessions").deleteOne(session);
+
+        await req.deps.redis.publish(`session:${session._id}`, {
+          t: "close",
+          d: {
+            reset: true,
+          },
+        });
+      }
     } else if (passwordChangeKeywords) {
       res.status(400).json({
-        error: "Invalid data for setting password.",
+        error: "Invalid data for setting password",
       });
 
       return;

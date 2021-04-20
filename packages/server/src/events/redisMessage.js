@@ -1,7 +1,6 @@
 const msgpack = require("msgpack-lite");
 
 module.exports = (deps) => (chan, msg) => {
-  console.log({ chan, msg });
   chan = chan.toString().split(":");
   msg = msgpack.decode(msg);
 
@@ -36,10 +35,14 @@ module.exports = (deps) => (chan, msg) => {
   }
 
   for (const w of targets) {
+    w.send(msg);
+
+    if (msg.t === "close") {
+      w.close();
+    }
+
     if (msg.t === "voiceKick") {
       w.voiceChannel = null;
     }
-
-    w.send(msg);
   }
 };
