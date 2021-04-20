@@ -223,4 +223,5 @@ module.exports = async (ws, msg) => {
 
   ws.deps.redisSub.subscribe(`ws:${ws.id}`);
   ws.deps.redisSub.subscribe(`user:${ws.session.user}`);
+  ws.deps.redisSub.subscribe(`session:${ws.session._id}`);
 };

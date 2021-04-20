@@ -89,6 +89,14 @@ const setup = () => {
         ) {
           ws.deps.redisSub.unsubscribe(`user:${ws.session.user}`);
         }
+
+        if (
+          ![...ws.deps.wss.clients].find(
+            (w) => w.session && w.session._id.equals(ws.session._id)
+          )
+        ) {
+          ws.deps.redisSub.unsubscribe(`session:${ws.session._id}`);
+        }
       }
     });
   });

@@ -14,17 +14,13 @@ app.get(
   }),
   async (req, res) => {
     await req.deps.db.collection("sessions").deleteOne(req.session);
-
-    [...req.deps.wss.clients]
-      .filter((w) => w.session._id.equals(req.session._id))
-      .map((w) => {
-        w.send({
-          t: "close",
-          d: "invalid-auth",
-        });
-
-        w.close();
-      });
+    
+    await req.deps.redis.publish(`session:${req.session._id}`, {
+      t: "close",
+      d: {
+        reset: true,
+      },
+    });
 
     res.end();
   }
