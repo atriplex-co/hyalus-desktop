@@ -299,13 +299,13 @@ app.post(
 
 app.delete(
   "/:id",
+  session,
   ratelimit({
     scope: "user",
     tag: "addFriend",
     max: 100,
     time: 60 * 5,
   }),
-  session,
   async (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({

@@ -124,7 +124,7 @@ const wss = require("./routes/ws")(server, deps);
 
   app.enable("trust proxy");
   app.disable("x-powered-by");
-  
+
   app.use(
     morgan("tiny", {
       stream: {
@@ -148,6 +148,7 @@ const wss = require("./routes/ws")(server, deps);
   app.use("/api/friends", require("./routes/friends"));
   app.use("/api/channels", require("./routes/channels"));
   app.use("/api/totp", require("./routes/totp"));
+  app.use("/api/users", require("./routes/users"));
   app.use(
     history({
       rewrites: [

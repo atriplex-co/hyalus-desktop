@@ -255,9 +255,9 @@ app.get(
   session,
   ratelimit({
     scope: "user",
-    tag: "editChannel",
-    max: 600,
-    time: 60 * 60, //1h
+    tag: "getMessages",
+    max: 1000,
+    time: 60 * 15, //1h
     params: true,
   }),
   async (req, res) => {
