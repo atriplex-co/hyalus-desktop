@@ -482,7 +482,7 @@ export default new Vuex.Store({
           merged.event = `${sender.name} left the group`;
         }
 
-        channel.messages.push(merged);
+        channel.messages.push(Object.freeze(merged));
         channel.messages = channel.messages.sort((a, b) => {
           return a.id > b.id ? 1 : -1;
         });

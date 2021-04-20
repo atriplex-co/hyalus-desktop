@@ -360,6 +360,10 @@ export default {
       this.lastScrollBottom =
         this.lastScrollAutomatic ||
         target.scrollTop === target.scrollHeight - target.clientHeight;
+
+      if (!this.lastScrollAutomatic && target.scrollTop === 0) {
+        this.$store.dispatch("getChannelHistory", this.channel.id);
+      }
     },
     updateScroll() {
       const { messageList } = this.$refs;
