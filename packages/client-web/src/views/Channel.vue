@@ -168,15 +168,12 @@ export default {
       groupCreateModal: false,
       groupNameModal: false,
       groupMembers: false,
-      lastScrollTop: 0,
       lastTyping: 0,
       typingStatus: "",
       typingStatusInterval: null,
-      lastChannel: null,
-
-      //
-      messageListObserver: null,
-      bottomScrolled: true,
+      scrollInterval: null,
+      lastScrollAutomatic: true,
+      lastScrollBottom: true,
     };
   },
   computed: {
@@ -336,61 +333,51 @@ export default {
 
       document.title = `Hyalus \u2022 ${this.channel.name}`;
 
-      const { messageInput } = this.$refs;
+      const { messageInput, messageList } = this.$refs;
 
       if (messageInput && this.lastChannel !== this.channel) {
         messageInput.focus();
       }
 
+      if (messageList && !this.messageListObserver) {
+        this.messageListObserver = new MutationObserver(this.updateScroll);
+        this.messageListObserver.observe(messageList, {
+          childList: true,
+        });
+      }
+
       if (!this.channel.updated) {
         this.$store.dispatch("updateChannel", this.channel.id);
       }
+
+      this.updateScroll();
     },
-    messagesWheel() {
+    messagesWheel(e) {
       this.lastScrollAutomatic = false;
     },
     messagesScroll({ target }) {
-      this.bottomScrolled =
+      this.lastScrollBottom =
+        this.lastScrollAutomatic ||
         target.scrollTop === target.scrollHeight - target.clientHeight;
+    },
+    updateScroll() {
+      const { messageList } = this.$refs;
 
-      if (this.lastScrollAutomatic) {
-        target.scrollTop = target.scrollHeight;
-      } else {
-        if (target.scrollTop === 0) {
-          this.$store.dispatch("getChannelHistory", this.channel.id);
-        }
+      if (messageList && this.lastScrollBottom) {
+        this.lastScrollAutomatic = true;
+        messageList.scrollTop = messageList.scrollHeight;
       }
     },
   },
   mounted() {
     this.update();
+    this.scrollInterval = setInterval(this.updateScroll, 100);
     this.typingStatusInterval = setInterval(this.updateTypingStatus, 100);
-
-    const { messageList } = this.$refs;
-
-    if (messageList) {
-      this.messageListObserver = new MutationObserver((muts) => {
-        if (this.bottomScrolled) {
-          messageList.scrollTop = messageList.scrollHeight;
-        }
-
-        this.lastScrollAutomatic = true;
-      });
-
-      this.messageListObserver.observe(messageList, {
-        childList: true,
-      });
-
-      messageList.scrollTop = messageList.scrollHeight;
-    }
   },
   beforeDestroy() {
     document.title = "Hyalus";
+    clearInterval(this.scrollInterval);
     clearInterval(this.typingStatusInterval);
-
-    if (this.messageListObserver) {
-      this.messageListObserver.disconnect();
-    }
   },
   watch: {
     $route() {
