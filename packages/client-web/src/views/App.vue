@@ -13,5 +13,10 @@ export default {
     Sidebar: () => import("../components/Sidebar"),
     AppIcon: () => import("../icons/App"),
   },
+  created() {
+    if (this.$store.getters.invite) {
+      this.$store.dispatch("processInvite");
+    }
+  },
 };
 </script>

@@ -92,5 +92,10 @@ export default new VueRouter({
         }
       },
     },
+    {
+      name: "invite",
+      path: "/invite/:username",
+      component: () => import("../views/Invite"),
+    },
   ],
 });
