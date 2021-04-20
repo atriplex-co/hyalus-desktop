@@ -350,6 +350,7 @@ export default {
         this.$store.dispatch("updateChannel", this.channel.id);
       }
 
+      this.lastScrollBottom = true;
       this.updateScroll();
     },
     messagesWheel(e) {
