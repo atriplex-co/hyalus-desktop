@@ -12,6 +12,8 @@ app.get(
     time: 60,
   }),
   async (req, res) => {
+    req.params.username = req.params.username.toLowerCase();
+
     if (
       Joi.string()
         .required()
