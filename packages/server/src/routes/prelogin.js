@@ -20,6 +20,8 @@ app.post(
     })
   ),
   async (req, res) => {
+    req.body.username = req.body.username.toLowerCase();
+
     const user = await req.deps.db.collection("users").findOne({
       username: req.body.username,
     });
