@@ -958,6 +958,7 @@ export default new Vuex.Store({
       commit("setToken", null);
       commit("setPublicKey", null);
       commit("setPrivateKey", null);
+      commit("setSalt", null);
 
       router.push("/login");
     },
@@ -1965,7 +1966,9 @@ export default new Vuex.Store({
           //why not put the pkg name into a variable?
           //webpack! :)
           if (typeof process === "undefined") {
-            const { default: Rnnoise } = await import("@hyalusapp/wasm-rnnoise");
+            const { default: Rnnoise } = await import(
+              "@hyalusapp/wasm-rnnoise"
+            );
             const { default: RnnoiseWasm } = await import(
               `@hyalusapp/wasm-rnnoise/dist/rnnoise.wasm`
             );
