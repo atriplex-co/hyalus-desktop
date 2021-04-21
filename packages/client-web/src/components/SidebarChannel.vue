@@ -84,11 +84,11 @@ export default {
         .replace("in ", "");
     },
     async goto() {
-      this.$store.commit("setSidebarHidden", true);
-
       try {
         await this.$router.push(`/channels/${this.channel.id}`);
       } catch {}
+
+      this.$store.commit("setSidebarHidden", true);
     },
   },
   beforeMount() {
