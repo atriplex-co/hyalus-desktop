@@ -90,7 +90,6 @@
         </div>
         <div
           class="flex flex-col flex-1 p-3 space-y-1 overflow-auto"
-          @mousewheel="messagesWheel"
           @scroll="messagesScroll"
           ref="messageList"
         >
@@ -155,6 +154,7 @@ export default {
       scrollInterval: null,
       lastScrollAutomatic: true,
       lastScrollBottom: true,
+      lastScrollTop: 0,
     };
   },
   computed: {
@@ -328,15 +328,14 @@ export default {
       this.lastScrollBottom = true;
       this.updateScroll();
     },
-    messagesWheel(e) {
-      this.lastScrollAutomatic = false;
-    },
     messagesScroll({ target }) {
+      const lastScrollAutomatic = this.lastScrollTop === target.scrollTop;
+
       this.lastScrollBottom =
-        this.lastScrollAutomatic ||
+        lastScrollAutomatic ||
         target.scrollTop === target.scrollHeight - target.clientHeight;
 
-      if (!this.lastScrollAutomatic && target.scrollTop === 0) {
+      if (!lastScrollAutomatic && target.scrollTop === 0) {
         this.$store.dispatch("getChannelHistory", this.channel.id);
       }
     },
@@ -344,8 +343,8 @@ export default {
       const { messageList } = this.$refs;
 
       if (messageList && this.lastScrollBottom) {
-        this.lastScrollAutomatic = true;
         messageList.scrollTop = messageList.scrollHeight;
+        this.lastScrollTop = messageList.scrollTop;
       }
     },
   },
