@@ -27,10 +27,15 @@
         :channel="channel"
         :user="user"
       />
+      <GroupCreateModal
+        v-if="channel.type === 'dm' && groupAddModal"
+        :selected="channel.users[0].id"
+        @close="$emit('close')"
+      />
       <GroupAddModal
         v-if="channel.type === 'group' && groupAddModal"
-        @close="$emit('close')"
         :channel="channel"
+        @close="$emit('close')"
       />
     </div>
   </div>
@@ -64,6 +69,7 @@ export default {
     UserAddIcon: () => import("../icons/UserAdd"),
     GroupAddModal: () => import("./GroupAddModal"),
     TrashIcon: () => import("../icons/Trash"),
+    GroupCreateModal: () => import("./GroupCreateModal"),
   },
 };
 </script>

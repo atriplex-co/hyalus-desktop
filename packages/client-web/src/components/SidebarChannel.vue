@@ -1,7 +1,7 @@
 <template>
-  <router-link
+  <div
     class="flex items-center p-2 space-x-2 text-sm transition cursor-pointer hover:bg-gray-700"
-    :to="`/channels/${channel.id}`"
+    @click="goto"
   >
     <UserAvatar
       class="w-8 h-8 rounded-full"
@@ -25,7 +25,7 @@
         {{ subtitle }}
       </p>
     </div>
-  </router-link>
+  </div>
 </template>
 
 <script>
@@ -82,6 +82,13 @@ export default {
         .replace("a year", "1y")
         .replace(" ago", "")
         .replace("in ", "");
+    },
+    async goto() {
+      this.$store.commit("setSidebarHidden", true);
+
+      try {
+        await this.$router.push(`/channels/${this.channel.id}`);
+      } catch {}
     },
   },
   beforeMount() {

@@ -1,6 +1,9 @@
 <template>
   <div
-    class="flex flex-col w-full h-full max-w-xs min-h-0 border-r border-gray-750 bg-gray-850"
+    class="flex flex-col w-full h-full min-h-0 border-r border-gray-750 bg-gray-850 fixed inset-0 sm:static sm:max-w-xs z-50"
+    :class="{
+      'hidden sm:block': hidden,
+    }"
   >
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
       <div class="flex items-center flex-1 min-w-0 space-x-2">
@@ -59,6 +62,9 @@ export default {
     },
     voice() {
       return this.$store.getters.voice;
+    },
+    hidden() {
+      return this.$store.getters.sidebarHidden;
     },
   },
   components: {

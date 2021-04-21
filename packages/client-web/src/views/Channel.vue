@@ -11,9 +11,14 @@
       @dragsend.prevent
     >
       <div
-        class="flex items-center justify-between p-4 border-b border-gray-800"
+        class="flex items-center justify-between px-2 py-4 border-b border-gray-800 min-w-0 space-x-2"
       >
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-4 min-w-0">
+          <router-link to="/app" class="sm:hidden">
+            <ArrowLeftIcon
+              class="w-8 h-8 p-2 flex-shrink-0 rounded-full bg-gray-800 text-gray-400 sm:hidden"
+            />
+          </router-link>
           <div :class="{ 'cursor-pointer': channel.admin }" @click="setAvatar">
             <UserAvatar
               class="w-12 h-12 rounded-full"
@@ -27,9 +32,9 @@
               {{ channel.name.slice(0, 1).toUpperCase() }}
             </div>
           </div>
-          <div>
+          <div class="min-w-0">
             <p
-              class="font-bold"
+              class="font-bold truncate"
               :class="{ 'cursor-pointer': channel.admin }"
               @click="setName"
             >
@@ -53,34 +58,16 @@
               <p>+{{ voiceUsers.length - voiceUsersShown.length }}</p>
             </div>
           </div>
-          <div class="flex space-x-2">
-            <div @click="voiceJoin(false)">
-              <PhoneIcon
-                class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-              />
-            </div>
-            <div @click="voiceJoin(true)">
-              <VideoIcon
-                class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-              />
-            </div>
-          </div>
-          <div v-if="channel.type === 'dm'" @click="groupCreateModal = true">
-            <UserAddIcon
+          <div @click="voiceJoin(false)">
+            <PhoneIcon
               class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
             />
           </div>
-          <div
-            v-if="channel.type === 'group'"
-            @click="groupMembers = !groupMembers"
-          >
-            <GroupIcon
+          <div @click="showInfo = !showInfo">
+            <DotsIcon
               class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
             />
           </div>
-          <DotsIcon
-            class="w-8 h-8 p-2 transition bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700"
-          />
         </div>
       </div>
       <p class="px-4 py-2 text-sm bg-gray-800" v-if="!channel.writable">
@@ -90,7 +77,7 @@
         <div class="absolute p-2 z-10 w-full" v-if="typingStatus">
           <div
             :class="{
-              'pr-80': groupMembers,
+              'pr-80': showInfo,
             }"
           >
             <div
@@ -113,11 +100,11 @@
             :message="message"
           />
         </div>
-        <GroupSidebar
+        <ChannelInfo
           class="absolute top-0 right-0"
-          v-if="groupMembers"
+          v-if="showInfo"
           :channel="channel"
-          @close="groupMembers = false"
+          @close="showInfo = false"
         />
       </div>
       <div
@@ -151,11 +138,6 @@
         @close="groupNameModal = false"
         :channel="channel"
       />
-      <GroupCreateModal
-        v-if="groupCreateModal"
-        @close="groupCreateModal = false"
-        :selected="channel.users[0].id"
-      />
     </div>
   </div>
 </template>
@@ -165,9 +147,8 @@ export default {
   data() {
     return {
       message: "",
-      groupCreateModal: false,
       groupNameModal: false,
-      groupMembers: false,
+      showInfo: false,
       lastTyping: 0,
       typingStatus: "",
       typingStatusInterval: null,
@@ -246,7 +227,7 @@ export default {
         this.groupNameModal = true;
       }
     },
-    async voiceJoin(video) {
+    async voiceJoin() {
       if (this.$store.getters.voice?.channel !== this.channel.id) {
         await this.$store.dispatch("voiceLeave");
         await this.$store.dispatch("voiceJoin", this.channel.id);
@@ -255,12 +236,6 @@ export default {
           await this.$store.dispatch("toggleAudio", {
             silent: true,
           });
-
-          if (video) {
-            await this.$store.dispatch("toggleVideo", {
-              silent: true,
-            });
-          }
         } catch (e) {
           console.log(e);
         }
@@ -393,7 +368,6 @@ export default {
     UserAvatar: () => import("../components/UserAvatar"),
     Sidebar: () => import("../components/Sidebar"),
     PhoneIcon: () => import("../icons/Phone"),
-    VideoIcon: () => import("../icons/Video"),
     UserAddIcon: () => import("../icons/UserAdd"),
     DotsIcon: () => import("../icons/Dots"),
     PaperclipIcon: () => import("../icons/Paperclip"),
@@ -404,8 +378,9 @@ export default {
     GroupNameModal: () => import("../components/GroupNameModal"),
     GroupCreateModal: () => import("../components/GroupCreateModal"),
     GroupAddModal: () => import("../components/GroupAddModal"),
-    GroupSidebar: () => import("../components/GroupSidebar"),
     PencilIcon: () => import("../icons/Pencil"),
+    ArrowLeftIcon: () => import("../icons/ArrowLeft"),
+    ChannelInfo: () => import("../components/ChannelInfo"),
   },
 };
 </script>

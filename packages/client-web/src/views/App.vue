@@ -111,10 +111,12 @@ export default {
       );
     },
   },
-  created() {
+  mounted() {
     if (this.$store.getters.invite) {
       this.$store.dispatch("processInvite");
     }
+
+    this.$store.commit("setSidebarHidden", false);
   },
   components: {
     Sidebar: () => import("../components/Sidebar"),

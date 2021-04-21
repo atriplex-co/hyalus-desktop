@@ -129,6 +129,7 @@ export default new Vuex.Store({
     messageSides: localStorage.messageSides,
     syntaxTheme: localStorage.syntaxTheme,
     invite: null,
+    sidebarHidden: false,
   },
   getters: {
     config: (state) => state.config,
@@ -173,6 +174,7 @@ export default new Vuex.Store({
     messageSides: (state) => state.messageSides,
     syntaxTheme: (state) => state.syntaxTheme || "tomorrow-night",
     invite: (state) => state.invite,
+    sidebarHidden: (state) => state.sidebarHidden,
   },
   mutations: {
     setUser(state, user) {
@@ -755,6 +757,9 @@ export default new Vuex.Store({
     },
     setInvite(state, invite) {
       state.invite = invite;
+    },
+    setSidebarHidden(state, sidebarHidden) {
+      state.sidebarHidden = sidebarHidden;
     },
   },
   actions: {
