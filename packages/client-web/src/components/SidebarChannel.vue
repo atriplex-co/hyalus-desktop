@@ -15,8 +15,8 @@
       {{ channel.name.slice(0, 1).toUpperCase() }}
     </div>
     <div class="flex-1 w-full min-w-0">
-      <div class="flex items-baseline justify-between">
-        <p class="font-bold">{{ channel.name }}</p>
+      <div class="flex items-baseline justify-between min-w-0 space-x-2">
+        <p class="font-bold truncate">{{ channel.name }}</p>
         <p class="text-xs text-gray-400">
           {{ time }}
         </p>
