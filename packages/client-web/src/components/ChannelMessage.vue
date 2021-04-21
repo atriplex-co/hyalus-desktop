@@ -26,7 +26,7 @@
       }"
       v-else
     >
-      <div class="w-8 h-8 self-end relative">
+      <div class="w-8 h-8 self-end relative flex-shrink-0">
         <UserAvatar
           class="rounded-full"
           :id="sender.avatar"
