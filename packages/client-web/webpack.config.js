@@ -3,6 +3,8 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const TerserPlugin = require("terser-webpack-plugin");
 const { ProgressPlugin } = require("webpack");
+const CopyPlugin = require("copy-webpack-plugin");
+const { GenerateSW } = require("workbox-webpack-plugin");
 
 module.exports = {
   mode: "production",
@@ -69,6 +71,14 @@ module.exports = {
       minify: true,
     }),
     new ProgressPlugin(),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.join(__dirname, "src/static"),
+        },
+      ],
+    }),
+    new GenerateSW(),
   ],
   externals: ["path", "crypto", "os", "electron", "fs"],
   cache: {

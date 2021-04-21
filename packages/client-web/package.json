@@ -10,12 +10,14 @@
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/preset-env": "^7.13.12",
+    "@hyalusapp/wasm-rnnoise": "^1.0.0",
     "@tailwindcss/aspect-ratio": "^0.2.0",
     "@tailwindcss/forms": "^0.3.2",
     "@tailwindcss/line-clamp": "^0.2.0",
     "@tailwindcss/typography": "^0.4.0",
     "axios": "^0.21.0",
     "babel-loader": "^8.2.2",
+    "copy-webpack-plugin": "^8.1.1",
     "core-js": "^3.9.1",
     "css-loader": "^5.0.1",
     "file-loader": "^6.2.0",
@@ -47,6 +49,6 @@
     "vuex": "^3.5.1",
     "webpack": "^5.4.0",
     "webpack-cli": "^4.2.0",
-    "@hyalusapp/wasm-rnnoise": "^1.0.0"
+    "workbox-webpack-plugin": "^6.1.5"
   }
 }

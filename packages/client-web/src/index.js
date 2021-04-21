@@ -21,3 +21,7 @@ console.log("%c[!] Pasting here may comprimise security!", `color:#f55;`);
     router,
   });
 })();
+
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register("/service-worker.js");
+}
