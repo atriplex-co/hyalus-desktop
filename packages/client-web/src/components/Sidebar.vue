@@ -2,7 +2,7 @@
   <div
     class="flex flex-col w-full h-full min-h-0 border-r border-gray-750 bg-gray-850 fixed inset-0 sm:static sm:max-w-xs z-50"
     :class="{
-      'hidden sm:block': hidden,
+      'hidden sm:flex': hidden,
     }"
   >
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
