@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col w-full h-full min-h-0 border-r border-gray-750 bg-gray-850 fixed inset-0 sm:static sm:max-w-xs z-50"
+    class="flex flex-col w-full h-full min-h-0 border-r border-gray-750 bg-gray-850 fixed inset-0 sm:static sm:max-w-xs z-10"
     :class="{
       'hidden sm:flex': hidden,
     }"

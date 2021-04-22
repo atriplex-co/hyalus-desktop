@@ -111,7 +111,7 @@ export default {
       );
     },
   },
-  mounted() {
+  created() {
     if (this.$store.getters.invite) {
       this.$store.dispatch("processInvite");
     }
