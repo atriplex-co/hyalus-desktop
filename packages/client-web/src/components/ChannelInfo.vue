@@ -1,44 +1,42 @@
 <template>
-  <div class="max-w-xs w-full h-full p-2">
+  <div
+    class="max-w-xs w-full h-full bg-gray-850 py-4 px-2 overflow-auto text-sm border-l border-gray-750 shadow-md space-y-4"
+  >
     <div
-      class="bg-gray-800 py-4 px-2 overflow-auto text-sm rounded-md border border-gray-750 shadow-md space-y-4 h-full"
+      class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
+      @click="groupAddModal = true"
     >
-      <div
-        class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
-        @click="groupAddModal = true"
-      >
-        <UserAddIcon
-          class="w-8 h-8 p-2 transition bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600"
-        />
-        <p class="text-gray-200">Invite friends</p>
-      </div>
-      <div
-        class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
-        @click="leave"
-        v-if="channel.type === 'group'"
-      >
-        <TrashIcon
-          class="w-8 h-8 p-2 transition bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600"
-        />
-        <p class="text-gray-200">Leave group</p>
-      </div>
-      <GroupUser
-        v-for="user in users"
-        v-bind:key="user.id"
-        :channel="channel"
-        :user="user"
+      <UserAddIcon
+        class="w-8 h-8 p-2 transition bg-gray-750 rounded-full cursor-pointer"
       />
-      <GroupCreateModal
-        v-if="channel.type === 'dm' && groupAddModal"
-        :selected="channel.users[0].id"
-        @close="$emit('close')"
-      />
-      <GroupAddModal
-        v-if="channel.type === 'group' && groupAddModal"
-        :channel="channel"
-        @close="$emit('close')"
-      />
+      <p class="text-gray-200">Invite friends</p>
     </div>
+    <div
+      class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
+      @click="leave"
+      v-if="channel.type === 'group'"
+    >
+      <TrashIcon
+        class="w-8 h-8 p-2 transition bg-gray-750 rounded-full cursor-pointer"
+      />
+      <p class="text-gray-200">Leave group</p>
+    </div>
+    <GroupUser
+      v-for="user in users"
+      v-bind:key="user.id"
+      :channel="channel"
+      :user="user"
+    />
+    <GroupCreateModal
+      v-if="channel.type === 'dm' && groupAddModal"
+      :selected="channel.users[0].id"
+      @close="$emit('close')"
+    />
+    <GroupAddModal
+      v-if="channel.type === 'group' && groupAddModal"
+      :channel="channel"
+      @close="$emit('close')"
+    />
   </div>
 </template>
 
