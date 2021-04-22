@@ -15,6 +15,7 @@
       <div
         class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
         @click="leave"
+        v-if="channel.type === 'group'"
       >
         <TrashIcon
           class="w-8 h-8 p-2 transition bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600"
