@@ -324,7 +324,7 @@ export default {
         return this.$router.push("/app");
       }
 
-      document.title = `Hyalus \u2022 ${this.channel.name}`;
+      document.title = `Hyalus \u2022 ${this.name}`;
 
       const { messageInput, messageList } = this.$refs;
 
