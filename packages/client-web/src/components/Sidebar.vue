@@ -7,7 +7,10 @@
   >
     <div class="flex items-center px-2 py-4 border-b border-gray-750">
       <div class="flex items-center flex-1 min-w-0 space-x-2">
-        <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />
+        <div class="relative cursor-pointer" @click="statusMenu = !statusMenu">
+          <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />
+          <StatusMenu v-if="statusMenu" @close="statusMenu = false" />
+        </div>
         <div class="ml-4 flex-1 min-w-0">
           <p class="font-bold truncate">{{ user.name }}</p>
           <p class="text-xs text-gray-400 truncate">@{{ user.username }}</p>
@@ -45,6 +48,11 @@
 
 <script>
 export default {
+  data() {
+    return {
+      statusMenu: false,
+    };
+  },
   computed: {
     user() {
       return this.$store.getters.user;
@@ -74,6 +82,7 @@ export default {
     GroupIcon: () => import("../icons/Group"),
     FriendsIcon: () => import("../icons/Friends"),
     SidebarCall: () => import("./SidebarCall"),
+    StatusMenu: () => import("./StatusMenu"),
   },
 };
 </script>

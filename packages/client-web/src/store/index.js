@@ -2471,5 +2471,10 @@ export default new Vuex.Store({
     async processInvite({ getters, commit, dispatch }) {
       await dispatch("addFriend", getters.invite.username);
     },
+    async setPreferredStatus({ getters, commit, dispatch }, preferredStatus) {
+      await axios.post("/api/me", {
+        preferredStatus,
+      });
+    },
   },
 });
