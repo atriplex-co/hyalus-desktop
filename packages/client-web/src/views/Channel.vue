@@ -22,14 +22,14 @@
           <div :class="{ 'cursor-pointer': channel.admin }" @click="setAvatar">
             <UserAvatar
               class="w-12 h-12 rounded-full"
-              :id="channel.avatar"
-              v-if="channel.avatar"
+              :id="avatar"
+              v-if="avatar"
             />
             <div
               class="flex items-center justify-center w-12 h-12 text-xl font-bold bg-primary-500 text-white rounded-full"
               v-else
             >
-              {{ channel.name.slice(0, 1).toUpperCase() }}
+              {{ name.slice(0, 1).toUpperCase() }}
             </div>
           </div>
           <div class="min-w-0">
@@ -38,7 +38,7 @@
               :class="{ 'cursor-pointer': channel.admin }"
               @click="setName"
             >
-              {{ channel.name }}
+              {{ name }}
             </p>
             <p class="text-xs text-gray-400">{{ description }}</p>
           </div>
@@ -160,6 +160,24 @@ export default {
   computed: {
     channel() {
       return this.$store.getters.channelById(this.$route.params.channel);
+    },
+    avatar() {
+      if (this.channel) {
+        if (this.channel.type === "dm") {
+          return this.channel.users[0].avatar;
+        }
+
+        return this.channel.avatar;
+      }
+    },
+    name() {
+      if (this.channel) {
+        if (this.channel.type === "dm") {
+          return this.channel.users[0].name;
+        }
+
+        return this.channel.name;
+      }
     },
     description() {
       let description = "";
