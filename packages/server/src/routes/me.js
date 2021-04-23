@@ -98,12 +98,14 @@ app.post(
       delete req.body.oldAuthKey;
 
       //log out all other sessions.
-      const sessions = await (await req.deps.db.collection("sessions").find({
-        _id: {
-          $ne: req.session._id,
-        },
-        user: req.session.user,
-      })).toArray();
+      const sessions = await (
+        await req.deps.db.collection("sessions").find({
+          _id: {
+            $ne: req.session._id,
+          },
+          user: req.session.user,
+        })
+      ).toArray();
 
       for (const session of sessions) {
         await req.deps.db.collection("sessions").deleteOne(session);
@@ -146,6 +148,8 @@ app.post(
     delete req.body.accentColor;
 
     if (Object.keys(req.body).length) {
+      const targets = [];
+
       //propegate changes to friends
       const friends = await (
         await req.deps.db.collection("friends").find({
@@ -171,13 +175,7 @@ app.post(
           userId = friend.initiator;
         }
 
-        await req.deps.redis.publish(`user:${userId}`, {
-          t: "friendUser",
-          d: {
-            friend: friend._id.toString(),
-            ...req.body,
-          },
-        });
+        targets.push(userId);
       }
 
       //propegate changes to channels
@@ -196,15 +194,18 @@ app.post(
         for (const channelUser of channel.users
           .filter((u) => !u.removed)
           .filter((u) => !u.id.equals(req.session.user))) {
-          await req.deps.redis.publish(`user:${channelUser.id}`, {
-            t: "channelUser",
-            d: {
-              channel: channel._id.toString(),
-              id: req.session.user.toString(),
-              ...req.body,
-            },
-          });
+          targets.push(channelUser.id);
         }
+      }
+
+      for (const target of new Set(targets.map((t) => t.toString()))) {
+        await req.deps.redis.publish(`user:${target}`, {
+          t: "foreignUser",
+          d: {
+            id: req.session.user.toString(),
+            ...req.body,
+          },
+        });
       }
     }
   }
