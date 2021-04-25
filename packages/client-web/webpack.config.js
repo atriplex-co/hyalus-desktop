@@ -78,7 +78,9 @@ module.exports = {
         },
       ],
     }),
-    new GenerateSW(),
+    new GenerateSW({
+      exclude: ["/index.html"],
+    }),
   ],
   externals: ["path", "crypto", "os", "electron", "fs"],
   cache: {
