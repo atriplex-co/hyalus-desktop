@@ -67,7 +67,7 @@ const wss = require("./routes/ws")(server, deps);
         time: 1,
       },
       {
-        expireAfterSeconds: 60 * 60 * 24, //24h
+        expireAfterSeconds: 60 * 60 * 24 * 7, //7d
       }
     );
   } catch (e) {
