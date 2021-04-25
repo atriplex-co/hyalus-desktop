@@ -1329,14 +1329,14 @@ app.get(
     scope: "user",
     tag: "getFile",
     max: 100,
-    time: 60 * 5,
+    time: 60 * 2,
   }),
   ratelimit({
     scope: "user",
     tag: "getFile",
-    max: 5,
+    max: 10,
     time: 60,
-    params: true,
+    params: true, //will count per-file.
   }),
   async (req, res) => {
     if (!ObjectId.isValid(req.params.channel)) {
