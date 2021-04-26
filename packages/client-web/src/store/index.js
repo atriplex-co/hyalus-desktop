@@ -331,6 +331,10 @@ export default new Vuex.Store({
           merged.lastMessage = null; //forces Vue to update it for computed props.
         }
 
+        if (typeof merged.created === "string") {
+          merged.created = new Date(merged.created);
+        }
+
         state.channels.push(merged);
       }
     },
@@ -391,6 +395,10 @@ export default new Vuex.Store({
             merged.fileType,
             nacl.base64_variants.ORIGINAL
           );
+        }
+
+        if (typeof merged.time === "string") {
+          merged.time = new Date(merged.time);
         }
 
         if (merged.key && !merged.decryptedKey) {
