@@ -259,11 +259,15 @@ export default {
       );
     },
     precedingRecent() {
-      return this.message.time - this.precedingMessage?.time < recentThreshold;
+      return (
+        new Date(this.message.time) - new Date(this.precedingMessage?.time) <
+        recentThreshold
+      );
     },
     supersedingRecent() {
       return (
-        this.supersedingMessage?.time - this.message.time < recentThreshold
+        new Date(this.supersedingMessage?.time) - new Date(this.message.time) <
+        recentThreshold
       );
     },
     showSender() {
