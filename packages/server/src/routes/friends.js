@@ -79,8 +79,8 @@ app.post(
         initiator: req.session.user,
         target: user._id,
         accepted: false,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
     ).ops[0];
 
@@ -168,7 +168,7 @@ app.post(
     await req.deps.db.collection("friends").updateOne(friend, {
       $set: {
         accepted: true,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
       },
     });
 
@@ -177,7 +177,7 @@ app.post(
       d: {
         id: friend._id.toString(),
         accepted: true,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
       },
     });
 
@@ -187,7 +187,7 @@ app.post(
         id: friend._id.toString(),
         accepted: true,
         acceptable: false,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
       },
     });
 
@@ -232,19 +232,19 @@ app.post(
         await req.deps.db.collection("channels").insertOne({
           type: "dm",
           writable: true,
-          created: Date.now(),
+          created: new Date(),
           users: [
             {
               id: friend.initiator,
               admin: false,
               removed: false,
-              added: Date.now(),
+              added: new Date(),
             },
             {
               id: friend.target,
               admin: false,
               removed: false,
-              added: Date.now(),
+              added: new Date(),
             },
           ],
         })

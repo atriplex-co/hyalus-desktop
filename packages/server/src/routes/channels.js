@@ -76,14 +76,14 @@ app.post(
         type: "group",
         name: req.body.name,
         avatar: null,
-        created: Date.now(),
+        created: new Date(),
         writable: true,
         users: users.map((u) => {
           return {
             id: u._id,
             admin: u === req.user,
             removed: false,
-            added: Date.now(),
+            added: new Date(),
           };
         }),
       })
@@ -119,7 +119,7 @@ app.post(
       const message = (
         await req.deps.db.collection("messages").insertOne({
           channel: channel._id,
-          time: Date.now(),
+          time: new Date(),
           sender: req.session.user,
           type: "channelUserAdd",
           body: user._id,
@@ -224,7 +224,7 @@ app.post(
         await req.deps.db.collection("messages").insertOne({
           channel: channel._id,
           sender: req.session.user,
-          time: Date.now(),
+          time: new Date(),
           type: "channelName",
           body: req.body.name,
           keys: null,
@@ -449,7 +449,7 @@ app.post(
 
     const message = (
       await req.deps.db.collection("messages").insertOne({
-        time: Date.now(),
+        time: new Date(),
         channel: channel._id,
         type: "text",
         sender: req.session.user,
@@ -672,7 +672,7 @@ app.post(
           await req.deps.db.collection("messages").insertOne({
             channel: channel._id,
             sender: req.session.user,
-            time: Date.now(),
+            time: new Date(),
             type: "channelAvatar",
             body: null,
             keys: null,
@@ -835,7 +835,7 @@ app.post(
             id: targetUser._id,
             admin: false,
             removed: false,
-            added: Date.now(),
+            added: new Date(),
           },
         },
       });
@@ -888,7 +888,7 @@ app.post(
     const message = (
       await req.deps.db.collection("messages").insertOne({
         channel: channel._id,
-        time: Date.now(),
+        time: new Date(),
         sender: req.session.user,
         type: "channelUserAdd",
         body: new ObjectId(req.body.user),
@@ -1012,7 +1012,7 @@ app.delete(
     const message = (
       await req.deps.db.collection("messages").insertOne({
         channel: channel._id,
-        time: Date.now(),
+        time: new Date(),
         type: "channelUserRemove",
         sender: req.session.user,
         body: new ObjectId(req.params.user),
@@ -1141,7 +1141,7 @@ app.post(
           channel: channel._id,
           sender: req.session.user,
           type: "channelUserLeave",
-          time: Date.now(),
+          time: new Date(),
           body: null,
           keys: null,
         })
@@ -1280,7 +1280,7 @@ app.post(
 
     const file = (
       await req.deps.db.collection("files").insertOne({
-        time: Date.now(),
+        time: new Date(),
         body: Buffer.from(req.body.body, "base64"),
         channel: channel._id,
       })
@@ -1288,7 +1288,7 @@ app.post(
 
     const message = (
       await req.deps.db.collection("messages").insertOne({
-        time: Date.now(),
+        time: new Date(),
         channel: channel._id,
         type: "file",
         sender: req.session.user,

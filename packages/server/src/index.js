@@ -62,7 +62,7 @@ const wss = require("./routes/ws")(server, deps);
       }
     );
 
-    await db.collection("files").createIndex(
+    await db.collection("files").ensureIndex(
       {
         time: 1,
       },
