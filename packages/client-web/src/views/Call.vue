@@ -188,6 +188,15 @@ export default {
     isTitled() {
       return typeof process !== "undefined" && this.$store.getters.betaBanner;
     },
+    name() {
+      if (this.channel) {
+        if (this.channel.type === "dm") {
+          return this.channel.users[0].name;
+        }
+
+        return this.channel.name;
+      }
+    },
   },
   methods: {
     leave() {
@@ -209,11 +218,7 @@ export default {
       this.$store.dispatch("toggleDisplay");
     },
     updateTitle() {
-      if (this.channel) {
-        document.title = `Hyalus \u2022 ${this.channel.name}`;
-      } else {
-        document.title = "Hyalus";
-      }
+      document.title = `Hyalus \u2022 ${this.name}`;
     },
     updateLayout() {
       const parent = this.$refs.tiles;

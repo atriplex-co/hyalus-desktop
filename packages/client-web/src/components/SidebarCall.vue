@@ -5,7 +5,7 @@
   >
     <PhoneIcon class="w-8 h-8 p-2 text-white rounded-full bg-primary-500" />
     <div class="flex-1">
-      <p class="font-bold">{{ channel.name }}</p>
+      <p class="font-bold">{{ name }}</p>
       <p class="text-gray-400">
         {{ time }} &bull; {{ connectedCount }} connected
       </p>
@@ -32,6 +32,13 @@ export default {
     },
     connectedCount() {
       return this.channel.users.filter((u) => u.voiceConnected).length + 1;
+    },
+    name() {
+      if (this.channel.type === "dm") {
+        return this.channel.users[0].name;
+      }
+
+      return this.channel.name;
     },
   },
   methods: {
