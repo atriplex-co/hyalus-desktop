@@ -2069,6 +2069,7 @@ export default new Vuex.Store({
           ]);
 
           let i = 0;
+          let results = [];
 
           for (; i + sampleLength < bufIn.length; i += sampleLength) {
             const sample = bufIn.slice(i, i + sampleLength);
@@ -2079,16 +2080,14 @@ export default new Vuex.Store({
 
             rnnoise.HEAPF32.set(sample, inMemp / 4);
 
-            const out = rnnoise._rnnoise_process_frame(noise, outMemp, inMemp);
-
-            if (out > 0.4) {
-              detected = true;
-            }
+            results.push(
+              rnnoise._rnnoise_process_frame(noise, outMemp, inMemp)
+            );
           }
 
           pendingIn = bufIn.slice(i);
 
-          if (detected) {
+          if (results.reduce((a, b) => a + b) / results.length > 0.8) {
             if (closeTimeout) {
               clearTimeout(closeTimeout);
             }
@@ -2096,13 +2095,13 @@ export default new Vuex.Store({
             gain.gain.setValueAtTime(1, ctx.currentTime);
 
             closeTimeout = setTimeout(() => {
-              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
-            }, 100);
+              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+            }, 200);
           }
         });
 
         origGain.gain.setValueAtTime(2, ctx.currentTime);
-        delay.delayTime.setValueAtTime(0.2, ctx.currentTime);
+        delay.delayTime.setValueAtTime(0.5, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
 
         [
