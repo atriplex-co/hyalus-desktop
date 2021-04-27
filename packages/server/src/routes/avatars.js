@@ -190,8 +190,8 @@ app.get(
       return;
     }
 
-    res.set("Content-Type", "image/webp");
-    res.set("Cache-Control", "public, max-age=31536000");
+    res.set("content-type", "image/webp");
+    res.set("cache-control", "public, max-age=31536000");
     res.send(avatar.img.buffer);
   }
 );

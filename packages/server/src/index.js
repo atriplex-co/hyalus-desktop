@@ -119,6 +119,12 @@ const wss = require("./routes/ws")(server, deps);
 
   app.use((req, res, next) => {
     req.deps = deps;
+    res.set("cross-origin-opener-policy", "same-origin");
+    res.set("cross-origin-embedder-policy", "require-corp");
+    res.set("referrer-policy", "no-referrer");
+    res.set("x-content-type-options", "nosniff");
+    res.set("x-dns-prefetch-control", "off");
+    res.set("x-frame-options", "DENY");
     next();
   });
 
@@ -170,12 +176,8 @@ const wss = require("./routes/ws")(server, deps);
   app.use(
     express.static("../client-web/dist", {
       setHeaders(res, path) {
-        if (path.endsWith(".html")) {
-          res.set("Cache-Control", "no-cache");
-          res.set("Cross-Origin-Opener-Policy", "same-origin");
-          res.set("Cross-Origin-Embedder-Policy", "require-corp");
-        } else {
-          res.set("Cache-Control", "public, max-age=31536000");
+        if (!path.endsWith(".html")) {
+          res.set("cache-control", "public, max-age=31536000");
         }
       },
     })

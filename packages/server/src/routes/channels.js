@@ -1383,8 +1383,8 @@ app.get(
       return;
     }
 
-    res.set("Content-Type", "application/octet-stream");
-    res.set("Cache-Control", "public, max-age=31536000");
+    res.set("content-type", "application/octet-stream");
+    res.set("cache-control", "public, max-age=31536000");
     res.end(file.body.buffer);
   }
 );
