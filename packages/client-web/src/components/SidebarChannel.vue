@@ -75,28 +75,49 @@ export default {
   },
   methods: {
     updateTime() {
-      this.time = moment(this.channel.lastMessage?.time || this.channel.created)
-        .fromNow()
-        .replace("a few seconds", "now")
-        .replace(" minutes", "m")
-        .replace(" hours", "h")
-        .replace(" days", "d")
-        .replace(" weeks", "w")
-        .replace(" months", "y")
-        .replace(" years", "y")
-        .replace("a minute", "1m")
-        .replace("an hour", "1h")
-        .replace("a day", "1d")
-        .replace("a week", "1w")
-        .replace("a month", "1m")
-        .replace("a year", "1y")
-        .replace(" ago", "")
-        .replace("in ", "");
+      // this.time = moment(this.channel.lastMessage?.time || this.channel.created)
+      //   .fromNow()
+      //   .replace("a few seconds", "now")
+      //   .replace(" minutes", "m")
+      //   .replace(" hours", "h")
+      //   .replace(" days", "d")
+      //   .replace(" weeks", "w")
+      //   .replace(" months", "M")
+      //   .replace(" years", "y")
+      //   .replace("a minute", "1m")
+      //   .replace("an hour", "1h")
+      //   .replace("a day", "1d")
+      //   .replace("a week", "1w")
+      //   .replace("a month", "1M")
+      //   .replace("a year", "1y")
+      //   .replace(" ago", "")
+      //   .replace("in ", "");
+
+      const time = this.channel.lastMessage?.time || this.channel.created;
+      const duration = moment.duration(new Date() - time);
+
+      this.time = "now";
+
+      if (duration.asMinutes() >= 1) {
+        this.time = `${Math.floor(duration.asMinutes())}m`;
+      }
+
+      if (duration.asHours() >= 1) {
+        this.time = `${Math.floor(duration.asHours())}h`;
+      }
+
+      if (duration.asDays() >= 1) {
+        this.time = `${Math.floor(duration.asDays())}d`;
+      }
+
+      if (duration.asMonths() >= 1) {
+        this.time = `${moment(time).format("l")}`;
+      }
     },
   },
   created() {
     this.updateTime();
-    this.timeUpdateInterval = setInterval(this.updateTime, 1000);
+    this.timeUpdateInterval = setInterval(this.updateTime, 6e4); //60s
   },
   beforeDestroy() {
     clearInterval(this.timeUpdateInterval);
