@@ -548,22 +548,25 @@ export default {
     },
   },
   async created() {
-    let audioStream;
-    let videoStream;
+    let stream;
+
+    try {
+      //needed to call enumerateDevices (permissions).
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+    } catch {}
+
+    if (stream) {
+      stream.getTracks().map((a) => a.stop());
+    }
 
     const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
       (d) =>
         !d.label.startsWith("Default -") &&
         !d.label.startsWith("Communications -")
     );
-
-    if (videoStream) {
-      videoStream.getTracks().map((a) => a.stop());
-    }
-
-    if (audioStream) {
-      audioStream.getTracks().map((a) => a.stop());
-    }
 
     this.audioOutputDevices = devices.filter((a) => a.kind === "audiooutput");
     this.audioInputDevices = devices.filter((a) => a.kind === "audioinput");
