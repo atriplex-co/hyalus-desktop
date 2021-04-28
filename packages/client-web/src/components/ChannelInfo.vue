@@ -4,12 +4,15 @@
   >
     <div
       class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
-      @click="groupAddModal = true"
+      @click="inviteModal = true"
     >
       <UserAddIcon
         class="w-8 h-8 p-2 transition bg-gray-750 rounded-full cursor-pointer"
       />
-      <p class="text-gray-200">Invite friends</p>
+      <p class="text-gray-200" v-if="channel.type === 'dm'">Create group</p>
+      <p class="text-gray-200" v-if="channel.type === 'group'">
+        Invite friends
+      </p>
     </div>
     <div
       class="flex items-center space-x-2 text-gray-400 transition cursor-pointer hover:text-gray-200"
@@ -28,12 +31,12 @@
       :user="user"
     />
     <GroupCreateModal
-      v-if="channel.type === 'dm' && groupAddModal"
+      v-if="channel.type === 'dm' && inviteModal"
       :selected="channel.users[0].id"
       @close="$emit('close')"
     />
     <GroupAddModal
-      v-if="channel.type === 'group' && groupAddModal"
+      v-if="channel.type === 'group' && inviteModal"
       :channel="channel"
       @close="$emit('close')"
     />
@@ -45,7 +48,7 @@ export default {
   props: ["channel"],
   data() {
     return {
-      groupAddModal: false,
+      inviteModal: false,
     };
   },
   computed: {
