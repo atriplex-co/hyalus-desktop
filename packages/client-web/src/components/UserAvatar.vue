@@ -1,5 +1,5 @@
 <template>
-  <img src="../images/user.webp" v-if="id === 'default'" />
+  <img src="../images/default-user.png" v-if="id === 'default'" />
   <img :src="`${baseUrl}/api/avatars/${id}`" v-else />
 </template>
 

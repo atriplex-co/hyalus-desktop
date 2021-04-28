@@ -51,7 +51,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.(webp|woff|woff2|ogg|wasm)$/,
+        test: /\.(webp|woff|woff2|ogg|wasm|png)$/,
         use: {
           loader: "file-loader",
           options: {

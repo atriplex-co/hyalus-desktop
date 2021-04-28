@@ -2,8 +2,8 @@
   <div>
     <Navbar />
     <div class="flex flex-col items-center w-full py-20">
-      <AppIcon class="w-32 h-32" />
-      <h1 class="mt-8 text-6xl font-bold tracking-tight">
+      <AppIcon class="w-24 h-24" />
+      <h1 class="mt-16 text-6xl font-bold tracking-tight">
         Talk on an open platform
       </h1>
       <p class="max-w-lg mt-6 text-lg text-center text-gray-400">

@@ -3,19 +3,19 @@ import Vuex from "vuex";
 import axios from "axios";
 import nacl from "libsodium-wrappers";
 import msgpack from "msgpack-lite";
+import MarkdownIt from "markdown-it";
+import MarkdownItEmoji from "markdown-it-emoji";
+import MarkdownItLinkAttr from "markdown-it-link-attributes";
+import hljs from "highlight.js";
+import router from "../router";
+import imgDefaultUser from "../images/default-user.png";
 import sndNotification from "../sounds/notification_simple-01.ogg";
 import sndStateUp from "../sounds/state-change_confirm-up.ogg";
 import sndStateDown from "../sounds/state-change_confirm-down.ogg";
 import sndNavBackward from "../sounds/navigation_backward-selection.ogg";
 import sndNavForward from "../sounds/navigation_forward-selection.ogg";
-import router from "../router";
-import userImage from "../images/user.webp";
-import MarkdownIt from "markdown-it";
-import MarkdownItEmoji from "markdown-it-emoji";
-import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import sndNavBackwardMin from "../sounds/navigation_backward-selection-minimal.ogg";
 import sndNavForwardMin from "../sounds/navigation_forward-selection-minimal.ogg";
-import hljs from "highlight.js";
 
 Vue.use(Vuex);
 
@@ -293,7 +293,7 @@ export default new Vuex.Store({
             let icon;
 
             if (merged.user.avatar === "default") {
-              icon = userImage;
+              icon = imgDefaultUser;
             } else {
               icon = `${state.baseUrl}/api/avatars/${merged.user.avatar}`;
             }
@@ -535,7 +535,7 @@ export default new Vuex.Store({
               let title;
 
               if (sender.avatar === "default") {
-                icon = userImage;
+                icon = imgDefaultUser;
               } else {
                 icon = `${state.baseUrl}/api/avatars/${sender.avatar}`;
               }
@@ -1639,7 +1639,7 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-          console.debug(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        console.debug(`${data.user} -> ${data.type}: ${peer.connectionState}`);
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1917,7 +1917,7 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = async () => {
-          console.debug(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        console.debug(`${data.type} -> ${data.user}: ${peer.connectionState}`);
 
         if (peer.connectionState === "disconnected") {
           peer.restartIce();
@@ -2260,7 +2260,9 @@ export default new Vuex.Store({
       await axios.post("/api/me", { accentColor });
     },
     async updateFavicon({ getters, commit }) {
-      const icon = await import(`../images/icon-${getters.accentColor}.webp`);
+      const icon = await import(
+        `../images/icon-standalone-${getters.accentColor}.png`
+      );
       commit("setFavicon", icon.default);
     },
     async leaveChannel({}, id) {
