@@ -1029,8 +1029,8 @@ export default new Vuex.Store({
       ws.onmessage = async ({ data }) => {
         data = msgpack.decode(new Uint8Array(data));
 
-        if (Vue.config.devtools && data.t !== "ping") {
-          console.log(data);
+        if (data.t !== "ping") {
+          console.debug(data);
         }
 
         if (data.t === "ping") {
@@ -1639,9 +1639,7 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        if (Vue.config.devtools) {
-          console.log(`${data.user} -> ${data.type}: ${peer.connectionState}`);
-        }
+          console.debug(`${data.user} -> ${data.type}: ${peer.connectionState}`);
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1919,9 +1917,7 @@ export default new Vuex.Store({
       };
 
       peer.onconnectionstatechange = async () => {
-        if (Vue.config.devtools) {
-          console.log(`${data.type} -> ${data.user}: ${peer.connectionState}`);
-        }
+          console.debug(`${data.type} -> ${data.user}: ${peer.connectionState}`);
 
         if (peer.connectionState === "disconnected") {
           peer.restartIce();
