@@ -123,7 +123,7 @@
         <p
           class="opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition"
         >
-          {{ date }} &bull; {{ time }}
+          {{ time }}
         </p>
         <div
           class="text-gray-400 transition opacity-0 cursor-pointer group-hover:opacity-100 hover:text-gray-200"
@@ -230,11 +230,8 @@ export default {
 
       return `${Math.round(len * 10) / 10} ${unit}`;
     },
-    date() {
-      return moment(this.message.time).format("M/D/Y");
-    },
     time() {
-      return moment(this.message.time).format("h:mm A");
+      return moment(this.message.time).format("l \u2022 LT");
     },
     messageSides() {
       return this.$store.getters.messageSides;
