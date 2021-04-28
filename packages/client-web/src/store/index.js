@@ -2143,10 +2143,10 @@ export default new Vuex.Store({
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           height: {
-            max: Number(height),
+            ideal: Number(height),
           },
           frameRate: {
-            max: Number(fps),
+            ideal: Number(fps),
           },
           deviceId: getters.videoInput,
         },
@@ -2228,10 +2228,10 @@ export default new Vuex.Store({
         stream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             height: {
-              max: Number(height),
+              ideal: Number(height),
             },
             frameRate: {
-              max: Number(fps),
+              ideal: Number(fps),
             },
           },
           audio: true,
