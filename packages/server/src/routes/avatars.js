@@ -6,10 +6,9 @@ const user = require("../middleware/user");
 const { ObjectId } = require("mongodb");
 const app = express.Router();
 const ratelimit = require("../middleware/ratelimit");
-const _ffmpeg = require("fluent-ffmpeg");
-const { ffmpeg, ffprobe } = require("../util");
 const fs = require("fs");
 const os = require("os");
+const proc = require("child_process");
 
 app.post(
   "/",
@@ -46,7 +45,24 @@ app.post(
         fs.writeFileSync(`${tmp}/input.dat`, data);
 
         try {
-          const probed = await ffprobe(`${tmp}/input.dat`);
+          const probed = JSON.parse(
+            proc
+              .execSync(
+                [
+                  "ffprobe",
+                  `-i ${tmp}/input.dat`,
+                  "-of json",
+                  "-show_format",
+                  "-show_streams",
+                  "-v quiet",
+                ].join(" "),
+                {
+                  timeout: 1000 * 10, //15s
+                }
+              )
+              .toString()
+          );
+
           let type;
           let cropWidth;
           let cropX = 0;
@@ -62,57 +78,64 @@ app.post(
             cropY = (probed.streams[0].height - cropWidth) / 2;
           }
 
-          //image has more than 1 frame.
-          if (probed.streams[0].nb_frames === "N/A") {
+          //input has no frame count (not animated).
+          if (!probed.streams[0].nb_frames) {
             type = "image/webp";
 
-            await ffmpeg(
-              _ffmpeg({
-                niceness: 19,
-                logger: req.deps.ws,
-                timeout: 60, //1m
-              })
-                .input(`${tmp}/input.dat`)
-                .inputFormat(probed.format.format_name)
-                .addOptions([
-                  "-c:v libwebp",
-                  "-qscale 80",
-                  "-pix_fmt yuv420p",
-                  "-frames:v 1",
-                  `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256`,
-                ])
-                .outputFormat("webp")
-                .output(`${tmp}/output.dat`)
+            proc.execSync(
+              [
+                "ffmpeg",
+                `-f ${probed.format.format_name}`,
+                `-i ${tmp}/input.dat`,
+                "-c:v libwebp",
+                "-qscale 80",
+                "-pix_fmt yuv420p",
+                "-frames:v 1",
+                `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256`,
+                `-f webp`,
+                `-y ${tmp}/output.dat`,
+              ].join(" "),
+              {
+                stdio: "ignore",
+                timeout: 1000 * 60, //1m
+              }
             );
           } else {
             type = "video/mp4";
 
-            await ffmpeg(
-              _ffmpeg({
-                niceness: 19,
-                logger: req.deps.ws,
-                timeout: 60, //1m
-              })
-                .input(`${tmp}/input.dat`)
-                .inputFormat(probed.format.format_name)
-                .addOptions([
-                  "-an",
-                  "-c:v libx264",
-                  "-crf 30",
-                  "-preset veryfast",
-                  "-profile:v high",
-                  "-pix_fmt yuv420p",
-                  ...(probed.streams[0].nb_frames / probed.streams[0].duration >
-                  30 //fps>30 effectively.
-                    ? [
-                        `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256,fps=30`,
-                      ]
-                    : [
-                        `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256`,
-                      ]),
-                ])
-                .outputFormat("mp4")
-                .output(`${tmp}/output.dat`)
+            let filters = [
+              `[0]crop=${cropWidth}:${cropWidth}:${cropX}:${cropY}[fg]`,
+              "[fg]scale=256:256[fg]",
+              ...(probed.streams[0].nb_frames / probed.streams[0].duration > 30 //fps>30 effectively.
+                ? [`[fg]fps=30[fg]`]
+                : []),
+              ,
+              "[1]scale=256:256[bg]",
+              "[bg]setsar=1[bg]",
+              "[bg][fg]overlay=shortest=1",
+            ].filter((i) => i); //remove any empty items.
+
+            proc.execSync(
+              [
+                "ffmpeg",
+                `-f ${probed.format.format_name}`,
+                `-i ${tmp}/input.dat`,
+                "-f lavfi",
+                "-i color=202023",
+                `-filter_complex '${filters.join(",")}'`,
+                "-an",
+                "-c:v libx264",
+                "-crf 30",
+                "-preset veryfast",
+                "-profile:v high",
+                "-pix_fmt yuv420p",
+                `-f mp4`,
+                `-y ${tmp}/output.dat`,
+              ].join(" "),
+              {
+                stdio: "ignore",
+                timeout: 1000 * 60, //1m
+              }
             );
           }
 
