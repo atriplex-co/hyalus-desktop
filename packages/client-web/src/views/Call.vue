@@ -174,7 +174,7 @@ export default {
         });
 
       tiles.map((tile) => {
-        tile.id = `${tile.user.id}:${tile.stream?.type || "none"}`;
+        tile.id = `${tile.user.id}:${tile.stream?.type || "audio"}`;
       });
 
       return tiles.sort((a, b) => (a.id > b.id ? 1 : -1));
