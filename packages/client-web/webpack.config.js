@@ -78,17 +78,10 @@ module.exports = {
   externals: ["path", "crypto", "os", "electron", "fs"],
   cache: {
     type: "filesystem",
-    buildDependencies: {
-      config: [__filename],
-    },
-  },
-  snapshot: {
-    managedPaths: [path.join(__dirname, "node_modules")],
   },
   optimization: {
     minimizer: [
       new TerserPlugin({
-        parallel: true,
         terserOptions: {
           compress: false,
         },
