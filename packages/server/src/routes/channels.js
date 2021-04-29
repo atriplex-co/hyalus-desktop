@@ -109,7 +109,7 @@ app.post(
               return {
                 id: u._id.toString(),
                 name: u.name,
-                avatar: u.avatar.toString(),
+                avatar: u.avatar?.toString(),
                 username: u.username,
                 publicKey: u.publicKey.toString("base64"),
               };
@@ -927,7 +927,7 @@ app.post(
             channel: channel._id.toString(),
             id: targetUser._id.toString(),
             name: targetUser.name,
-            avatar: targetUser.avatar.toString(),
+            avatar: targetUser.avatar?.toString(),
             username: targetUser.username,
             publicKey: targetUser.publicKey.toString("base64"),
             removed: false,
@@ -946,7 +946,7 @@ app.post(
       users.push({
         id: user._id.toString(),
         name: user.name,
-        avatar: user.avatar.toString(),
+        avatar: user.avatar?.toString(),
         username: user.username,
         publicKey: user.publicKey.toString("base64"),
         removed: meta.removed,
@@ -959,7 +959,7 @@ app.post(
         id: channel._id.toString(),
         type: channel.type,
         name: channel.name,
-        avatar: channel.avatar && channel.avatar.toString(),
+        avatar: channel.avatar && channel.avatar?.toString(),
         writable: channel.writable,
         users: users.filter((u) => u.id !== req.body.user),
       },

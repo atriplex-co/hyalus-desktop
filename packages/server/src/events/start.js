@@ -44,7 +44,7 @@ module.exports = async (ws, msg) => {
   const formattedUser = {
     id: user._id.toString(),
     name: user.name,
-    avatar: user.avatar.toString(),
+    avatar: user.avatar?.toString(),
     username: user.username,
     totpEnabled: Boolean(user.totpSecret),
     createdAt: user.createdAt,
@@ -87,7 +87,7 @@ module.exports = async (ws, msg) => {
       user: {
         id: user._id.toString(),
         name: user.name,
-        avatar: user.avatar.toString(),
+        avatar: user.avatar?.toString(),
         username: user.username,
       },
       accepted: friend.accepted,

@@ -91,7 +91,7 @@ app.post(
         user: {
           id: user._id.toString(),
           name: user.name,
-          avatar: user.avatar.toString(),
+          avatar: user.avatar?.toString(),
           username: user.username,
         },
         accepted: false,
@@ -106,7 +106,7 @@ app.post(
         user: {
           id: req.user._id.toString(),
           name: req.user.name,
-          avatar: req.user.avatar.toString(),
+          avatar: req.user.avatar?.toString(),
           username: req.user.username,
         },
         accepted: false,
@@ -265,7 +265,7 @@ app.post(
             {
               id: req.user._id.toString(),
               name: req.user.name,
-              avatar: req.user.avatar.toString(),
+              avatar: req.user.avatar?.toString(),
               username: req.user.username,
               publicKey: req.user.publicKey.toString("base64"),
             },
@@ -284,7 +284,7 @@ app.post(
             {
               id: initatorUser._id.toString(),
               name: initatorUser.name,
-              avatar: initatorUser.avatar.toString(),
+              avatar: initatorUser.avatar?.toString(),
               username: initatorUser.username,
               publicKey: initatorUser.publicKey.toString("base64"),
             },
