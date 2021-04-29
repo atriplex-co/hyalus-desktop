@@ -1,7 +1,15 @@
 <template>
   <div v-if="id" class="overflow-hidden">
     <img :src="url" v-if="type === 'image'" />
-    <video :src="url" autoplay loop muted v-if="type === 'video'" />
+    <video
+      :src="url"
+      v-if="type === 'video'"
+      loop
+      muted
+      :autoplay="autoplay"
+      @mouseover="animatedPlay"
+      @mouseout="animatedReset"
+    />
   </div>
   <img src="../images/default-user.png" v-else />
 </template>
@@ -10,7 +18,7 @@
 import axios from "axios";
 
 export default {
-  props: ["id"],
+  props: ["id", "autoplay"],
   data() {
     return {
       type: null,
@@ -28,6 +36,13 @@ export default {
         this.type = headers["content-type"].split("/")[0];
         this.url = URL.createObjectURL(data);
       }
+    },
+    animatedPlay({ target }) {
+      target.play();
+    },
+    animatedReset({ target }) {
+      target.pause();
+      target.currentTime = 0;
     },
   },
   created() {

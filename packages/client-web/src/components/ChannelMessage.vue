@@ -42,7 +42,7 @@
           }"
           v-if="senderCard"
         >
-          <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" />
+          <UserAvatar class="w-12 h-12 rounded-full" :id="sender.avatar" autoplay />
           <div
             :class="{
               'flex items-end flex-col': sentByMe && messageSides,
