@@ -1,6 +1,4 @@
 <template>
-  <div class="flex h-full">
-    <Sidebar />
     <div class="flex-1 px-12 pt-16 overflow-auto">
       <p class="text-4xl font-bold mb-8">Settings</p>
       <div class="flex items-center justify-between h-12">
@@ -307,7 +305,6 @@
         </div>
       </div>
       <div class="pt-20"></div>
-    </div>
     <SetNameModal v-if="setNameModal" @close="setNameModal = false" />
     <SetUsernameModal
       v-if="setUsernameModal"
@@ -322,7 +319,7 @@
       v-if="totpDisableModal"
       @close="totpDisableModal = false"
     />
-  </div>
+    </div>
 </template>
 
 <script>
@@ -587,7 +584,6 @@ export default {
     this.$store.commit("setSidebarHidden", true);
   },
   components: {
-    Sidebar: () => import("../components/Sidebar"),
     UserAvatar: () => import("../components/UserAvatar"),
     Toggle: () => import("../components/Toggle"),
     SetNameModal: () => import("../components/SetNameModal"),

@@ -10,7 +10,10 @@
     <BetaBanner v-if="!betaBanner" />
     <div class="flex-1 min-h-0">
       <LoadingView v-if="loading" />
-      <router-view v-else />
+      <div v-else class="flex h-full">
+        <Sidebar v-if="showSidebar" />
+        <router-view />
+      </div>
     </div>
   </div>
 </template>
@@ -33,11 +36,23 @@ export default {
     syntaxTheme() {
       return this.$store.getters.syntaxTheme;
     },
+    showSidebar() {
+      const allow = [
+        //
+        "app",
+        "channel",
+        "channelCall",
+        "settings",
+      ];
+
+      return allow.find((i) => i === this.$route.name);
+    },
   },
   components: {
     BetaBanner: () => import("./components/BetaBanner"),
     DesktopTitlebar: () => import("./components/DesktopTitlebar"),
     LoadingView: () => import("./views/Loading"),
+    Sidebar: () => import("./components/Sidebar"),
   },
 };
 </script>

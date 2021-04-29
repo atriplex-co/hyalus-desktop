@@ -1,71 +1,68 @@
 <template>
-  <div class="flex h-full min-h-0">
-    <Sidebar />
-    <div
-      class="flex flex-col flex-1 min-h-0 p-2 bg-gray-900"
-      v-if="channel && voice"
-      :class="{
-        '-mt-4': isTitled,
-      }"
-    >
-      <div class="flex-1 relative" ref="tiles">
-        <VoiceTile
-          class="absolute"
-          v-for="tile in tiles"
-          v-bind:key="tile.id"
-          :tile="tile"
+  <div
+    class="flex flex-col flex-1 min-h-0 p-2 bg-gray-900"
+    v-if="channel && voice"
+    :class="{
+      '-mt-4': isTitled,
+    }"
+  >
+    <div class="flex-1 relative" ref="tiles">
+      <VoiceTile
+        class="absolute"
+        v-for="tile in tiles"
+        v-bind:key="tile.id"
+        :tile="tile"
+      />
+    </div>
+    <div class="flex items-center justify-center space-x-4 p-2">
+      <div @click="toggleAudio">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-700 hover:bg-gray-600 border-transparent': audioEnabled,
+            'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !audioEnabled,
+          }"
+        >
+          <MicIcon v-if="audioEnabled" />
+          <MicOffIcon v-else />
+        </div>
+      </div>
+      <div @click="toggleVideo">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-700 hover:bg-gray-600 border-transparent': videoEnabled,
+            'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !videoEnabled,
+          }"
+        >
+          <VideoIcon v-if="videoEnabled" />
+          <VideoOffIcon v-else />
+        </div>
+      </div>
+      <div @click="leave">
+        <CallEndIcon
+          class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
         />
       </div>
-      <div class="flex items-center justify-center space-x-4 p-2">
-        <div @click="toggleAudio">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': audioEnabled,
-              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !audioEnabled,
-            }"
-          >
-            <MicIcon v-if="audioEnabled" />
-            <MicOffIcon v-else />
-          </div>
-        </div>
-        <div @click="toggleVideo">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': videoEnabled,
-              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !videoEnabled,
-            }"
-          >
-            <VideoIcon v-if="videoEnabled" />
-            <VideoOffIcon v-else />
-          </div>
-        </div>
-        <div @click="leave">
-          <CallEndIcon
-            class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
-          />
-        </div>
-        <div @click="toggleDisplay">
-          <DisplayIcon
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': displayEnabled,
-              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !displayEnabled,
-            }"
-          />
-        </div>
-        <div @click="toggleDeaf">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-700 hover:bg-gray-600 border-transparent': isDeaf,
-              'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !isDeaf,
-            }"
-          >
-            <AudioOffIcon v-if="isDeaf" />
-            <AudioIcon v-else />
-          </div>
+      <div @click="toggleDisplay">
+        <DisplayIcon
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-700 hover:bg-gray-600 border-transparent': displayEnabled,
+            'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !displayEnabled,
+          }"
+        />
+      </div>
+      <div @click="toggleDeaf">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-700 hover:bg-gray-600 border-transparent': isDeaf,
+            'text-gray-400 border-gray-700 hover:text-gray-300 hover:border-gray-600': !isDeaf,
+          }"
+        >
+          <AudioOffIcon v-if="isDeaf" />
+          <AudioIcon v-else />
         </div>
       </div>
     </div>
@@ -372,7 +369,6 @@ export default {
     },
   },
   components: {
-    Sidebar: () => import("../components/Sidebar"),
     ErrorIcon: () => import("../icons/Error"),
     PhoneIcon: () => import("../icons/Phone"),
     VideoIcon: () => import("../icons/Video"),
