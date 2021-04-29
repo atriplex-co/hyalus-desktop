@@ -99,10 +99,6 @@ const videoTypes = [
 ];
 
 const notify = async (opts) => {
-  try {
-    new Audio(sndNotification).play();
-  } catch {}
-
   let icon = opts.icon;
 
   if (!icon) {
@@ -144,11 +140,14 @@ const notify = async (opts) => {
     }
   }
 
-  new Notification(opts.title, {
-    icon,
-    silent: true,
-    body: opts.body,
-  });
+  try {
+    new Audio(sndNotification).play();
+    new Notification(opts.title, {
+      icon,
+      silent: true,
+      body: opts.body,
+    });
+  } catch {}
 };
 
 export default new Vuex.Store({
