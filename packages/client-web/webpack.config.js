@@ -16,14 +16,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
-        loader: "babel-loader",
-        exclude: [/node_modules/],
-        options: {
-          presets: ["@babel/preset-env"],
-        },
-      },
-      {
         test: /\.vue$/,
         loader: "vue-loader",
       },
@@ -65,21 +57,21 @@ module.exports = {
     extensions: [".js", ".vue"],
   },
   plugins: [
+    new ProgressPlugin(),
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, "src/index.html"),
       minify: true,
     }),
-    new ProgressPlugin(),
+    new GenerateSW({
+      exclude: ["/index.html"],
+    }),
     new CopyPlugin({
       patterns: [
         {
           from: path.join(__dirname, "src/static"),
         },
       ],
-    }),
-    new GenerateSW({
-      exclude: ["/index.html"],
     }),
   ],
   externals: ["path", "crypto", "os", "electron", "fs"],

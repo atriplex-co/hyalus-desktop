@@ -1,5 +1,3 @@
-import "core-js";
-import "regenerator-runtime";
 import Vue from "vue";
 import App from "./App";
 import store from "./store";

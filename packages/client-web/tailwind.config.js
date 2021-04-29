@@ -3,6 +3,7 @@ const colors = require("tailwindcss/colors");
 const swapper = require("tailwindcss-theme-swapper");
 
 module.exports = {
+  jit: true,
   purge: [`${path.join(__dirname, "src")}/**/*.vue`],
   darkMode: false, // or 'media' or 'class'
   theme: {
@@ -52,10 +53,6 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    require("@tailwindcss/aspect-ratio"),
-    // require("@tailwindcss/typography"),
-    // require("@tailwindcss/forms"),
-    // require("@tailwindcss/line-clamp"),
     swapper({
       themes: [
         {
@@ -63,14 +60,11 @@ module.exports = {
           selectors: [":root"],
           theme: {
             colors: {
-              //default accent color goes here.
               primary: colors.emerald,
             },
           },
         },
         ...[
-          //this will be a lot less janky once we move to @tailwindcss/jit.
-          //we're currently waiting for it to be merged upstream.
           "red",
           "orange",
           "amber",
