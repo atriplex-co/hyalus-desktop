@@ -60,6 +60,7 @@ export default {
         "channel",
         "channelCall",
         "settings",
+        "friends",
       ];
 
       return allow.find((i) => i === this.$route.name);
