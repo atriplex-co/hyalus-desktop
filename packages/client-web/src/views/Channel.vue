@@ -221,6 +221,8 @@ export default {
       }
     },
     async sendMessage() {
+      this.lastScrollBottom = true;
+
       const _message = this.message.trim();
       this.message = "";
       setTimeout(() => this.messageInput(), 1);
