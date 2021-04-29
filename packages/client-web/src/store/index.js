@@ -98,6 +98,59 @@ const videoTypes = [
   "video/quicktime",
 ];
 
+const notify = async (opts) => {
+  try {
+    new Audio(sndNotification).play();
+  } catch {}
+
+  let icon = opts.icon;
+
+  if (!icon) {
+    if (opts.avatar) {
+      const { data, headers } = await axios.get(`/api/avatars/${opts.avatar}`, {
+        responseType: "blob",
+      });
+
+      icon = URL.createObjectURL(data);
+
+      if (headers["content-type"].split("/")[0] === "video") {
+        const video = document.createElement("video");
+
+        video.addEventListener("loadedmetadata", () => {
+          video.currentTime = 0;
+        });
+
+        video.addEventListener("seeked", () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas
+            .getContext("2d")
+            .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          notify({
+            ...opts,
+            icon: canvas.toDataURL(),
+          });
+        });
+
+        video.muted = true;
+        video.autoplay = true;
+        video.src = icon;
+        return;
+      }
+    } else {
+      icon = imgDefaultUser;
+    }
+  }
+
+  new Notification(opts.title, {
+    icon,
+    silent: true,
+    body: opts.body,
+  });
+};
+
 export default new Vuex.Store({
   state: {
     user: null,
@@ -285,25 +338,11 @@ export default new Vuex.Store({
         state.friends.push(merged);
 
         if (state.ready && merged.acceptable) {
-          try {
-            new Audio(sndNotification).play();
-          } catch {}
-
-          if (typeof process === "undefined") {
-            let icon;
-
-            if (merged.user.avatar === "default") {
-              icon = imgDefaultUser;
-            } else {
-              icon = `${state.baseUrl}/api/avatars/${merged.user.avatar}`;
-            }
-
-            new Notification(merged.user.name, {
-              icon,
-              silent: true,
-              body: "Sent you a friend request",
-            });
-          }
+          notify({
+            title: merged.user.name,
+            avatar: merged.user.avatar,
+            body: "Sent you a friend request",
+          });
         }
       }
     },
@@ -526,34 +565,21 @@ export default new Vuex.Store({
           }
 
           if (playSound) {
-            try {
-              new Audio(sndNotification).play();
-            } catch {}
+            let title = "";
 
-            if (typeof process !== "undefined") {
-              let icon;
-              let title;
-
-              if (sender.avatar === "default") {
-                icon = imgDefaultUser;
-              } else {
-                icon = `${state.baseUrl}/api/avatars/${sender.avatar}`;
-              }
-
-              if (channel.type === "dm") {
-                title = sender.name;
-              }
-
-              if (channel.type === "group") {
-                title = `${sender.name} (${channel.name})`;
-              }
-
-              new Notification(title, {
-                icon,
-                silent: true,
-                body: merged.decrypted,
-              });
+            if (channel.type === "dm") {
+              title = sender.name;
             }
+
+            if (channel.type === "group") {
+              title = `${sender.name} (${channel.name})`;
+            }
+
+            notify({
+              title,
+              avatar: sender.avatar,
+              body: merged.decrypted,
+            });
           }
         }
       } else {
