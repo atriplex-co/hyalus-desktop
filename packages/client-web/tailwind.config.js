@@ -3,7 +3,7 @@ const colors = require("tailwindcss/colors");
 const swapper = require("tailwindcss-theme-swapper");
 
 module.exports = {
-  jit: true,
+  mode: "jit",
   purge: [`${path.join(__dirname, "src")}/**/*.vue`],
   darkMode: false, // or 'media' or 'class'
   theme: {

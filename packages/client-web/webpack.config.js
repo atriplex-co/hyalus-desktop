@@ -55,6 +55,7 @@ module.exports = {
   },
   resolve: {
     extensions: [".js", ".vue"],
+    symlinks: false,
   },
   plugins: [
     new ProgressPlugin(),
@@ -93,5 +94,11 @@ module.exports = {
         },
       }),
     ],
+    splitChunks: {
+      chunks: "all",
+      minSize: 0,
+      maxInitialRequests: Infinity,
+    },
+    runtimeChunk: true,
   },
 };
