@@ -142,6 +142,8 @@ const notify = async (opts) => {
 
   try {
     new Audio(sndNotification).play();
+
+    await Notification.requestPermission();
     new Notification(opts.title, {
       icon,
       silent: true,
@@ -326,8 +328,9 @@ export default new Vuex.Store({
       }
     },
     setFriend(state, friend) {
+      const old = state.friends.find((f) => f.id === friend.id)
       const merged = {
-        ...state.friends.find((f) => f.id === friend.id),
+        ...old,
         ...friend,
       };
 
@@ -341,6 +344,14 @@ export default new Vuex.Store({
             title: merged.user.name,
             avatar: merged.user.avatar,
             body: "Sent you a friend request",
+          });
+        }
+
+        if (state.ready && merged.accepted && !old.acceptable) {
+          notify({
+            title: merged.user.name,
+            avatar: merged.user.avatar,
+            body: "Accepted your friend request",
           });
         }
       }
