@@ -1,6 +1,6 @@
 {
   "name": "client-desktop",
-  "version": "0.0.42",
+  "version": "0.0.43",
   "main": "src/index.js",
   "license": "MIT",
   "build": {
