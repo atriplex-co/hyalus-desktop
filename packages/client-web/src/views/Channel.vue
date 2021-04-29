@@ -364,10 +364,12 @@ export default {
     },
   },
   created() {
+    this.$store.commit("setSidebarHidden", true);
+  },
+  mounted() {
     this.update();
     this.scrollInterval = setInterval(this.updateScroll, 100);
     this.typingStatusInterval = setInterval(this.updateTypingStatus, 100);
-    this.$store.commit("setSidebarHidden", true);
   },
   beforeDestroy() {
     document.title = "Hyalus";

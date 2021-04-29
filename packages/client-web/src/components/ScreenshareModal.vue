@@ -93,7 +93,7 @@ export default {
       ).sort((a, b) => (a.id > b.id ? 1 : -1));
     },
   },
-  beforeMount() {
+  created() {
     this.updateSources();
     this.updateSourcesInterval = setInterval(this.updateSources, 1000);
   },
