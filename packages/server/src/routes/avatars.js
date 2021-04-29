@@ -48,9 +48,6 @@ app.post(
         try {
           const probed = await ffprobe(`${tmp}/input.dat`);
           let type;
-
-          console.log(probed);
-
           let cropWidth;
           let cropX = 0;
           let cropY = 0;
