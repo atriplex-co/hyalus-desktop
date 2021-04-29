@@ -19,13 +19,15 @@ export default {
   },
   methods: {
     async update() {
-      axios.defaults.baseURL = this.$store.getters.baseUrl;
-      const { data, headers } = await axios.get(`/api/avatars/${this.id}`, {
-        responseType: "blob",
-      });
+      if (this.id) {
+        axios.defaults.baseURL = this.$store.getters.baseUrl;
+        const { data, headers } = await axios.get(`/api/avatars/${this.id}`, {
+          responseType: "blob",
+        });
 
-      this.type = headers["content-type"].split("/")[0];
-      this.url = URL.createObjectURL(data);
+        this.type = headers["content-type"].split("/")[0];
+        this.url = URL.createObjectURL(data);
+      }
     },
   },
   created() {
