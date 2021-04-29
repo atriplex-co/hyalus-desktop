@@ -2083,7 +2083,7 @@ export default new Vuex.Store({
 
           pendingIn = bufIn.slice(i);
 
-          if (results.reduce((a, b) => a + b) / results.length > 0.8) {
+          if (results.reduce((a, b) => a + b) / results.length > 0.3) {
             if (closeTimeout) {
               clearTimeout(closeTimeout);
             }
@@ -2091,13 +2091,13 @@ export default new Vuex.Store({
             gain.gain.setValueAtTime(1, ctx.currentTime);
 
             closeTimeout = setTimeout(() => {
-              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+              gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
             }, 200);
           }
         });
 
         origGain.gain.setValueAtTime(2, ctx.currentTime);
-        delay.delayTime.setValueAtTime(0.5, ctx.currentTime);
+        delay.delayTime.setValueAtTime(0.2, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
 
         [
