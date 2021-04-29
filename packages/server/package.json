@@ -7,6 +7,7 @@
     "start": "pm2 start --name hyalus .",
     "stop": "pm2 stop hyalus",
     "restart": "pm2 restart hyalus",
+    "logs": "pm2 logs hyalus",
     "dev": "nodemon -w src -e js,json ."
   },
   "dependencies": {
