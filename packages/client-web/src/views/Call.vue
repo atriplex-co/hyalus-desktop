@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col flex-1 min-h-0 p-2 bg-gray-900"
+    class="flex-1 flex flex-col min-h-0 p-2 bg-gray-900"
     v-if="channel && voice"
     :class="{
       '-mt-4': isTitled,
@@ -354,11 +354,10 @@ export default {
     this.updateLayout();
   },
   mounted() {
-    addEventListener("resize", this.updateLayout);
+    new ResizeObserver(this.updateLayout).observe(this.$refs.tiles);
   },
   beforeDestroy() {
     document.title = "Hyalus";
-    removeEventListener("resize", this.updateLayout);
   },
   watch: {
     channel() {
