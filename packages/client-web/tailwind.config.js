@@ -60,7 +60,7 @@ module.exports = {
           selectors: [":root"],
           theme: {
             colors: {
-              primary: colors.emerald,
+              primary: colors.green,
             },
           },
         },
