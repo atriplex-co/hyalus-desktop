@@ -128,7 +128,7 @@ app.post(
       },
     });
 
-    res.status(204).end();
+    res.end();
   }
 );
 
@@ -182,7 +182,7 @@ app.post(
       },
     });
 
-    res.status(204).end();
+    res.end();
   }
 );
 

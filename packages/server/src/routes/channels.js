@@ -6,9 +6,12 @@ const Joi = require("joi");
 const app = express.Router();
 const { ObjectId } = require("mongodb");
 const Busboy = require("busboy");
-const sharp = require("sharp");
 const crypto = require("crypto");
 const ratelimit = require("../middleware/ratelimit");
+const _ffmpeg = require("fluent-ffmpeg");
+const { ffmpeg, ffprobe } = require("../util");
+const fs = require("fs");
+const os = require("os");
 
 app.post(
   "/",
@@ -552,7 +555,7 @@ app.delete(
       });
     }
 
-    res.status(204).end();
+    res.end();
   }
 );
 
@@ -621,86 +624,166 @@ app.post(
       file.on("end", async () => {
         const data = Buffer.concat(bufs);
 
-        if (data.length > 1024 * 1024 * 5) {
+        if (data.length > 1024 * 1024 * 10) {
           res.status(400).json({
-            error: "Avatar too large (5MB max)",
+            error: "Avatar too large (10MB max)",
           });
         }
 
-        let img;
+        const tmp = fs.mkdtempSync(`${os.tmpdir()}/`);
+        fs.writeFileSync(`${tmp}/input.dat`, data);
 
         try {
-          img = await sharp(Buffer.concat(bufs))
-            .resize(256, 256)
-            .toFormat("webp", {
-              quality: 80,
-            })
-            .toBuffer();
-        } catch {
-          res.status(400).json({
-            error: "Unsupported or invalid image data",
+          const probed = await ffprobe(`${tmp}/input.dat`);
+          let type;
+
+          console.log(probed);
+
+          let cropWidth;
+          let cropX = 0;
+          let cropY = 0;
+
+          if (probed.streams[0].width > probed.streams[0].height) {
+            cropWidth = probed.streams[0].height;
+            cropX = (probed.streams[0].width - cropWidth) / 2;
+            cropY = 0;
+          } else {
+            cropWidth = probed.streams[0].width;
+            cropX = 0;
+            cropY = (probed.streams[0].height - cropWidth) / 2;
+          }
+
+          //image has more than 1 frame.
+          if (probed.streams[0].nb_frames === "N/A") {
+            type = "image/webp";
+
+            await ffmpeg(
+              _ffmpeg({
+                niceness: 19,
+                logger: req.deps.ws,
+                timeout: 60, //1m
+              })
+                .input(`${tmp}/input.dat`)
+                .inputFormat(probed.format.format_name)
+                .addOptions([
+                  "-c:v libwebp",
+                  "-qscale 80",
+                  "-pix_fmt yuv420p",
+                  "-frames:v 1",
+                  `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256`,
+                ])
+                .outputFormat("webp")
+                .output(`${tmp}/output.dat`)
+            );
+          } else {
+            type = "video/mp4";
+
+            await ffmpeg(
+              _ffmpeg({
+                niceness: 19,
+                logger: req.deps.ws,
+                timeout: 60, //1m
+              })
+                .input(`${tmp}/input.dat`)
+                .inputFormat(probed.format.format_name)
+                .addOptions([
+                  "-an",
+                  "-c:v libx264",
+                  "-crf 30",
+                  "-preset veryfast",
+                  "-profile:v high",
+                  "-pix_fmt yuv420p",
+                  ...(probed.streams[0].nb_frames / probed.streams[0].duration >
+                  30 //fps>30 effectively.
+                    ? [
+                        `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256,fps=30`,
+                      ]
+                    : [
+                        `-vf crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=256:256`,
+                      ]),
+                ])
+                .outputFormat("mp4")
+                .output(`${tmp}/output.dat`)
+            );
+          }
+
+          const data = fs.readFileSync(`${tmp}/output.dat`);
+          const hash = crypto
+            .createHash("sha256")
+            .update(data)
+            .digest();
+
+          let avatar = await req.deps.db.collection("avatars").findOne({
+            hash,
           });
 
-          return;
-        }
+          if (!avatar) {
+            avatar = (
+              await req.deps.db.collection("avatars").insertOne({
+                hash,
+                data,
+                type,
+              })
+            ).ops[0];
+          }
 
-        const hash = crypto
-          .createHash("sha256")
-          .update(img)
-          .digest();
+          await req.deps.db.collection("channels").updateOne(channel, {
+            $set: {
+              avatar: avatar._id,
+            },
+          });
 
-        let avatar = await req.deps.db.collection("avatars").findOne({
-          hash,
-        });
+          if (
+            !(await req.deps.db.collection("users").findOne({
+              avatar: channel.avatar,
+            })) &&
+            !(await req.deps.db.collection("channels").findOne({
+              avatar: channel.avatar,
+            }))
+          ) {
+            await req.deps.db.collection("avatars").deleteOne({
+              _id: channel.avatar,
+            });
+          }
 
-        if (!avatar) {
-          avatar = (
-            await req.deps.db.collection("avatars").insertOne({
-              hash,
-              img,
+          const message = (
+            await req.deps.db.collection("messages").insertOne({
+              channel: channel._id,
+              sender: req.session.user,
+              time: new Date(),
+              type: "channelAvatar",
+              body: null,
+              keys: null,
             })
           ).ops[0];
-        }
 
-        await req.deps.db.collection("channels").updateOne(channel, {
-          $set: {
-            avatar: avatar._id,
-          },
-        });
+          for (const user of channel.users.filter((u) => !u.removed)) {
+            req.deps.redis.publish(`user:${user.id}`, {
+              t: "channel",
+              d: {
+                id: channel._id.toString(),
+                avatar: avatar._id.toString(),
+              },
+            });
 
-        const message = (
-          await req.deps.db.collection("messages").insertOne({
-            channel: channel._id,
-            sender: req.session.user,
-            time: new Date(),
-            type: "channelAvatar",
-            body: null,
-            keys: null,
-          })
-        ).ops[0];
+            req.deps.redis.publish(`user:${user.id}`, {
+              t: "message",
+              d: {
+                channel: channel._id.toString(),
+                id: message._id.toString(),
+                sender: message.sender.toString(),
+                time: message.time,
+                type: message.type,
+              },
+            });
+          }
 
-        for (const user of channel.users.filter((u) => !u.removed)) {
-          req.deps.redis.publish(`user:${user.id}`, {
-            t: "channel",
-            d: {
-              id: channel._id.toString(),
-              avatar: avatar._id.toString(),
-            },
-          });
-
-          req.deps.redis.publish(`user:${user.id}`, {
-            t: "message",
-            d: {
-              channel: channel._id.toString(),
-              id: message._id.toString(),
-              sender: message.sender.toString(),
-              time: message.time,
-              type: message.type,
-            },
+          res.end();
+        } catch (e) {
+          res.status(400).json({
+            error: "Invalid or unsupported image format",
           });
         }
-
-        res.end();
       });
     });
 
@@ -1059,7 +1142,7 @@ app.delete(
       },
     });
 
-    res.status(204).end();
+    res.end();
   }
 );
 
@@ -1181,7 +1264,7 @@ app.post(
       },
     });
 
-    res.status(204).end();
+    res.end();
   }
 );
 
