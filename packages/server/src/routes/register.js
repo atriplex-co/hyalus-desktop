@@ -62,7 +62,7 @@ app.post(
           req.body.encryptedPrivateKey,
           "base64"
         ),
-        avatar: "default",
+        avatar: null,
         accentColor: "green",
         createdAt: new Date(),
         updatedAt: new Date(),
