@@ -91,7 +91,7 @@ export default {
       return this.$store.getters.user;
     },
     showAvatarCard() {
-      return this.$store.getters.user.avatar === "default";
+      return !this.$store.getters.user.avatar;
     },
     showDesktopAppCard() {
       return typeof process === "undefined";
