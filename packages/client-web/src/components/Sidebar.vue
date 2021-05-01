@@ -5,7 +5,7 @@
       'hidden sm:flex': hidden,
     }"
   >
-    <div class="flex items-center px-2 py-4 border-b border-gray-750">
+    <div class="flex items-center h-20 px-2 border-b border-gray-750">
       <div class="flex items-center flex-1 min-w-0 space-x-2">
         <div class="relative cursor-pointer" @click="statusMenu = !statusMenu">
           <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />

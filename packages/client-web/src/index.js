@@ -24,3 +24,5 @@ console.log("%c[!] Pasting here may comprimise security!", `color:#f55;`);
 if (navigator.serviceWorker && typeof process === "undefined") {
   navigator.serviceWorker.register("/service-worker.js");
 }
+
+window._commit = _commit;

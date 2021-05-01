@@ -2,9 +2,10 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const TerserPlugin = require("terser-webpack-plugin");
-const { ProgressPlugin } = require("webpack");
+const { ProgressPlugin, DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const { GenerateSW } = require("workbox-webpack-plugin");
+const proc = require("child_process");
 
 module.exports = {
   mode: "production",
@@ -73,6 +74,14 @@ module.exports = {
           from: path.join(__dirname, "src/static"),
         },
       ],
+    }),
+    new DefinePlugin({
+      _commit: JSON.stringify(
+        proc
+          .execSync("git rev-parse --short HEAD")
+          .toString()
+          .trim()
+      ),
     }),
   ],
   externals: ["path", "crypto", "os", "electron", "fs"],

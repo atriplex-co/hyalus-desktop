@@ -9,36 +9,38 @@
     @dragsend.prevent
   >
     <div
-      class="flex items-center justify-between px-2 py-4 border-b border-gray-800 min-w-0 space-x-2"
+      class="flex items-center justify-between h-20 px-4 border-b border-gray-800 min-w-0 space-x-2"
     >
-      <div class="flex items-center space-x-4 min-w-0">
-        <router-link to="/app" class="sm:hidden">
+      <div class="flex items-center min-w-0">
+        <router-link to="/app" class="sm:hidden mr-4">
           <ArrowLeftIcon
             class="w-8 h-8 p-2 flex-shrink-0 rounded-full bg-gray-800 text-gray-400 sm:hidden"
           />
         </router-link>
-        <div :class="{ 'cursor-pointer': channel.admin }" @click="setAvatar">
-          <UserAvatar
-            class="w-12 h-12 rounded-full"
-            :id="avatar"
-            v-if="avatar"
-          />
-          <div
-            class="flex items-center justify-center w-12 h-12 text-xl font-bold bg-primary-500 text-white rounded-full"
-            v-else
-          >
-            {{ name.slice(0, 1).toUpperCase() }}
+        <div class="space-x-4 min-w-0 flex items-center">
+          <div :class="{ 'cursor-pointer': channel.admin }" @click="setAvatar">
+            <UserAvatar
+              class="w-12 h-12 rounded-full"
+              :id="avatar"
+              v-if="avatar"
+            />
+            <div
+              class="flex items-center justify-center w-12 h-12 text-xl font-bold bg-primary-500 text-white rounded-full"
+              v-else
+            >
+              {{ name.slice(0, 1).toUpperCase() }}
+            </div>
           </div>
-        </div>
-        <div class="min-w-0">
-          <p
-            class="font-bold truncate"
-            :class="{ 'cursor-pointer': channel.admin }"
-            @click="setName"
-          >
-            {{ name }}
-          </p>
-          <p class="text-xs text-gray-400">{{ description }}</p>
+          <div class="min-w-0">
+            <p
+              class="font-bold truncate"
+              :class="{ 'cursor-pointer': channel.admin }"
+              @click="setName"
+            >
+              {{ name }}
+            </p>
+            <p class="text-xs text-gray-400">{{ description }}</p>
+          </div>
         </div>
       </div>
       <div class="flex items-center space-x-2 text-gray-400">
