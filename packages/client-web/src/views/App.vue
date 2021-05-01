@@ -113,9 +113,10 @@ export default {
     }
 
     this.$store.commit("setSidebarHidden", false);
-
+  },
+  async mounted() {
     try {
-      await Notification.requestPermission();
+      Notification.requestPermission();
     } catch {}
   },
   components: {
