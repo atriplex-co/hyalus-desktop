@@ -326,7 +326,7 @@ export default new Vuex.Store({
       }
     },
     setFriend(state, friend) {
-      const old = state.friends.find((f) => f.id === friend.id)
+      const old = state.friends.find((f) => f.id === friend.id);
       const merged = {
         ...old,
         ...friend,
@@ -345,7 +345,7 @@ export default new Vuex.Store({
           });
         }
 
-        if (state.ready && merged.accepted && !old.acceptable) {
+        if (state.ready && merged.accepted && old && !old.acceptable) {
           notify({
             title: merged.user.name,
             avatar: merged.user.avatar,
@@ -1083,9 +1083,7 @@ export default new Vuex.Store({
           commit("resetUser");
           commit("resetFriends");
           commit("resetChannels");
-
           commit("setUser", data.d.user);
-
           dispatch("updateFavicon");
 
           data.d.friends.map((friend) => {
