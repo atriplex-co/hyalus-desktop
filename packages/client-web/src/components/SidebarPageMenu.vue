@@ -49,5 +49,10 @@ export default {
       this.$store.dispatch("logout");
     },
   },
+  watch: {
+    $route() {
+      this.$emit("close");
+    },
+  },
 };
 </script>
