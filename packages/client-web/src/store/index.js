@@ -142,8 +142,6 @@ const notify = async (opts) => {
 
   try {
     new Audio(sndNotification).play();
-
-    await Notification.requestPermission();
     new Notification(opts.title, {
       icon,
       silent: true,

@@ -113,6 +113,10 @@ export default {
     }
 
     this.$store.commit("setSidebarHidden", false);
+
+    try {
+      await Notification.requestPermission();
+    } catch {}
   },
   components: {
     AppIcon: () => import("../icons/App"),
