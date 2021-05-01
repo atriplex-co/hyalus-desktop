@@ -42,5 +42,10 @@ export default {
       this.$store.dispatch("setPreferredStatus", status);
     },
   },
+  watch: {
+    $route() {
+      this.$emit("close");
+    },
+  },
 };
 </script>
