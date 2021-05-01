@@ -99,58 +99,68 @@ const videoTypes = [
 ];
 
 const notify = async (opts) => {
-  let icon = opts.icon;
-
-  if (!icon) {
-    if (opts.avatar) {
-      const { data, headers } = await axios.get(`/api/avatars/${opts.avatar}`, {
-        responseType: "blob",
-      });
-
-      icon = URL.createObjectURL(data);
-
-      if (headers["content-type"].split("/")[0] === "video") {
-        const video = document.createElement("video");
-
-        video.addEventListener("loadedmetadata", () => {
-          video.currentTime = 0;
-        });
-
-        video.addEventListener("seeked", () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          canvas
-            .getContext("2d")
-            .drawImage(video, 0, 0, canvas.width, canvas.height);
-
-          notify({
-            ...opts,
-            icon: canvas.toDataURL(),
-          });
-        });
-
-        video.muted = true;
-        video.autoplay = true;
-        video.src = icon;
-        return;
-      }
-    } else {
-      icon = imgDefaultUser;
-    }
+  if (store.getters.notifySound) {
+    try {
+      new Audio(sndNotification).play();
+    } catch {}
   }
 
-  try {
-    new Audio(sndNotification).play();
-    new Notification(opts.title, {
-      icon,
-      silent: true,
-      body: opts.body,
-    });
-  } catch {}
+  if (store.getters.notifySystem) {
+    let icon = opts.icon;
+
+    if (!icon) {
+      if (opts.avatar) {
+        const { data, headers } = await axios.get(
+          `/api/avatars/${opts.avatar}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        icon = URL.createObjectURL(data);
+
+        if (headers["content-type"].split("/")[0] === "video") {
+          const video = document.createElement("video");
+
+          video.addEventListener("loadedmetadata", () => {
+            video.currentTime = 0;
+          });
+
+          video.addEventListener("seeked", () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas
+              .getContext("2d")
+              .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            notify({
+              ...opts,
+              icon: canvas.toDataURL(),
+            });
+          });
+
+          video.muted = true;
+          video.autoplay = true;
+          video.src = icon;
+          return;
+        }
+      } else {
+        icon = imgDefaultUser;
+      }
+    }
+
+    try {
+      new Notification(opts.title, {
+        icon,
+        silent: true,
+        body: opts.body,
+      });
+    } catch {}
+  }
 };
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
     user: null,
     salt: null,
@@ -182,6 +192,8 @@ export default new Vuex.Store({
     syntaxTheme: localStorage.syntaxTheme,
     invite: null,
     sidebarHidden: false,
+    notifySound: localStorage.notifySound,
+    notifySystem: localStorage.notifySystem,
   },
   getters: {
     config: (state) => state.config,
@@ -227,6 +239,8 @@ export default new Vuex.Store({
     syntaxTheme: (state) => state.syntaxTheme || "tomorrow-night",
     invite: (state) => state.invite,
     sidebarHidden: (state) => state.sidebarHidden,
+    notifySound: (state) => !state.notifySound,
+    notifySystem: (state) => !state.notifySystem,
   },
   mutations: {
     setUser(state, user) {
@@ -819,6 +833,24 @@ export default new Vuex.Store({
           ...friend.user,
           ...foreignUser,
         };
+      }
+    },
+    setNotifySound(state, val) {
+      state.notifySound = !val;
+
+      if (val) {
+        localStorage.removeItem("notifySound");
+      } else {
+        localStorage.setItem("notifySound", "a");
+      }
+    },
+    setNotifySystem(state, val) {
+      state.notifySystem = !val;
+
+      if (val) {
+        localStorage.removeItem("notifySystem");
+      } else {
+        localStorage.setItem("notifySystem", "a");
       }
     },
   },
@@ -2514,3 +2546,5 @@ export default new Vuex.Store({
     },
   },
 });
+
+export default store;

@@ -54,6 +54,14 @@
         <Toggle v-model="totpEnabled" />
       </div>
       <div class="flex items-center justify-between h-16 px-6">
+        <p class="font-bold">Sound Notifications</p>
+        <Toggle v-model="notifySound" />
+      </div>
+      <div class="flex items-center justify-between h-16 px-6">
+        <p class="font-bold">System Notifications</p>
+        <Toggle v-model="notifySystem" />
+      </div>
+      <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Send Typing Indicators</p>
         <Toggle v-model="sendTyping" />
       </div>
@@ -533,6 +541,22 @@ export default {
       return this.usableSyntaxThemes.find(
         (t) => t.id === this.$store.getters.syntaxTheme
       ).name;
+    },
+    notifySound: {
+      get() {
+        return this.$store.getters.notifySound;
+      },
+      set(val) {
+        this.$store.commit("setNotifySound", val);
+      },
+    },
+    notifySystem: {
+      get() {
+        return this.$store.getters.notifySystem;
+      },
+      set(val) {
+        this.$store.commit("setNotifySystem", val);
+      },
     },
   },
   methods: {
