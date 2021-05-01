@@ -31,6 +31,7 @@
                 class="w-full px-4 py-2 text-gray-400 bg-gray-900 border rounded-sm border-gray-750 focus:outline-none focus:border-gray-650"
                 type="password"
                 v-model="password"
+                autocomplete="current-password"
               />
             </div>
           </div>
