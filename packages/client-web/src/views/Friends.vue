@@ -5,7 +5,7 @@
     >
       <div class="flex items-center space-x-4">
         <FriendsIcon
-          class="w-8 h-8 text-gray-400 rounded-full p-2 bg-gray-750"
+          class="w-8 h-8 text-gray-400 rounded-full p-2 bg-gray-800"
         />
         <p class="text-2xl font-bold">Friends</p>
       </div>

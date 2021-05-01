@@ -58,7 +58,7 @@
         v-if="showFriendsCard"
       >
         <FriendsIcon
-          class="w-24 h-24 rounded-full bg-gray-750 text-gray-400 p-6 flex-shrink-0"
+          class="w-24 h-24 rounded-full bg-gray-750 text-gray-300 p-6 flex-shrink-0"
         />
         <div class="flex flex-col items-start">
           <p class="text-2xl font-bold">Add your friends</p>

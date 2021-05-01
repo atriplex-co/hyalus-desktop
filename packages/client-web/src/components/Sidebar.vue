@@ -7,32 +7,32 @@
   >
     <div class="flex items-center h-20 px-2 border-b border-gray-750">
       <div class="flex items-center flex-1 min-w-0 space-x-2">
-        <div class="relative cursor-pointer" @click="statusMenu = !statusMenu">
-          <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />
-          <StatusMenu v-if="statusMenu" @close="statusMenu = false" />
+        <div class="relative cursor-pointer">
+          <div @click="showStatusMenu = !showStatusMenu">
+            <UserAvatar class="w-12 h-12 rounded-full" :id="user.avatar" />
+          </div>
+          <SidebarStatusMenu
+            class="absolute"
+            v-if="showStatusMenu"
+            @close="showStatusMenu = false"
+          />
         </div>
         <div class="ml-4 flex-1 min-w-0">
           <p class="font-bold truncate">{{ user.name }}</p>
           <p class="text-xs text-gray-400 truncate">@{{ user.username }}</p>
         </div>
       </div>
-      <div class="flex items-center space-x-2 text-gray-400">
-        <router-link class="relative" to="/friends">
-          <FriendsIcon
-            class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750"
+      <div class="relative">
+        <div @click="showPageMenu = !showPageMenu">
+          <DotsIcon
+            class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750 text-gray-300 hover:text-gray-200 cursor-pointer"
           />
-          <div
-            class="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-xs font-bold text-white rounded-full bg-primary-500"
-            v-if="acceptableFriends"
-          >
-            <p>{{ acceptableFriends }}</p>
-          </div>
-        </router-link>
-        <router-link to="/settings">
-          <SettingsIcon
-            class="w-8 h-8 p-2 transition rounded-full hover:bg-gray-650 bg-gray-750"
-          />
-        </router-link>
+        </div>
+        <SidebarPageMenu
+          class="absolute right-0"
+          v-if="showPageMenu"
+          @close="showPageMenu = false"
+        />
       </div>
     </div>
     <SidebarCall v-if="voice" />
@@ -50,7 +50,8 @@
 export default {
   data() {
     return {
-      statusMenu: false,
+      showPageMenu: false,
+      showStatusMenu: false,
     };
   },
   computed: {
@@ -78,11 +79,10 @@ export default {
   components: {
     UserAvatar: () => import("./UserAvatar"),
     SidebarChannel: () => import("./SidebarChannel"),
-    SettingsIcon: () => import("../icons/Settings"),
-    GroupIcon: () => import("../icons/Group"),
-    FriendsIcon: () => import("../icons/Friends"),
     SidebarCall: () => import("./SidebarCall"),
-    StatusMenu: () => import("./StatusMenu"),
+    DotsIcon: () => import("../icons/Dots"),
+    SidebarStatusMenu: () => import("./SidebarStatusMenu"),
+    SidebarPageMenu: () => import("./SidebarPageMenu"),
   },
 };
 </script>

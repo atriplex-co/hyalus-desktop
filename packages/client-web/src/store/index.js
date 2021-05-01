@@ -1016,11 +1016,10 @@ export default new Vuex.Store({
         dispatch("wsConnect");
       }
     },
-    async logout({ dispatch }) {
+    async logout() {
       await axios.get("/api/logout");
-      dispatch("reset");
     },
-    async reset({ getters, commit, dispatch }) {
+    async reset({ commit, dispatch }) {
       await dispatch("voiceLeave");
 
       commit("setWs", null);

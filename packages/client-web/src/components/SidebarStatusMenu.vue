@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute pt-2">
+  <div class="pt-2">
     <div
       class="bg-gray-800 border border-gray-750 rounded-md shadow-md text-sm"
     >

@@ -2,7 +2,7 @@
   <div class="flex-1 overflow-auto">
     <div class="h-20 border-b border-gray-800 flex items-center px-4 space-x-4">
       <SettingsIcon
-        class="w-8 h-8 text-gray-400 rounded-full p-2 bg-gray-750"
+        class="w-8 h-8 text-gray-400 rounded-full p-2 bg-gray-800"
       />
       <p class="text-2xl font-bold">Settings</p>
     </div>
@@ -319,7 +319,7 @@
         </div>
       </div>
       <div class="flex items-center justify-between h-16 px-6">
-        <p class="font-bold">Logout</p>
+        <p class="font-bold">Log out</p>
         <div @click="logout">
           <LogoutIcon
             class="w-8 h-8 p-2 rounded-full bg-primary-500 hover:bg-primary-600 transition cursor-pointer"
@@ -536,8 +536,8 @@ export default {
     },
   },
   methods: {
-    async logout() {
-      await this.$store.dispatch("logout");
+    logout() {
+      this.$store.dispatch("logout");
     },
     setAvatar() {
       this.$store.dispatch("setAvatar");
