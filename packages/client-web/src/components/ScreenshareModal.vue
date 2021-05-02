@@ -6,7 +6,7 @@
           <DisplayIcon
             class="w-8 h-8 p-2 text-gray-400 rounded-full bg-gray-750"
           />
-          <p class="text-xl font-bold text-gray-300">
+          <p class="text-xl font-bold text-gray-200">
             Screen sharing
           </p>
         </div>

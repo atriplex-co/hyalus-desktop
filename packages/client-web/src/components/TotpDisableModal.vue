@@ -7,7 +7,7 @@
           <LockIcon
             class="w-8 h-8 p-2 text-gray-400 rounded-full bg-gray-750"
           />
-          <p class="text-xl font-bold text-gray-300">Disable 2FA</p>
+          <p class="text-xl font-bold text-gray-200">Disable 2FA</p>
         </div>
         <div
           class="flex items-center p-3 space-x-3 text-sm text-gray-200 border border-gray-700 rounded-md bg-gray-750"

@@ -7,7 +7,7 @@
           <LockIcon
             class="w-8 h-8 p-2 text-gray-400 rounded-full bg-gray-750"
           />
-          <p class="text-xl font-bold text-gray-300">Enable 2FA</p>
+          <p class="text-xl font-bold text-gray-200">Enable 2FA</p>
         </div>
         <img ref="qrcode" />
         <div class="space-y-2 text-sm">

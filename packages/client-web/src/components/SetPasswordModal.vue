@@ -4,7 +4,7 @@
       <div class="p-4 space-y-4">
         <div class="flex items-center space-x-2">
           <KeyIcon class="w-8 h-8 p-2 text-gray-400 rounded-full bg-gray-750" />
-          <p class="text-xl font-bold text-gray-300">
+          <p class="text-xl font-bold text-gray-200">
             Change password
           </p>
         </div>
