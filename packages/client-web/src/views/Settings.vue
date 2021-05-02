@@ -336,7 +336,7 @@
       </div>
     </div>
     <div class="flex flex-col items-center py-8 space-y-4">
-      <AppIcon class="w-8" />
+      <AppIcon class="w-12 h-12" />
       <p class="text-sm text-gray-400">Hyalus ({{ commit }})</p>
     </div>
     <SetNameModal v-if="setNameModal" @close="setNameModal = false" />

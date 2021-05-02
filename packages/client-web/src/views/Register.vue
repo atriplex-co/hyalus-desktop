@@ -3,7 +3,7 @@
     <div
       class="flex flex-col w-full max-w-sm border rounded-md bg-gray-850 border-gray-750"
     >
-      <div class="p-8 border-b border-gray-750 space-y-10">
+      <div class="p-8 border-b border-gray-750 space-y-4">
         <AppIcon class="w-16 h-16" />
         <p class="text-3xl font-bold">Sign in to Hyalus</p>
       </div>

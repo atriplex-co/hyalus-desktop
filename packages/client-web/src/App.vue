@@ -26,7 +26,7 @@
     <DesktopTitlebar v-if="isDesktopApp" />
     <BetaBanner v-if="!betaBanner" />
     <div class="flex-1 min-h-0">
-      <LoadingView v-if="loading" />
+      <LoadingView v-if="isLoading" />
       <div v-else class="flex h-full">
         <Sidebar v-if="showSidebar" />
         <router-view />
@@ -44,7 +44,7 @@ export default {
     isDesktopApp() {
       return typeof process !== "undefined";
     },
-    loading() {
+    isLoading() {
       return this.$store.getters.token && !this.$store.getters.ready;
     },
     accentColor() {
