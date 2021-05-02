@@ -227,6 +227,7 @@ export default {
 
       const _message = this.message.trim();
       this.message = "";
+      this.$refs.messageInput.focus();
       setTimeout(() => this.messageInput(), 1);
 
       if (_message) {
