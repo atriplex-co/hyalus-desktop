@@ -1072,6 +1072,10 @@ const store = new Vuex.Store({
       ws._send = ws.send;
       ws.send = (data) => {
         if (ws.readyState === WebSocket.OPEN) {
+          if (data.t !== "pong") {
+            log.debug("socket/tx", "%o", data);
+          }
+
           ws._send(msgpack.encode(data));
         }
       };
@@ -1095,7 +1099,7 @@ const store = new Vuex.Store({
         data = msgpack.decode(new Uint8Array(data));
 
         if (data.t !== "ping") {
-          console.debug(data);
+          log.debug("socket/rx", "%o", data);
         }
 
         if (data.t === "ping") {
@@ -1702,7 +1706,10 @@ const store = new Vuex.Store({
       };
 
       peer.onconnectionstatechange = () => {
-        console.debug(`${data.user} -> ${data.type}: ${peer.connectionState}`);
+        log.debug(
+          "voice",
+          `${data.user} -> ${data.type}: ${peer.connectionState}`
+        );
 
         if (peer.connectionState === "closed") {
           commit("setRemoteStream", {
@@ -1980,7 +1987,10 @@ const store = new Vuex.Store({
       };
 
       peer.onconnectionstatechange = async () => {
-        console.debug(`${data.type} -> ${data.user}: ${peer.connectionState}`);
+        log.debug(
+          "voice",
+          `${data.type} -> ${data.user}: ${peer.connectionState}`
+        );
 
         if (peer.connectionState === "disconnected") {
           peer.restartIce();

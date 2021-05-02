@@ -204,6 +204,7 @@ export default {
     messageInput() {
       const { messageInput } = this.$refs;
 
+      messageInput.focus();
       messageInput.style.height = "auto";
       messageInput.style.height = `${messageInput.scrollHeight}px`;
 
@@ -227,7 +228,6 @@ export default {
 
       const _message = this.message.trim();
       this.message = "";
-      this.$refs.messageInput.focus();
       setTimeout(() => this.messageInput(), 1);
 
       if (_message) {
