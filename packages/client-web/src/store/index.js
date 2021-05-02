@@ -2469,13 +2469,24 @@ const store = new Vuex.Store({
     },
     async fetchFile({ getters, commit, dispatch }, message) {
       const channel = getters.channelById(message.channel);
+      let body;
 
-      const { data: body } = await axios.get(
-        `/api/channels/${channel.id}/files/${message.body}`,
-        {
-          responseType: "arraybuffer",
-        }
-      );
+      try {
+        const { data } = await axios.get(
+          `/api/channels/${channel.id}/files/${message.body}`,
+          {
+            responseType: "arraybuffer",
+          }
+        );
+
+        body = data;
+      } catch (e) {
+        return commit("setMessage", {
+          ...message,
+          silent: true,
+          expired: true,
+        });
+      }
 
       const encrypted = new Uint8Array(body);
 
@@ -2490,10 +2501,10 @@ const store = new Vuex.Store({
       });
 
       commit("setMessage", {
-        id: message.id,
-        channel: message.channel,
-        blob: URL.createObjectURL(blob),
+        ...message,
         silent: true,
+        preview: true,
+        blob: URL.createObjectURL(blob),
       });
     },
     async restartLocalStream({ getters, commit, dispatch }, type) {
