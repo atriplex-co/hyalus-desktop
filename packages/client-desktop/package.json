@@ -44,8 +44,8 @@
     "build": "yarn clean && webpack && electron-builder -wml",
     "release": "yarn build -p always",
     "dev": "yarn dev:main & yarn dev:renderer",
-    "dev:main": "DEV=1 nodemon -w src --exec electron .",
-    "dev:renderer": "webpack  --mode development --watch",
+    "dev:main": "NODE_ENV=development nodemon -w src --exec electron .",
+    "dev:renderer": "NODE_ENV=development webpack  --mode development --watch",
     "start": "electron ."
   },
   "devDependencies": {

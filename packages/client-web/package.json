@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "yarn clean && webpack",
-    "dev": "yarn clean && webpack --watch --mode development"
+    "dev": "yarn clean && NODE_ENV=development webpack --watch --mode development"
   },
   "devDependencies": {
     "@hyalusapp/wasm-rnnoise": "^1.0.0",

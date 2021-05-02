@@ -136,7 +136,7 @@ const start = () => {
 };
 
 app.on("ready", () => {
-  if (process.env.DEV) {
+  if (process.env.NODE_ENV === "development") {
     return start();
   }
 

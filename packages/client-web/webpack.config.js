@@ -9,9 +9,9 @@ const proc = require("child_process");
 
 module.exports = {
   mode: "production",
-  entry: path.join(__dirname, "src/index.js"),
+  entry: path.resolve(__dirname, "src/index.js"),
   output: {
-    path: path.join(__dirname, "dist"),
+    path: path.resolve(__dirname, "dist"),
     filename: "[contenthash].js",
   },
   module: {
@@ -32,7 +32,7 @@ module.exports = {
               postcssOptions: {
                 plugins: {
                   tailwindcss: {
-                    config: path.join(__dirname, "tailwind.config.js"),
+                    config: path.resolve(__dirname, "tailwind.config.js"),
                   },
                   "postcss-preset-env": {
                     stage: 0,
@@ -62,7 +62,7 @@ module.exports = {
     new ProgressPlugin(),
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src/index.html"),
+      template: path.resolve(__dirname, "src/index.html"),
       minify: true,
     }),
     new GenerateSW({
@@ -71,14 +71,16 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.join(__dirname, "src/static"),
+          from: path.resolve(__dirname, "src/static"),
         },
       ],
     }),
     new DefinePlugin({
       _commit: JSON.stringify(
         proc
-          .execSync("git rev-parse --short HEAD")
+          .execSync("git rev-parse --short HEAD", {
+            cwd: path.resolve(__dirname, "../.."),
+          })
           .toString()
           .trim()
       ),
