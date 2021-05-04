@@ -22,8 +22,9 @@
               <input
                 class="w-full px-4 py-2 text-gray-400 bg-gray-900 border rounded-sm border-gray-750 focus:outline-none focus:border-gray-650"
                 type="text"
-                v-model="username"
+                v-value="username"
                 autocomplete="username"
+                v-on:change="changeUsername"
               />
             </div>
             <div class="space-y-2">
@@ -31,8 +32,9 @@
               <input
                 class="w-full px-4 py-2 text-gray-400 bg-gray-900 border rounded-sm border-gray-750 focus:outline-none focus:border-gray-650"
                 type="password"
-                v-model="password"
+                v-value="password"
                 autocomplete="current-password"
+                v-on:change="changePassword"
               />
             </div>
           </div>
@@ -81,8 +83,13 @@ export default {
         this.$router.push("/loginTotp");
         return;
       }
-
       this.$router.push("/app");
+    },
+    changePassword(input) {
+      this.password = input?.srcElement?.value
+    },
+    changeUsername(input) {
+      this.username = input?.srcElement?.value
     },
   },
   components: {
