@@ -19,7 +19,7 @@
           <div class="space-y-4">
             <div class="space-y-2">
               <p>Username</p>
-             <input
+              <input
                 class="w-full px-4 py-2 text-gray-400 bg-gray-900 border rounded-sm border-gray-750 focus:outline-none focus:border-gray-650"
                 type="text"
                 v-value="username"
@@ -82,15 +82,14 @@ export default {
       if (this.$store.getters.totpLoginTicket) {
         this.$router.push("/loginTotp");
         return;
+      }
+      this.$router.push("/app");
     },
     changePassword(input) {
       this.password = input?.srcElement?.value
     },
     changeUsername(input) {
       this.username = input?.srcElement?.value
-    }
-
-      this.$router.push("/app");
     },
   },
   components: {
