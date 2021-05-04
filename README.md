@@ -1,4 +1,6 @@
-# Hyalus [Beta]
+![](https://raw.githubusercontent.com/hyalusapp/hyalus/master/packages/client-web/src/images/icon-standalone-green.png)
+
+# Hyalus
 
 Talk on an open platform.
 
