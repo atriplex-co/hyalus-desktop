@@ -34,7 +34,7 @@
         touch on.
       </p>
       <div class="flex items-center w-full max-w-6xl mt-12 justify-evenly">
-        <div class="flex flex-col max-w-xs">
+        <div class="flex flex-col max-w-xs items-center text-center">
           <LockIcon
             class="w-12 h-12 p-3 text-gray-400 bg-gray-700 rounded-full"
           />
@@ -45,7 +45,7 @@
           </p>
           <a class="mt-4 text-primary-500" href="#">Learn more</a>
         </div>
-        <div class="flex flex-col max-w-xs">
+        <div class="flex flex-col max-w-xs items-center text-center">
           <ChipIcon
             class="w-12 h-12 p-3 text-gray-400 bg-gray-700 rounded-full"
           />
@@ -56,7 +56,7 @@
           </p>
           <a class="mt-4 text-primary-500" href="#">Learn more</a>
         </div>
-        <div class="flex flex-col max-w-xs">
+        <div class="flex flex-col max-w-xs items-center text-center">
           <PrivateIcon
             class="w-12 h-12 p-3 text-gray-400 bg-gray-700 rounded-full"
           />
