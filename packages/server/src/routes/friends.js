@@ -1,23 +1,23 @@
 const express = require("express");
 const Joi = require("joi");
 const app = express.Router();
-const session = require("../middleware/session");
-const user = require("../middleware/user");
-const validation = require("../middleware/validation");
 const { ObjectId } = require("mongodb");
-const ratelimit = require("../middleware/ratelimit");
+const validationMiddleware = require("../middleware/validation");
+const sessionMiddleware = require("../middleware/session");
+const userMiddleware = require("../middleware/user");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.post(
   "/",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "addFriend",
     max: 20,
     time: 60 * 15,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       username: Joi.string()
         .required()
@@ -120,15 +120,15 @@ app.post(
 
 app.post(
   "/accept",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "addFriend",
     max: 50,
     time: 60 * 15,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       id: Joi.string()
         .required()
@@ -299,8 +299,8 @@ app.post(
 
 app.delete(
   "/:id",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "addFriend",
     max: 100,

@@ -1,25 +1,25 @@
 const crypto = require("crypto");
 const express = require("express");
 const Busboy = require("busboy");
-const session = require("../middleware/session");
-const user = require("../middleware/user");
 const { ObjectId } = require("mongodb");
 const app = express.Router();
-const ratelimit = require("../middleware/ratelimit");
 const fs = require("fs");
 const os = require("os");
 const proc = require("child_process");
+const sessionMiddleware = require("../middleware/session");
+const userMiddleware = require("../middleware/user");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.post(
   "/",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "setAvatar",
     max: 5,
     time: 60 * 15,
   }),
-  user,
+  userMiddleware,
   async (req, res) => {
     const bb = new Busboy({
       headers: req.headers,
@@ -265,7 +265,7 @@ app.post(
 
 app.get(
   "/:id",
-  ratelimit({
+  ratelimitMiddleware({
     scope: "ip",
     tag: "getAvatar",
     max: 1000,

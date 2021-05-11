@@ -1,22 +1,22 @@
 const express = require("express");
 const app = express.Router();
-const session = require("../middleware/session");
-const user = require("../middleware/user");
-const validation = require("../middleware/validation");
 const Joi = require("joi");
-const ratelimit = require("../middleware/ratelimit");
+const userMiddleware = require("../middleware/user");
+const sessionMiddleware = require("../middleware/session");
+const validationMiddleware = require("../middleware/validation");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.post(
   "/",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "updateUser",
     max: 50,
     time: 60 * 5,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       name: Joi.string()
         .min(1)

@@ -1,11 +1,11 @@
 const express = require("express");
 const app = express.Router();
-const ratelimit = require("../middleware/ratelimit");
 const Joi = require("joi");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.get(
   "/:username",
-  ratelimit({
+  ratelimitMiddleware({
     scope: "ip",
     tag: "getUser",
     max: 20,

@@ -1,13 +1,13 @@
 const crypto = require("crypto");
 const express = require("express");
 const app = express.Router();
-const validation = require("../middleware/validation");
 const Joi = require("joi");
-const ratelimit = require("../middleware/ratelimit");
+const validationMiddleware = require("../middleware/validation");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.post(
   "/",
-  validation(
+  validationMiddleware(
     Joi.object({
       username: Joi.string()
         .required()
@@ -30,7 +30,7 @@ app.post(
         .base64(),
     })
   ),
-  ratelimit({
+  ratelimitMiddleware({
     scope: "ip",
     tag: "register",
     max: 3,

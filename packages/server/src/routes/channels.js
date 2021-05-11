@@ -1,28 +1,28 @@
 const express = require("express");
-const validation = require("../middleware/validation");
-const user = require("../middleware/user");
-const session = require("../middleware/session");
 const Joi = require("joi");
 const app = express.Router();
 const { ObjectId } = require("mongodb");
 const Busboy = require("busboy");
 const crypto = require("crypto");
-const ratelimit = require("../middleware/ratelimit");
 const fs = require("fs");
 const os = require("os");
 const proc = require("child_process");
+const ratelimitMiddleware = require("../middleware/ratelimit");
+const validationMiddleware = require("../middleware/validation");
+const userMiddleware = require("../middleware/user");
+const sessionMiddleware = require("../middleware/session");
 
 app.post(
   "/",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "groupCreate",
     max: 5,
     time: 60 * 15, //15m
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       name: Joi.string()
         .required()
@@ -151,15 +151,15 @@ app.post(
 
 app.post(
   "/:channel/meta",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "setChannelName",
     max: 3,
     time: 60,
     params: true,
   }),
-  validation(
+  validationMiddleware(
     Joi.object({
       name: Joi.string()
         .min(3)
@@ -254,8 +254,8 @@ app.post(
 
 app.get(
   "/:id/messages",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "getMessages",
     max: 1000,
@@ -365,16 +365,16 @@ app.get(
 
 app.post(
   "/:id/messages",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "messageCreate",
     max: 20,
     time: 10,
     params: true,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       body: Joi.string()
         .required()
@@ -481,15 +481,15 @@ app.post(
 
 app.delete(
   "/:channel/messages/:message",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "messageDelete",
     max: 20,
     time: 15,
     params: true,
   }),
-  user,
+  userMiddleware,
   async (req, res) => {
     if (!ObjectId.isValid(req.params.channel)) {
       return res.status(400).json({
@@ -560,8 +560,8 @@ app.delete(
 
 app.post(
   "/:channel/avatar",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "setChannelAvatar",
     max: 5,
@@ -813,16 +813,16 @@ app.post(
 
 app.post(
   "/:channel/users",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "addChannelUser",
     max: 50,
     time: 60 * 5,
     params: true,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       user: Joi.string()
         .required()
@@ -1024,8 +1024,8 @@ app.post(
 
 app.delete(
   "/:channel/users/:user",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "removeChannelUser",
     max: 100,
@@ -1168,8 +1168,8 @@ app.delete(
 
 app.post(
   "/:channel/leave",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "leaveChannel",
     max: 20,
@@ -1290,15 +1290,15 @@ app.post(
 
 app.post(
   "/:id/files",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "uploadFile",
     max: 20,
     time: 60 * 5,
   }),
-  user,
-  validation(
+  userMiddleware,
+  validationMiddleware(
     Joi.object({
       body: Joi.string()
         .required()
@@ -1427,14 +1427,14 @@ app.post(
 
 app.get(
   "/:channel/files/:file",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "user",
     tag: "getFile",
     max: 100,
     time: 60 * 2,
   }),
-  ratelimit({
+  ratelimitMiddleware({
     scope: "user",
     tag: "getFile",
     max: 10,

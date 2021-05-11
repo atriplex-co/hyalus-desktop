@@ -1,18 +1,18 @@
 const express = require("express");
 const app = express.Router();
-const validation = require("../middleware/validation");
 const Joi = require("joi");
-const ratelimit = require("../middleware/ratelimit");
+const validationMiddleware = require("../middleware/validation");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.post(
   "/",
-  ratelimit({
+  ratelimitMiddleware({
     scope: "ip",
     tag: "prelogin",
     max: 10,
     time: 60 * 5,
   }),
-  validation(
+  validationMiddleware(
     Joi.object({
       username: Joi.string()
         .required()

@@ -1,12 +1,12 @@
 const express = require("express");
-const session = require("../middleware/session");
 const app = express.Router();
-const ratelimit = require("../middleware/ratelimit");
+const sessionMiddleware = require("../middleware/session");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.get(
   "/",
-  session,
-  ratelimit({
+  sessionMiddleware,
+  ratelimitMiddleware({
     scope: "ip",
     tag: "logout",
     max: 100,

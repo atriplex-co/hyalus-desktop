@@ -1,18 +1,18 @@
 const express = require("express");
 const app = express.Router();
-const sessionMiddleware = require("../middleware/session");
-const userMiddleware = require("../middleware/user");
-const validMiddleware = require("../middleware/validation");
 const Joi = require("joi");
 const { authenticator } = require("otplib");
 const { ObjectId } = require("mongodb");
 const crypto = require("crypto");
-const ratelimit = require("../middleware/ratelimit");
+const sessionMiddleware = require("../middleware/session");
+const userMiddleware = require("../middleware/user");
+const validMiddleware = require("../middleware/validation");
+const ratelimitMiddleware = require("../middleware/ratelimit");
 
 app.get(
   "/init",
   sessionMiddleware,
-  ratelimit({
+  ratelimitMiddleware({
     scope: "user",
     tag: "totpInit",
     max: 50,
@@ -50,7 +50,7 @@ app.get(
 app.post(
   "/enable",
   sessionMiddleware,
-  ratelimit({
+  ratelimitMiddleware({
     scope: "user",
     tag: "totpEnable",
     max: 5,
@@ -135,7 +135,7 @@ app.post(
 app.post(
   "/disable",
   sessionMiddleware,
-  ratelimit({
+  ratelimitMiddleware({
     scope: "user",
     tag: "totpDisable",
     max: 5,
@@ -188,7 +188,7 @@ app.post(
 
 app.post(
   "/login",
-  ratelimit({
+  ratelimitMiddleware({
     scope: "ip",
     tag: "totpLogin",
     max: 10,
