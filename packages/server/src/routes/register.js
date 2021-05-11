@@ -75,11 +75,10 @@ app.post(
       await req.deps.db.collection("sessions").insertOne({
         user: user._id,
         token: crypto.randomBytes(32),
-        ipAddr: req.ip,
-        userAgent: req.headers["user-agent"],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        active: true,
+        ip: req.ip,
+        agent: req.headers["user-agent"],
+        created: new Date(),
+        lastActive: new Date(),
       })
     ).ops[0];
 

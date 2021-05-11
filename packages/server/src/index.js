@@ -155,6 +155,7 @@ const wss = require("./routes/ws")(server, deps);
   app.use("/api/channels", require("./routes/channels"));
   app.use("/api/totp", require("./routes/totp"));
   app.use("/api/users", require("./routes/users"));
+  app.use("/api/sessions", require("./routes/sessions"));
   app.use(
     history({
       rewrites: [
