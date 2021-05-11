@@ -29,7 +29,7 @@ module.exports = async (req, res, next) => {
     token: Buffer.from(token, "base64"),
   });
 
-  if (!session || !session.active) {
+  if (!session) {
     res.status(401).json({
       error: "Invalid session",
     });
