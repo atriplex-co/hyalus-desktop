@@ -20,6 +20,13 @@
       </router-link>
       <router-link
         class="px-3 py-2 hover:bg-gray-750 text-gray-400 hover:text-gray-200 flex items-center space-x-3 transition group"
+        to="/sessions"
+      >
+        <DesktopIcon class="w-4 h-4" />
+        <p>Devices</p>
+      </router-link>
+      <router-link
+        class="px-3 py-2 hover:bg-gray-750 text-gray-400 hover:text-gray-200 flex items-center space-x-3 transition group"
         to="/settings"
       >
         <SettingsIcon class="w-4 h-4" />
@@ -43,6 +50,7 @@ export default {
     FriendsIcon: () => import("../icons/Friends"),
     SettingsIcon: () => import("../icons/Settings"),
     LogoutIcon: () => import("../icons/Logout"),
+    DesktopIcon: () => import("../icons/Desktop"),
   },
   methods: {
     logout() {

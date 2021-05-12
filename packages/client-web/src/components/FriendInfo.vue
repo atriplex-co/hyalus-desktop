@@ -16,7 +16,7 @@
       </div>
       <div @click="remove">
         <LetterXIcon
-          class="w-8 h-8 p-2 text-gray-200 bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700 transition"
+          class="w-8 h-8 p-2 text-gray-400 bg-gray-800 rounded-full cursor-pointer hover:bg-gray-700 transition"
         />
       </div>
     </div>

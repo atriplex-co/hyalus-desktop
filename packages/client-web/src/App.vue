@@ -61,6 +61,7 @@ export default {
         "channelCall",
         "settings",
         "friends",
+        "sessions",
       ];
 
       return allow.find((i) => i === this.$route.name);

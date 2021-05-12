@@ -20,6 +20,14 @@ const requireNoAuth = (to, from, next) => {
   next();
 };
 
+const requireVoiceCall = (to, from, next) => {
+  requireAuth(to, from, next);
+
+  if (!store.getters.voice) {
+    next(`/channels/${to.params.channel}`);
+  }
+};
+
 export default new VueRouter({
   mode: location.protocol === "file:" ? "hash" : "history",
   routes: [
@@ -84,18 +92,18 @@ export default new VueRouter({
       name: "channelCall",
       path: "/channels/:channel/call",
       component: () => import("../views/Call"),
-      beforeEnter: (to, from, next) => {
-        requireAuth(to, from, next);
-
-        if (!store.getters.voice) {
-          next(`/channels/${to.params.channel}`);
-        }
-      },
+      beforeEnter: requireVoiceCall,
     },
     {
       name: "invite",
       path: "/invite/:username",
       component: () => import("../views/Invite"),
+    },
+    {
+      name: "sessions",
+      path: "/sessions",
+      component: () => import("../views/Sessions"),
+      beforeEnter: requireAuth,
     },
   ],
 });

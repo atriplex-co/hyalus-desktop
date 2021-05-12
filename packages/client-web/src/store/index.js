@@ -7,6 +7,7 @@ import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import hljs from "highlight.js";
+import UAParser from "ua-parser-js";
 import router from "../router";
 import imgDefaultUser from "../images/default-user.png";
 import sndNotification from "../sounds/notification_simple-01.ogg";
@@ -194,6 +195,7 @@ const store = new Vuex.Store({
     sidebarHidden: false,
     notifySound: localStorage.notifySound,
     notifySystem: localStorage.notifySystem,
+    sessions: [],
   },
   getters: {
     config: (state) => state.config,
@@ -241,6 +243,7 @@ const store = new Vuex.Store({
     sidebarHidden: (state) => state.sidebarHidden,
     notifySound: (state) => !state.notifySound,
     notifySystem: (state) => !state.notifySystem,
+    sessions: (state) => state.sessions,
   },
   mutations: {
     setUser(state, user) {
@@ -852,6 +855,44 @@ const store = new Vuex.Store({
       } else {
         localStorage.setItem("notifySystem", "a");
       }
+    },
+    setSessions(state, val) {
+      val = val.sort((a, b) =>
+        a.self ? -1 : b.self ? 1 : (new Date(a.lastActive) > new Date(b.lastActive) ? -1 : -1)
+      );
+      val = val.map((session) => {
+        const agentParsed = UAParser(session.agent);
+        let agentFormatted = "";
+
+        if (agentParsed.browser) {
+          agentFormatted += agentParsed.browser.name;
+
+          if (agentParsed.browser.version) {
+            agentFormatted += ` ${agentParsed.browser.version}`;
+          }
+        }
+
+        if (agentParsed.os) {
+          if (agentFormatted) {
+            agentFormatted += ` on `;
+          }
+
+          agentFormatted += agentParsed.os.name;
+
+          if (agentParsed.os.version) {
+            agentFormatted += ` ${agentParsed.os.version}`;
+          }
+        }
+
+        return {
+          ...session,
+          agentFormatted,
+        };
+      });
+      state.sessions = val;
+    },
+    deleteSession(state, val) {
+      state.sessions = state.sessions.filter((s) => s.id !== val);
     },
   },
   actions: {
@@ -2564,6 +2605,14 @@ const store = new Vuex.Store({
       await axios.post("/api/me", {
         preferredStatus,
       });
+    },
+    async getSessions({ getters, commit, dispatch }) {
+      const { data: sessions } = await axios.get("/api/sessions");
+      commit("setSessions", sessions);
+    },
+    async killSession({ getters, commit, dispatch }, id) {
+      await axios.delete(`/api/sessions/${id}`);
+      commit("deleteSession", id);
     },
   },
 });
