@@ -35,6 +35,17 @@ module.exports = async (ws, msg) => {
     return ws.close();
   }
 
+  await ws.deps.db.collection("sessions").updateOne(
+    {
+      _id: session._id,
+    },
+    {
+      $set: {
+        lastActive: new Date(),
+      },
+    }
+  );
+
   ws.session = session;
 
   const user = await ws.deps.db.collection("users").findOne({
