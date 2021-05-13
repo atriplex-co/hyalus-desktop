@@ -4,7 +4,6 @@ const { VueLoaderPlugin } = require("vue-loader");
 const TerserPlugin = require("terser-webpack-plugin");
 const { ProgressPlugin, DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
-const { GenerateSW } = require("workbox-webpack-plugin");
 const proc = require("child_process");
 
 module.exports = {
@@ -64,9 +63,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
       minify: true,
-    }),
-    new GenerateSW({
-      exclude: ["/index.html"],
     }),
     new CopyPlugin({
       patterns: [

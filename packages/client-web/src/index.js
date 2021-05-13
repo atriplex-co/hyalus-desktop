@@ -19,7 +19,7 @@ Vue.config.productionTip = false;
 
 //if service workers are supported & not on desktop.
 if (navigator.serviceWorker && typeof process === "undefined") {
-  navigator.serviceWorker.register("/service-worker.js");
+  navigator.serviceWorker.register("/serviceWorker.js");
 }
 
 //from DefinePlugin.
@@ -51,5 +51,5 @@ const log = {
 
 window.log = log;
 
-log.info("app", "Console is meant for developers.")
-log.info("app", "Pasting here may comprimise security!")
+log.info("app", "Console is meant for developers.");
+log.info("app", "Pasting here may comprimise security!");
