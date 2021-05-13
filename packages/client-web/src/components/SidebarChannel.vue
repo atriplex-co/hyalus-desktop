@@ -75,24 +75,6 @@ export default {
   },
   methods: {
     updateTime() {
-      // this.time = moment(this.channel.lastMessage?.time || this.channel.created)
-      //   .fromNow()
-      //   .replace("a few seconds", "now")
-      //   .replace(" minutes", "m")
-      //   .replace(" hours", "h")
-      //   .replace(" days", "d")
-      //   .replace(" weeks", "w")
-      //   .replace(" months", "M")
-      //   .replace(" years", "y")
-      //   .replace("a minute", "1m")
-      //   .replace("an hour", "1h")
-      //   .replace("a day", "1d")
-      //   .replace("a week", "1w")
-      //   .replace("a month", "1M")
-      //   .replace("a year", "1y")
-      //   .replace(" ago", "")
-      //   .replace("in ", "");
-
       const time = this.channel.lastMessage?.time || this.channel.created;
       const duration = moment.duration(new Date() - time);
 
@@ -121,6 +103,11 @@ export default {
   },
   beforeDestroy() {
     clearInterval(this.timeUpdateInterval);
+  },
+  watch: {
+    subtitle() {
+      this.updateTime();
+    },
   },
   components: {
     UserAvatar: () => import("./UserAvatar"),
