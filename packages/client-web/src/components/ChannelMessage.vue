@@ -26,7 +26,10 @@
       }"
       v-else
     >
-      <div class="w-8 h-8 self-end relative flex-shrink-0">
+      <div
+        class="w-8 h-8 self-end relative flex-shrink-0"
+        v-if="!sentByMe || !messageSides"
+      >
         <UserAvatar
           class="rounded-full"
           :id="sender.avatar"
@@ -36,10 +39,6 @@
         />
         <div
           class="absolute bottom-10 w-72 bg-gray-800 rounded-md p-4 border border-gray-750 flex items-center space-x-4"
-          :class="{
-            'right-0 flex-row-reverse space-x-reverse':
-              sentByMe && messageSides,
-          }"
           v-if="senderCard"
         >
           <UserAvatar
@@ -47,11 +46,7 @@
             :id="sender.avatar"
             autoplay
           />
-          <div
-            :class="{
-              'flex items-end flex-col': sentByMe && messageSides,
-            }"
-          >
+          <div>
             <p class="font-bold truncate">{{ sender.name }}</p>
             <p class="text-xs text-gray-400">@{{ sender.username }}</p>
           </div>
