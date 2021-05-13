@@ -53,17 +53,18 @@ log.info("app", "Pasting here may comprimise security!");
   //if service workers are supported & not on desktop.
   if (navigator.serviceWorker && typeof process === "undefined") {
     //remove old service worker since it sucks.
-    if (navigator.serviceWorker.controller) {
-      if (
-        !navigator.serviceWorker.controller.scriptURL.endsWith(
-          "/serviceWorker.js"
-        )
-      ) {
-        (await navigator.serviceWorker.getRegistration()).unregister();
-        log.info("sw", "removed invalid service worker");
-      }
-    } else {
-      //register new service worker.
+    if (
+      navigator.serviceWorker.controller &&
+      !navigator.serviceWorker.controller.scriptURL.endsWith(
+        "/serviceWorker.js"
+      )
+    ) {
+      (await navigator.serviceWorker.getRegistration()).unregister();
+      log.info("sw", "removed invalid service worker");
+    }
+
+    //register new service worker.
+    if (!navigator.serviceWorker.controller) {
       navigator.serviceWorker.register("/serviceWorker.js");
       log.info("sw", "registered service worker");
     }
