@@ -593,13 +593,19 @@ export default {
   async created() {
     let stream;
 
-    try {
-      //needed to call enumerateDevices (permissions).
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-    } catch {}
+    if (
+      !(await navigator.mediaDevices.enumerateDevices())
+        .map((d) => d.deviceId)
+        .filter((d) => d).length
+    ) {
+      try {
+        //needed to call enumerateDevices (permissions).
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
+      } catch {}
+    }
 
     if (stream) {
       stream.getTracks().map((a) => a.stop());
