@@ -8,12 +8,12 @@
           'bg-gray-800 text-gray-400': !session.self,
         }"
       >
-        <DesktopIcon v-if="session.isDesktop" />
-        <PhoneIcon v-if="session.isPhone" />
-        <GlobeIcon v-else />
+        <GlobeIcon v-if="agentType === 'web'" />
+        <DesktopIcon v-if="agentType === 'desktop'" />
+        <PhoneIcon v-if="agentType === 'mobile'" />
       </div>
       <div class="space-y-2">
-        <p class="font-bold">{{ session.agentFormatted }}</p>
+        <p class="font-bold">{{ agentFormatted }}</p>
         <div class="space-y-1">
           <div class="text-sm flex items-center space-x-2">
             <p>Signed in:</p>
@@ -40,6 +40,7 @@
 
 <script>
 import moment from "moment";
+import UAParser from "ua-parser-js";
 
 export default {
   props: ["session"],
@@ -52,6 +53,53 @@ export default {
     },
     ip() {
       return this.session.ip.replace("::ffff:", "");
+    },
+    agentParsed() {
+      return UAParser(this.session.agent);
+    },
+    agentFormatted() {
+      let formatted = "";
+
+      if (this.agentParsed.browser) {
+        formatted += this.agentParsed.browser.name;
+
+        if (this.agentParsed.browser.version) {
+          formatted += ` ${this.agentParsed.browser.version}`;
+        }
+      }
+
+      if (this.agentParsed.os) {
+        if (formatted) {
+          formatted += ` on `;
+        }
+
+        formatted += this.agentParsed.os.name;
+
+        if (this.agentParsed.os.version) {
+          formatted += ` ${this.agentParsed.os.version}`;
+        }
+      }
+
+      const parts = this.session.agent.split("Hyalus/");
+      if (parts.length >= 2) {
+        formatted = `Hyalus Desktop ${parts[1].split(" ")[0]}`;
+      }
+
+      return formatted;
+    },
+    agentType() {
+      if (this.agentParsed.browser?.name === "Electron") {
+        return "desktop";
+      }
+
+      if (
+        this.agentParsed.device?.type === "mobile" ||
+        this.agentParsed.device?.type === "tablet"
+      ) {
+        return "mobile";
+      }
+
+      return "web";
     },
   },
   methods: {
