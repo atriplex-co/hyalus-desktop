@@ -90,7 +90,7 @@
                 }"
               >
                 <p v-if="!message.expired">{{ fileLength }}</p>
-                <p v-else>Inaccessible</p>
+                <p v-else>Expired/deleted</p>
               </div>
             </div>
           </div>
