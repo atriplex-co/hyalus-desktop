@@ -10,7 +10,7 @@
       >
         <GlobeIcon v-if="agentType === 'web'" />
         <DesktopIcon v-if="agentType === 'desktop'" />
-        <PhoneIcon v-if="agentType === 'mobile'" />
+        <MobileIcon v-if="agentType === 'mobile'" />
       </div>
       <div class="space-y-2">
         <p class="font-bold">{{ agentFormatted }}</p>
@@ -109,7 +109,7 @@ export default {
   },
   components: {
     DesktopIcon: () => import("../icons/Desktop"),
-    PhoneIcon: () => import("../icons/Phone"),
+    MobileIcon: () => import("../icons/Mobile"),
     GlobeIcon: () => import("../icons/Globe"),
     TrashIcon: () => import("../icons/Trash"),
   },
