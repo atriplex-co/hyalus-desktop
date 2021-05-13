@@ -47,6 +47,9 @@ module.exports = {
         pink: colors.pink,
         rose: colors.rose,
       },
+      cursor: {
+        none: "none",
+      },
     },
     fontFamily: {
       sans: "Inter, sans-serif",

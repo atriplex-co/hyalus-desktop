@@ -5,6 +5,7 @@
       'bg-gray-900': srcObject,
       'bg-gray-850': !srcObject,
       'border border-gray-700 shadow-lg rounded-md': !isFullscreen,
+      'cursor-none': !controls,
     }"
     ref="main"
     @mousemove="resetControlsTimeout"
