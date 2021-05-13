@@ -90,7 +90,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="videoQualityMenu = !videoQualityMenu"
+            @click="menu = menu !== 'videoQuality' ? 'videoQuality' : null"
           >
             <div class="flex items-center space-x-2">
               {{ videoQuality }}
@@ -100,7 +100,7 @@
           <div class="relative">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="videoQualityMenu"
+              v-if="menu === 'videoQuality'"
             >
               <div
                 class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
@@ -119,7 +119,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="displayQualityMenu = !displayQualityMenu"
+            @click="menu = menu !== 'displayQuality' ? 'displayQuality' : null"
           >
             <div class="flex items-center space-x-2">
               {{ displayQuality }}
@@ -129,7 +129,7 @@
           <div class="relative">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="displayQualityMenu"
+              v-if="menu === 'displayQuality'"
             >
               <div
                 class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
@@ -148,7 +148,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="audioOutputMenu = !audioOutputMenu"
+            @click="menu = menu !== 'audioOutput' ? 'audioOutput' : null"
           >
             <p class="truncate">
               {{ audioOutput.label }}
@@ -158,16 +158,13 @@
           <div class="relative" v-if="audioOutputDevices">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="audioOutputMenu"
+              v-if="menu === 'audioOutput'"
             >
               <p
                 class="px-2 py-1 cursor-pointer hover:bg-gray-800"
                 v-for="device in audioOutputDevices"
                 v-bind:key="device.deviceId"
-                @click="
-                  setAudioOutput(device.deviceId);
-                  audioOutputMenu = false;
-                "
+                @click="setAudioOutput(device.deviceId)"
               >
                 {{ device.label }}
               </p>
@@ -180,7 +177,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="audioInputMenu = !audioInputMenu"
+            @click="menu = menu !== 'audioInput' ? 'audioInput' : null"
           >
             <p class="truncate">
               {{ audioInput.label }}
@@ -190,7 +187,7 @@
           <div class="relative" v-if="audioInputDevices">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="audioInputMenu"
+              v-if="menu === 'audioInput'"
             >
               <p
                 class="px-2 py-1 cursor-pointer hover:bg-gray-800"
@@ -209,7 +206,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="videoInputMenu = !videoInputMenu"
+            @click="menu = menu !== 'videoInput' ? 'videoInput' : null"
           >
             <p class="truncate">
               {{ videoInput.label }}
@@ -219,7 +216,7 @@
           <div class="relative" v-if="videoInputDevices">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="videoInputMenu"
+              v-if="menu === 'videoInput'"
             >
               <p
                 class="px-2 py-1 cursor-pointer hover:bg-gray-800"
@@ -238,7 +235,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="accentColorMenu = !accentColorMenu"
+            @click="menu = menu !== 'accentColor' ? 'accentColor' : null"
           >
             <div class="flex items-center space-x-2">
               <div class="p-2 rounded-full" :class="`bg-primary-500`" />
@@ -255,7 +252,7 @@
           <div class="relative">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="accentColorMenu"
+              v-if="menu === 'accentColor'"
             >
               <div
                 class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
@@ -302,7 +299,7 @@
         <div class="flex flex-col">
           <div
             class="flex items-center justify-between px-2 py-1 space-x-1 transition border border-gray-800 rounded-md cursor-pointer hover:border-gray-700 w-96"
-            @click="syntaxThemeMenu = !syntaxThemeMenu"
+            @click="menu = menu !== 'syntaxTheme' ? 'syntaxTheme' : null"
           >
             <div class="flex items-center space-x-2">
               {{ syntaxTheme }}
@@ -312,7 +309,7 @@
           <div class="relative">
             <div
               class="absolute flex flex-col -mt-px space-y-1 bg-gray-900 border border-gray-800 rounded-md w-96 max-h-32 overflow-auto shadow-lg"
-              v-if="syntaxThemeMenu"
+              v-if="menu === 'syntaxTheme'"
             >
               <div
                 class="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-800 space-x-2"
@@ -361,19 +358,20 @@ export default {
   data() {
     return {
       view: "general",
+
       audioOutputDevices: null,
       audioInputDevices: null,
       videoInputDevices: null,
-      audioOutputMenu: false,
-      audioInputMenu: false,
-      videoInputMenu: false,
+
+      menu: null,
+
       setNameModal: false,
       setUsernameModal: false,
       setEmailModal: false,
       setPasswordModal: false,
       totpEnableModal: false,
       totpDisableModal: false,
-      accentColorMenu: false,
+
       usableAccentColors: [
         "red",
         "orange",
@@ -408,8 +406,6 @@ export default {
         "2160p30",
         "2160p60",
       ],
-      videoQualityMenu: false,
-      displayQualityMenu: false,
       usableSyntaxThemes: [
         "One Dark",
         "One Light",
@@ -427,7 +423,6 @@ export default {
           .join("-"),
         name,
       })),
-      syntaxThemeMenu: false,
       commit: _commit,
     };
   },
@@ -568,31 +563,31 @@ export default {
     },
     setAudioOutput(id) {
       this.$store.dispatch("setAudioOutput", id);
-      this.audioOutputMenu = false;
+      this.menu = null;
     },
     setAudioInput(id) {
       this.$store.dispatch("setAudioInput", id);
-      this.audioInputMenu = false;
+      this.menu = null;
     },
     setVideoInput(id) {
       this.$store.dispatch("setVideoInput", id);
-      this.videoInputMenu = false;
+      this.menu = null;
     },
     setAccentColor(accentColor) {
       this.$store.dispatch("setAccentColor", accentColor);
-      this.accentColorMenu = false;
+      this.menu = null;
     },
     setVideoQuality(val) {
       this.$store.dispatch("setVideoQuality", val);
-      this.videoQualityMenu = false;
+      this.menu = null;
     },
     setDisplayQuality(val) {
       this.$store.dispatch("setDisplayQuality", val);
-      this.displayQualityMenu = false;
+      this.menu = null;
     },
     setSyntaxTheme(val) {
       this.$store.commit("setSyntaxTheme", val);
-      this.syntaxThemeMenu = false;
+      this.menu = null;
     },
   },
   async created() {
