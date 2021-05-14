@@ -345,6 +345,12 @@ export default {
       this.$store.dispatch("toggleDeaf");
     },
   },
+  created() {
+    this.updateTitle();
+    },
+  mounted() {
+    new ResizeObserver(this.updateLayout).observe(this.$refs.tiles);
+  },
   updated() {
     if (!this.channel || !this.voice) {
       this.$router.push(`/channels/${this.$route.params.channel}`);
@@ -353,19 +359,8 @@ export default {
     this.updateTitle();
     this.updateLayout();
   },
-  mounted() {
-    new ResizeObserver(this.updateLayout).observe(this.$refs.tiles);
-  },
   beforeDestroy() {
     document.title = "Hyalus";
-  },
-  watch: {
-    channel() {
-      this.updateTitle();
-    },
-    tiles() {
-      this.updateLayout();
-    },
   },
   components: {
     ErrorIcon: () => import("../icons/Error"),
