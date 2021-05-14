@@ -19,22 +19,11 @@ if (!lock) {
 }
 
 nativeTheme.themeSource = "dark";
-
-app.commandLine.appendSwitch("no-sandbox");
-app.commandLine.appendSwitch("ignore-gpu-blacklist");
-app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
-app.commandLine.appendSwitch("enable-media-foundation-video-capture");
-app.commandLine.appendSwitch("zero-copy-video-capture");
-app.commandLine.appendSwitch("enable-accelerated-video-decode");
-app.commandLine.appendSwitch("enable-accelerated-video-encode");
-
-//prevent scary messages from flags above.
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 1;
 
 let mainWindow;
 let quitting;
 let tray;
-let startHidden;
 
 const start = () => {
   app.setAppUserModelId("xyz.hyalus");
@@ -60,9 +49,7 @@ const start = () => {
   mainWindow.removeMenu();
 
   mainWindow.once("ready-to-show", () => {
-    if (!startHidden) {
-      mainWindow.show();
-    }
+    mainWindow.show();
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
@@ -138,21 +125,6 @@ const start = () => {
 app.on("ready", () => {
   if (process.env.NODE_ENV === "development") {
     return start();
-  }
-
-  const { launchItems, wasOpenedAsHidden } = app.getLoginItemSettings();
-
-  if (!launchItems) {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      openAsHidden: true,
-      args: ["-h"],
-      name: "Hyalus",
-    });
-  }
-
-  if (wasOpenedAsHidden || process.argv.find((a) => a === "-h")) {
-    startHidden = true;
   }
 
   autoUpdater.checkForUpdates();
