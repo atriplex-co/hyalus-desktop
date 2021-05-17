@@ -7,73 +7,73 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icons/icon-48.png",
+      "src": "/icon-48.png",
       "type": "image/png",
       "sizes": "48x48",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-48-maskable.png",
+      "src": "/icon-48-maskable.png",
       "type": "image/png",
       "sizes": "48x48",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-72.png",
+      "src": "/icon-72.png",
       "type": "image/png",
       "sizes": "72x72",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-72-maskable.png",
+      "src": "/icon-72-maskable.png",
       "type": "image/png",
       "sizes": "72x72",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-96.png",
+      "src": "/icon-96.png",
       "type": "image/png",
       "sizes": "96x96",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-96-maskable.png",
+      "src": "/icon-96-maskable.png",
       "type": "image/png",
       "sizes": "96x96",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-128.png",
+      "src": "/icon-128.png",
       "type": "image/png",
       "sizes": "128x128",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-128-maskable.png",
+      "src": "/icon-128-maskable.png",
       "type": "image/png",
       "sizes": "128x128",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192-maskable.png",
+      "src": "/icon-192-maskable.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512-maskable.png",
+      "src": "/icon-512-maskable.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
