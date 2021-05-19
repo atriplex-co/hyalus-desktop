@@ -14,15 +14,17 @@ const setup = () => {
     server,
   });
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws, req) => {
+    ws.ip = req.socket.remoteAddress;
+    ws.agent = req.headers["user-agent"];
+    ws.id = crypto.randomBytes(32).toString("base64");
+    ws.alive = true;
     ws.deps = deps;
+
     ws._send = ws.send;
     ws.send = (data) => {
       ws._send(msgpack.encode(data));
     };
-
-    ws.id = crypto.randomBytes(32).toString("base64");
-    ws.alive = true;
 
     ws.on("message", (msg) => {
       ws.alive = true;
@@ -50,8 +52,8 @@ const setup = () => {
         "voiceStreamIce",
         "voiceStreamEnd",
         //TODO: implement voice stream pause/resume.
-        // "voiceStreamResume",
-        // "voiceStreamPause",
+        //"voiceStreamResume",
+        //"voiceStreamPause",
         "messageTyping",
       ];
 

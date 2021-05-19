@@ -44,11 +44,8 @@ module.exports = async (ws, msg) => {
     {
       $set: {
         lastActive: new Date(),
-        ...(msg.agent
-          ? {
-              agent: msg.agent,
-            }
-          : {}),
+        agent: ws.agent,
+        ip: ws.ip,
       },
     }
   );
