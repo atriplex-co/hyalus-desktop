@@ -20,12 +20,12 @@
             <p class="text-gray-400">{{ created }}</p>
           </div>
           <div class="text-sm flex items-center space-x-2">
-            <p>Last active:</p>
-            <p class="text-gray-400">{{ lastActive }}</p>
-          </div>
-          <div class="text-sm flex items-center space-x-2">
             <p>IP address:</p>
             <p class="text-gray-400">{{ ip }}</p>
+          </div>
+          <div class="text-sm flex items-center space-x-2" v-if="!session.self">
+            <p>Last active:</p>
+            <p class="text-gray-400">{{ lastActive }}</p>
           </div>
         </div>
       </div>
