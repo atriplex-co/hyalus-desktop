@@ -68,6 +68,12 @@ export default {
         }
       }
 
+      console.log(this.session);
+      const parts = this.session.agent.split("Hyalus/");
+      if (parts.length >= 2) {
+        formatted = `Hyalus ${parts[1].split(" ")[0]}`;
+      }
+
       if (this.agentParsed.os) {
         if (formatted) {
           formatted += ` on `;
@@ -78,11 +84,6 @@ export default {
         if (this.agentParsed.os.version) {
           formatted += ` ${this.agentParsed.os.version}`;
         }
-      }
-
-      const parts = this.session.agent.split("Hyalus/");
-      if (parts.length >= 2) {
-        formatted = `Hyalus Desktop ${parts[1].split(" ")[0]}`;
       }
 
       return formatted;
