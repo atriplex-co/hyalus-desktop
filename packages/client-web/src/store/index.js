@@ -2499,7 +2499,8 @@ const store = new Vuex.Store({
         body = data;
       } catch (e) {
         return commit("setMessage", {
-          ...message,
+          channel: message.channel,
+          id: message.id,
           silent: true,
           expired: true,
         });
@@ -2518,9 +2519,9 @@ const store = new Vuex.Store({
       });
 
       commit("setMessage", {
-        ...message,
+        channel: message.channel,
+        id: message.id,
         silent: true,
-        preview: true,
         blob: URL.createObjectURL(blob),
       });
     },

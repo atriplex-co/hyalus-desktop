@@ -56,15 +56,15 @@
         class="max-w-xs lg:max-w-md xl:max-w-2xl rounded-md text-sm overflow-hidden"
         :class="{
           'bg-gradient-to-br from-primary-500 to-primary-600':
-            sentByMe && !message.preview,
-          'bg-gray-800': !sentByMe && !message.preview,
+            sentByMe && !preview,
+          'bg-gray-800': !sentByMe && !preview,
           'border border-primary-800': entirelyCode && sentByMe,
         }"
       >
         <div class="p-2" v-if="message.type === 'text'">
           <div class="break-words whitespace-pre-wrap" v-html="body" />
         </div>
-        <div class="p-2" v-if="message.type === 'file' && !message.preview">
+        <div class="p-2" v-if="message.type === 'file' && !preview">
           <div class="flex items-center space-x-2 py-1">
             <div @click="saveFile" v-if="!message.expired">
               <DownloadIcon
@@ -85,12 +85,12 @@
                 }"
               >
                 <p v-if="!message.expired">{{ fileLength }}</p>
-                <p v-else>Expired/deleted</p>
+                <p v-else>File expired</p>
               </div>
             </div>
           </div>
         </div>
-        <div v-if="message.preview">
+        <div v-if="preview">
           <img
             :src="message.blob"
             v-if="message.fileMediaType === 'img'"
@@ -110,9 +110,7 @@
             class="outline-none"
           />
         </div>
-        <div
-          v-if="message.fileMediaType && !message.preview && !message.expired"
-        >
+        <div v-if="message.fileMediaType && !preview && !message.expired">
           <LoadingIcon class="w-10 h-10 p-2" />
         </div>
       </div>
@@ -277,6 +275,9 @@ export default {
         !this.sentByMe &&
         (this.firstFromSender || !this.precedingRecent)
       );
+    },
+    preview() {
+      return this.message.fileMediaType && this.message.blob;
     },
   },
   methods: {
