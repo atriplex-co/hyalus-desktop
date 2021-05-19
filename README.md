@@ -1,8 +1,10 @@
-![](https://raw.githubusercontent.com/hyalusapp/hyalus/master/packages/client-web/src/images/icon-standalone-green.png)
+<div align="center">
+  <img src="https://github.com/hyalusapp/hyalus/blob/master/packages/client-web/src/static/icon-128.png?raw=true">
+</div>
 
 # Hyalus
 
-Talk on an open platform.
+Talk on an open platform with cryptographically secure messaging & calls.
 
 ## Beta
 
@@ -19,6 +21,8 @@ Hyalus is currently in beta, please report bugs & issues.
 * Desktop & webapp client.
 * 2FA/TOTP authentication support.
 * Mostly finished UI design.
+* iOS/Android PWA support.
+* Push notifications support.
 
 ## Goals
 
