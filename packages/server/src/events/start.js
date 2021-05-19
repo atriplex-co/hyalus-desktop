@@ -3,11 +3,13 @@ const { ObjectId } = require("mongodb");
 
 module.exports = async (ws, msg) => {
   if (
-    Joi.string()
-      .required()
-      .length(44)
-      .base64()
-      .validate(msg.token).error
+    Joi.object({
+      token: Joi.string()
+        .required()
+        .length(44)
+        .base64(),
+      agent: Joi.string().max(1024),
+    }).validate(msg).error
   ) {
     ws.send({
       t: "close",
@@ -42,6 +44,11 @@ module.exports = async (ws, msg) => {
     {
       $set: {
         lastActive: new Date(),
+        ...(msg.agent
+          ? {
+              agent: msg.agent,
+            }
+          : {}),
       },
     }
   );
