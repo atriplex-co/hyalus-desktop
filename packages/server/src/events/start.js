@@ -8,7 +8,6 @@ module.exports = async (ws, msg) => {
         .required()
         .length(44)
         .base64(),
-      agent: Joi.string().max(1024),
     }).validate(msg).error
   ) {
     ws.send({
