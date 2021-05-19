@@ -1108,7 +1108,6 @@ const store = new Vuex.Store({
           t: "start",
           d: {
             token: getters.token,
-            agent: navigator.userAgent,
           },
         });
       };
