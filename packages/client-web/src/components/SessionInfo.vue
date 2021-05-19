@@ -68,7 +68,6 @@ export default {
         }
       }
 
-      console.log(this.session);
       const parts = this.session.agent.split("Hyalus/");
       if (parts.length >= 2) {
         formatted = `Hyalus ${parts[1].split(" ")[0]}`;
