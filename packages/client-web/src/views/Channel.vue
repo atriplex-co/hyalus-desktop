@@ -319,6 +319,7 @@ export default {
       });
 
       el.type = "file";
+      el.multiple = true;
       el.click();
     },
     update() {
