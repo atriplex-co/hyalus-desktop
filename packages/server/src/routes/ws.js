@@ -15,7 +15,7 @@ const setup = () => {
   });
 
   wss.on("connection", (ws, req) => {
-    ws.ip = req.socket.remoteAddress;
+    ws.ip = req.headers["x-forwarded-for"] || req.ip;
     ws.agent = req.headers["user-agent"];
     ws.id = crypto.randomBytes(32).toString("base64");
     ws.alive = true;
