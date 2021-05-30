@@ -2114,7 +2114,7 @@ const store = new Vuex.Store({
             deviceId: getters.audioInput,
             echoCancellation: false,
             noiseSuppression: false,
-            autoGainControl: false,
+            autoGainControl: getters.autoGainControl,
           },
         });
 
