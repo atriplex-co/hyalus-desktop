@@ -1024,7 +1024,7 @@ const store = new Vuex.Store({
         if (process.env.DEV) {
           commit("setBaseUrl", "http://localhost:3000");
         } else {
-          commit("setBaseUrl", "https://hyalus.xyz");
+          commit("setBaseUrl", "https://hyalus.app");
         }
       } else {
         commit("setBaseUrl", location.origin);

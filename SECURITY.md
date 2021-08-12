@@ -29,6 +29,6 @@ AP9vJ2Yexwwj3EA6sT3gKKrx5PxczzJjdMyalSeKmeaGBw==
 -----END PGP PUBLIC KEY BLOCK-----
 ```
 
-2. Email your message to `security@hyalus.xyz`.
+2. Email your message to `security@hyalus.app`.
 
 3. You'll receive a reply within 48 hours.
