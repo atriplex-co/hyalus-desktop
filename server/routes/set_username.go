@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hyalusapp/hyalus/server/events"
@@ -23,7 +24,7 @@ func SetUsername(c *gin.Context) {
 	}
 
 	conflict, _ := util.UserCollection.CountDocuments(util.Context, bson.M{
-		"username": body.Username,
+		"username": strings.ToLower(body.Username),
 	})
 
 	if conflict > 0 {
@@ -38,14 +39,14 @@ func SetUsername(c *gin.Context) {
 
 	util.UserCollection.UpdateByID(util.Context, cUser.ID, bson.M{
 		"$set": bson.M{
-			"username": body.Username,
+			"username": strings.ToLower(body.Username),
 		},
 	})
 
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OSetUsernameType,
 		Data: events.OSetUsername{
-			Username: body.Username,
+			Username: strings.ToLower(body.Username),
 		},
 	})
 
@@ -53,7 +54,7 @@ func SetUsername(c *gin.Context) {
 		Type: events.OForeignUserSetUsernameType,
 		Data: events.OForeignUserSetUsername{
 			ID:       base64.RawURLEncoding.EncodeToString(cUser.ID),
-			Username: body.Username,
+			Username: strings.ToLower(body.Username),
 		},
 	})
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 )
 
 type RegisterBody struct {
-	Username            string `json:"username" binding:"required,alphanum,min=3,max=32"`
+	Username            string `json:"username" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
 	Salt                string `json:"salt" binding:"required,base64urlexact=16"`
 	AuthKey             string `json:"authKey" binding:"required,base64urlexact=32"`
 	PublicKey           string `json:"publicKey" binding:"required,base64urlexact=32"`
@@ -26,7 +27,7 @@ func Register(c *gin.Context) {
 	}
 
 	conflict, _ := util.UserCollection.CountDocuments(util.Context, bson.M{
-		"username": body.Username,
+		"username": strings.ToLower(body.Username),
 	})
 
 	if conflict > 0 {
@@ -44,7 +45,7 @@ func Register(c *gin.Context) {
 
 	user := models.User{
 		ID:                  util.GenerateID(),
-		Username:            body.Username,
+		Username:            strings.ToLower(body.Username),
 		Name:                body.Username,
 		AvatarID:            nil,
 		Salt:                salt,

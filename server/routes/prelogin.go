@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hyalusapp/hyalus/server/models"
@@ -11,7 +12,7 @@ import (
 )
 
 type PreloginBody struct {
-	Username string `json:"username" binding:"required,regexp=^[a-zA-Z0-9_-]{3,32}$"`
+	Username string `json:"username" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
 }
 
 func Prelogin(c *gin.Context) {
@@ -22,7 +23,7 @@ func Prelogin(c *gin.Context) {
 
 	var user models.User
 	if err := util.UserCollection.FindOne(util.Context, bson.M{
-		"username": body.Username,
+		"username": strings.ToLower(body.Username),
 	}).Decode(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid username",

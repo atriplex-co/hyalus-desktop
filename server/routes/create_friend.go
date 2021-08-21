@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,7 @@ func CreateFriend(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	if cUser.Username == body.Username {
+	if cUser.Username == strings.ToLower(body.Username) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Are you really that lonely?",
 		})
@@ -33,7 +34,7 @@ func CreateFriend(c *gin.Context) {
 
 	var user models.User
 	if err := util.UserCollection.FindOne(util.Context, bson.M{
-		"username": body.Username,
+		"username": strings.ToLower(body.Username),
 	}).Decode(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Username not found",

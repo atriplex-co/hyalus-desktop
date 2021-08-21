@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ import (
 )
 
 type LoginBody struct {
-	Username string `json:"username" binding:"required,regexp=^[a-zA-Z0-9_-]{3,32}$"`
+	Username string `json:"username" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
 	AuthKey  string `json:"authKey" binding:"required,base64urlexact=32"`
 	TotpCode string `json:"totpCode"`
 }
@@ -28,7 +29,7 @@ func Login(c *gin.Context) {
 
 	var user models.User
 	if err := util.UserCollection.FindOne(util.Context, bson.M{
-		"username": body.Username,
+		"username": strings.ToLower(body.Username),
 		"authKey":  authKey,
 	}).Decode(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
