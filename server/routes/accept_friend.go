@@ -60,6 +60,9 @@ func AcceptFriend(c *gin.Context) {
 	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"$and": bson.A{
 			bson.M{
+				"type": "private",
+			},
+			bson.M{
 				"users": bson.M{
 					"$elemMatch": bson.M{
 						"id": cUser.ID,
