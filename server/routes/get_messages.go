@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"math"
 	"net/http"
 	"strconv"
@@ -25,10 +24,10 @@ func GetMessages(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
+	channelID := util.DecodeBinary(uri.ChannelID)
 
 	var channel models.Channel
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -36,7 +35,7 @@ func GetMessages(c *gin.Context) {
 				"hidden": false,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Channel not found",
 		})
@@ -90,10 +89,10 @@ func GetMessages(c *gin.Context) {
 		}
 
 		formatted = append(formatted, gin.H{
-			"id":      base64.RawURLEncoding.EncodeToString(message.ID),
-			"userId":  base64.RawURLEncoding.EncodeToString(message.UserID),
-			"body":    base64.RawURLEncoding.EncodeToString(message.Body),
-			"key":     base64.RawURLEncoding.EncodeToString(ownKey),
+			"id":      util.EncodeBinary(message.ID),
+			"userId":  util.EncodeBinary(message.UserID),
+			"body":    util.EncodeBinary(message.Body),
+			"key":     util.EncodeBinary(ownKey),
 			"type":    message.Type,
 			"created": message.Created,
 		})

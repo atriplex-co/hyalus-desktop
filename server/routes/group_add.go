@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -29,12 +28,12 @@ func GroupAdd(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
-	userID, _ := base64.RawURLEncoding.DecodeString(body.UserID)
+	channelID := util.DecodeBinary(uri.ChannelID)
+	userID := util.DecodeBinary(body.UserID)
 
 	var channel models.Channel
 
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -42,7 +41,7 @@ func GroupAdd(c *gin.Context) {
 				"hidden": false,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Channel not found",
 		})
@@ -135,8 +134,8 @@ func GroupAdd(c *gin.Context) {
 				ChannelID: uri.ChannelID,
 				Username:  user.Username,
 				Name:      user.Name,
-				AvatarID:  base64.RawURLEncoding.EncodeToString(user.AvatarID),
-				PublicKey: base64.RawURLEncoding.EncodeToString(user.PublicKey),
+				AvatarID:  util.EncodeBinary(user.AvatarID),
+				PublicKey: util.EncodeBinary(user.PublicKey),
 				InVoice:   false,
 				Hidden:    false,
 			},
@@ -167,9 +166,9 @@ func GroupAdd(c *gin.Context) {
 		voiceSocket := util.GetVoiceSocketFromUserID(user.ID)
 
 		eventUsers = append(eventUsers, events.OChannelCreate_User{
-			ID:        base64.RawURLEncoding.EncodeToString(user.ID),
-			AvatarID:  base64.RawURLEncoding.EncodeToString(user.AvatarID),
-			PublicKey: base64.RawURLEncoding.EncodeToString(user.PublicKey),
+			ID:        util.EncodeBinary(user.ID),
+			AvatarID:  util.EncodeBinary(user.AvatarID),
+			PublicKey: util.EncodeBinary(user.PublicKey),
 			Username:  user.Username,
 			Name:      user.Name,
 			Hidden:    userInfo.Hidden,
@@ -180,17 +179,17 @@ func GroupAdd(c *gin.Context) {
 	util.BroadcastToUser(userID, events.O{
 		Type: events.OChannelCreateType,
 		Data: events.OChannelCreate{
-			ID:       base64.RawURLEncoding.EncodeToString(channel.ID),
-			AvatarID: base64.RawURLEncoding.EncodeToString(channel.AvatarID),
+			ID:       util.EncodeBinary(channel.ID),
+			AvatarID: util.EncodeBinary(channel.AvatarID),
 			Name:     channel.Name,
 			Type:     channel.Type,
 			Created:  channel.Created,
 			Owner:    false,
 			Users:    eventUsers,
 			LastMessage: events.OChannelCreate_LastMessage{
-				ID:      base64.RawURLEncoding.EncodeToString(message.ID),
-				UserID:  base64.RawURLEncoding.EncodeToString(message.UserID),
-				Body:    base64.RawURLEncoding.EncodeToString(message.Body),
+				ID:      util.EncodeBinary(message.ID),
+				UserID:  util.EncodeBinary(message.UserID),
+				Body:    util.EncodeBinary(message.Body),
 				Type:    message.Type,
 				Created: message.Created,
 			},
@@ -200,10 +199,10 @@ func GroupAdd(c *gin.Context) {
 	util.BroadcastToChannel(channelID, events.O{
 		Type: events.OMessageCreateType,
 		Data: events.OMessageCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(message.ID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(message.ChannelID),
-			UserID:    base64.RawURLEncoding.EncodeToString(message.UserID),
-			Body:      base64.RawURLEncoding.EncodeToString(message.Body),
+			ID:        util.EncodeBinary(message.ID),
+			ChannelID: util.EncodeBinary(message.ChannelID),
+			UserID:    util.EncodeBinary(message.UserID),
+			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
 			Created:   message.Created,
 		},

@@ -107,7 +107,7 @@ func ValidateBase64URL(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	if _, err := base64.RawURLEncoding.DecodeString(fl.Field().String()); err != nil {
+	if len(DecodeBinary(fl.Field().String())) == 0 {
 		return false
 	}
 
@@ -538,7 +538,7 @@ func CheckAvatar(id []byte) {
 
 func VoiceStart(socket *Socket, channelID []byte) {
 	var channel models.Channel
-	if err := ChannelCollection.FindOne(Context, bson.M{
+	if ChannelCollection.FindOne(Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -546,7 +546,7 @@ func VoiceStart(socket *Socket, channelID []byte) {
 				"hidden": false,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		socket.Write(events.O{
 			Type: events.OVoiceResetType,
 		})
@@ -565,8 +565,8 @@ func VoiceStart(socket *Socket, channelID []byte) {
 	BroadcastToChannelOther(channelID, socket.Session.UserID, events.O{
 		Type: events.OChannelUserSetInVoiceType,
 		Data: events.OChannelUserSetInVoice{
-			ID:        base64.RawURLEncoding.EncodeToString(socket.Session.UserID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(channelID),
+			ID:        EncodeBinary(socket.Session.UserID),
+			ChannelID: EncodeBinary(channelID),
 			InVoice:   true,
 		},
 	})
@@ -582,8 +582,8 @@ func VoiceStop(socket *Socket) {
 	BroadcastToChannelOther(socket.VoiceChannelID, socket.Session.UserID, events.O{
 		Type: events.OChannelUserSetInVoiceType,
 		Data: events.OChannelUserSetInVoice{
-			ID:        base64.RawURLEncoding.EncodeToString(socket.Session.UserID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(socket.VoiceChannelID),
+			ID:        EncodeBinary(socket.Session.UserID),
+			ChannelID: EncodeBinary(socket.VoiceChannelID),
 			InVoice:   false,
 		},
 	})
@@ -632,4 +632,18 @@ func CheckTOTPCode(totpCode string, totpSecret []byte) bool {
 	}
 
 	return valid
+}
+
+func EncodeBinary(b []byte) string {
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+func DecodeBinary(s string) []byte {
+	b, err := base64.RawURLEncoding.DecodeString(s)
+
+	if err != nil {
+		return []byte{}
+	}
+
+	return b
 }

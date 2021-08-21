@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -25,8 +24,8 @@ func GroupRemove(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
-	userID, _ := base64.RawURLEncoding.DecodeString(uri.UserID)
+	channelID := util.DecodeBinary(uri.ChannelID)
+	userID := util.DecodeBinary(uri.UserID)
 
 	if bytes.Equal(cUser.ID, userID) {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -38,7 +37,7 @@ func GroupRemove(c *gin.Context) {
 
 	var channel models.Channel
 
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -47,7 +46,7 @@ func GroupRemove(c *gin.Context) {
 				"owner":  true,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Channel not found",
 		})
@@ -114,10 +113,10 @@ func GroupRemove(c *gin.Context) {
 	util.BroadcastToChannel(channelID, events.O{
 		Type: events.OMessageCreateType,
 		Data: events.OMessageCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(message.ID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(message.ChannelID),
-			UserID:    base64.RawURLEncoding.EncodeToString(message.UserID),
-			Body:      base64.RawURLEncoding.EncodeToString(message.Body),
+			ID:        util.EncodeBinary(message.ID),
+			ChannelID: util.EncodeBinary(message.ChannelID),
+			UserID:    util.EncodeBinary(message.UserID),
+			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
 			Created:   message.Created,
 		},

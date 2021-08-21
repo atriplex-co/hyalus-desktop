@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,10 +21,10 @@ func DeleteFriend(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	friendID, _ := base64.RawURLEncoding.DecodeString(uri.FriendID)
+	friendID := util.DecodeBinary(uri.FriendID)
 
 	var friend models.Friend
-	if err := util.FriendCollection.FindOneAndDelete(util.Context, bson.M{
+	if util.FriendCollection.FindOneAndDelete(util.Context, bson.M{
 		"$or": bson.A{
 			bson.M{
 				"user1Id": cUser.ID,
@@ -36,7 +35,7 @@ func DeleteFriend(c *gin.Context) {
 				"user2Id": cUser.ID,
 			},
 		},
-	}).Decode(&friend); err != nil {
+	}).Decode(&friend) != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Friend not found",
 		})
@@ -47,14 +46,14 @@ func DeleteFriend(c *gin.Context) {
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OFriendDeleteType,
 		Data: events.OFriendDelete{
-			ID: base64.RawURLEncoding.EncodeToString(friendID),
+			ID: util.EncodeBinary(friendID),
 		},
 	})
 
 	util.BroadcastToUser(friendID, events.O{
 		Type: events.OFriendDeleteType,
 		Data: events.OFriendDelete{
-			ID: base64.RawURLEncoding.EncodeToString(cUser.ID),
+			ID: util.EncodeBinary(cUser.ID),
 		},
 	})
 }

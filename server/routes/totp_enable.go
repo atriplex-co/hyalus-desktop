@@ -3,7 +3,6 @@ package routes
 import (
 	"bytes"
 	"encoding/base32"
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +34,7 @@ func TotpEnable(c *gin.Context) {
 		return
 	}
 
-	authKey, _ := base64.RawURLEncoding.DecodeString(body.AuthKey)
+	authKey := util.DecodeBinary(body.AuthKey)
 
 	if !bytes.Equal(authKey, cUser.AuthKey) {
 		c.JSON(http.StatusBadRequest, gin.H{

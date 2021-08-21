@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 	"time"
@@ -41,9 +40,9 @@ func CreateFriend(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := util.UserCollection.FindOne(util.Context, bson.M{
+	if util.UserCollection.FindOne(util.Context, bson.M{
 		"username": strings.ToLower(body.Username),
-	}).Decode(&user); err != nil {
+	}).Decode(&user) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Username not found",
 		})
@@ -83,10 +82,10 @@ func CreateFriend(c *gin.Context) {
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OFriendCreateType,
 		Data: events.OFriendCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(user.ID),
+			ID:        util.EncodeBinary(user.ID),
 			Username:  user.Username,
 			Name:      user.Name,
-			AvatarID:  base64.RawURLEncoding.EncodeToString(user.AvatarID),
+			AvatarID:  util.EncodeBinary(user.AvatarID),
 			Accepted:  false,
 			CanAccept: false,
 		},
@@ -95,10 +94,10 @@ func CreateFriend(c *gin.Context) {
 	util.BroadcastToUser(user.ID, events.O{
 		Type: events.OFriendCreateType,
 		Data: events.OFriendCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(cUser.ID),
+			ID:        util.EncodeBinary(cUser.ID),
 			Username:  cUser.Username,
 			Name:      cUser.Name,
-			AvatarID:  base64.RawURLEncoding.EncodeToString(cUser.AvatarID),
+			AvatarID:  util.EncodeBinary(cUser.AvatarID),
 			Accepted:  false,
 			CanAccept: true,
 		},

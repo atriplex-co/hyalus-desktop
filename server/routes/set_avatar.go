@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,15 +60,15 @@ func SetAvatar(c *gin.Context) {
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OSetAvatarIDType,
 		Data: events.OSetAvatarID{
-			AvatarID: base64.RawURLEncoding.EncodeToString(avatar),
+			AvatarID: util.EncodeBinary(avatar),
 		},
 	})
 
 	util.BroadcastToRelated(cUser.ID, events.O{
 		Type: events.OForeignUserSetAvatarIDType,
 		Data: events.OForeignUserSetAvatarID{
-			ID:       base64.RawURLEncoding.EncodeToString(cUser.ID),
-			AvatarID: base64.RawURLEncoding.EncodeToString(avatar),
+			ID:       util.EncodeBinary(cUser.ID),
+			AvatarID: util.EncodeBinary(avatar),
 		},
 	})
 }

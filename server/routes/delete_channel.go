@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -26,10 +25,10 @@ func DeleteChannel(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	id, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
+	id := util.DecodeBinary(uri.ChannelID)
 	var channel models.Channel
 
-	if err := util.ChannelCollection.FindOneAndUpdate(util.Context, bson.M{
+	if util.ChannelCollection.FindOneAndUpdate(util.Context, bson.M{
 		"_id": id,
 		"type": bson.M{
 			"$ne": "private", //users can't leave DMs.
@@ -44,7 +43,7 @@ func DeleteChannel(c *gin.Context) {
 		"$set": bson.M{
 			"users.$.hidden": true,
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Channel not found",
 		})
@@ -55,7 +54,7 @@ func DeleteChannel(c *gin.Context) {
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OChannelDeleteType,
 		Data: events.OChannelDelete{
-			ID: base64.RawURLEncoding.EncodeToString(channel.ID),
+			ID: util.EncodeBinary(channel.ID),
 		},
 	})
 
@@ -95,9 +94,9 @@ func DeleteChannel(c *gin.Context) {
 	util.BroadcastToChannel(channel.ID, events.O{
 		Type: events.OMessageCreateType,
 		Data: events.OMessageCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(groupLeaveMessage.ID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(groupLeaveMessage.ChannelID),
-			UserID:    base64.RawURLEncoding.EncodeToString(groupLeaveMessage.UserID),
+			ID:        util.EncodeBinary(groupLeaveMessage.ID),
+			ChannelID: util.EncodeBinary(groupLeaveMessage.ChannelID),
+			UserID:    util.EncodeBinary(groupLeaveMessage.UserID),
 			Type:      groupLeaveMessage.Type,
 			Created:   groupLeaveMessage.Created,
 		},
@@ -106,8 +105,8 @@ func DeleteChannel(c *gin.Context) {
 	util.BroadcastToChannel(channel.ID, events.O{
 		Type: events.OChannelUserSetHiddenType,
 		Data: events.OChannelUserSetHidden{
-			ID:        base64.RawURLEncoding.EncodeToString(cUser.ID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(channel.ID),
+			ID:        util.EncodeBinary(cUser.ID),
+			ChannelID: util.EncodeBinary(channel.ID),
 			Hidden:    true,
 		},
 	})

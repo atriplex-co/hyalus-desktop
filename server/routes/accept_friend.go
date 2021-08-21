@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -23,10 +22,10 @@ func AcceptFriend(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	friendID, _ := base64.RawURLEncoding.DecodeString(uri.FriendID)
+	friendID := util.DecodeBinary(uri.FriendID)
 
 	var friend models.Friend
-	if err := util.FriendCollection.FindOneAndUpdate(util.Context, bson.M{
+	if util.FriendCollection.FindOneAndUpdate(util.Context, bson.M{
 		"user1Id":  friendID,
 		"user2Id":  cUser.ID,
 		"accepted": false,
@@ -34,7 +33,7 @@ func AcceptFriend(c *gin.Context) {
 		"$set": bson.M{
 			"accepted": true,
 		},
-	}).Decode(&friend); err != nil {
+	}).Decode(&friend) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "No friend request found",
 		})
@@ -45,20 +44,20 @@ func AcceptFriend(c *gin.Context) {
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OFriendAcceptType,
 		Data: events.OFriendAccept{
-			ID: base64.RawURLEncoding.EncodeToString(friendID),
+			ID: util.EncodeBinary(friendID),
 		},
 	})
 
 	util.BroadcastToUser(friendID, events.O{
 		Type: events.OFriendAcceptType,
 		Data: events.OFriendAccept{
-			ID: base64.RawURLEncoding.EncodeToString(cUser.ID),
+			ID: util.EncodeBinary(cUser.ID),
 		},
 	})
 
 	var channel models.Channel
 	channelCreated := false
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"$and": bson.A{
 			bson.M{
 				"users": bson.M{
@@ -75,7 +74,7 @@ func AcceptFriend(c *gin.Context) {
 				},
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		channelCreated = true
 		channel = models.Channel{
 			ID:      util.GenerateID(),
@@ -119,24 +118,24 @@ func AcceptFriend(c *gin.Context) {
 		util.BroadcastToUser(cUser.ID, events.O{
 			Type: events.OChannelCreateType,
 			Data: events.OChannelCreate{
-				ID:      base64.RawURLEncoding.EncodeToString(channel.ID),
+				ID:      util.EncodeBinary(channel.ID),
 				Type:    channel.Type,
 				Created: channel.Created,
 				Owner:   true,
 				Users: []events.OChannelCreate_User{
 					{
-						ID:        base64.RawURLEncoding.EncodeToString(friendUser.ID),
+						ID:        util.EncodeBinary(friendUser.ID),
 						Username:  friendUser.Username,
 						Name:      friendUser.Name,
-						AvatarID:  base64.RawURLEncoding.EncodeToString(friendUser.AvatarID),
-						PublicKey: base64.RawURLEncoding.EncodeToString(friendUser.PublicKey),
+						AvatarID:  util.EncodeBinary(friendUser.AvatarID),
+						PublicKey: util.EncodeBinary(friendUser.PublicKey),
 						InVoice:   false,
 						Hidden:    false,
 					},
 				},
 				LastMessage: events.OChannelCreate_LastMessage{
-					ID:      base64.RawURLEncoding.EncodeToString(message.ID),
-					UserID:  base64.RawURLEncoding.EncodeToString(cUser.ID),
+					ID:      util.EncodeBinary(message.ID),
+					UserID:  util.EncodeBinary(cUser.ID),
 					Type:    message.Type,
 					Created: message.Created,
 				},
@@ -146,39 +145,41 @@ func AcceptFriend(c *gin.Context) {
 		util.BroadcastToUser(friendID, events.O{
 			Type: events.OChannelCreateType,
 			Data: events.OChannelCreate{
-				ID:      base64.RawURLEncoding.EncodeToString(channel.ID),
+				ID:      util.EncodeBinary(channel.ID),
 				Type:    channel.Type,
 				Created: channel.Created,
 				Owner:   false,
 				Users: []events.OChannelCreate_User{
 					{
-						ID:        base64.RawURLEncoding.EncodeToString(cUser.ID),
+						ID:        util.EncodeBinary(cUser.ID),
 						Username:  cUser.Username,
 						Name:      cUser.Name,
-						AvatarID:  base64.RawURLEncoding.EncodeToString(cUser.AvatarID),
-						PublicKey: base64.RawURLEncoding.EncodeToString(cUser.PublicKey),
+						AvatarID:  util.EncodeBinary(cUser.AvatarID),
+						PublicKey: util.EncodeBinary(cUser.PublicKey),
 						InVoice:   false,
 						Hidden:    false,
 					},
 				},
 				LastMessage: events.OChannelCreate_LastMessage{
-					ID:      base64.RawURLEncoding.EncodeToString(message.ID),
-					UserID:  base64.RawURLEncoding.EncodeToString(cUser.ID),
+					ID:      util.EncodeBinary(message.ID),
+					UserID:  util.EncodeBinary(cUser.ID),
 					Type:    message.Type,
 					Created: message.Created,
 				},
 			},
 		})
-	} else {
-		util.BroadcastToChannel(channel.ID, events.O{
-			Type: events.OMessageCreateType,
-			Data: events.OMessageCreate{
-				ID:        base64.RawURLEncoding.EncodeToString(message.ID),
-				ChannelID: base64.RawURLEncoding.EncodeToString(channel.ID),
-				UserID:    base64.RawURLEncoding.EncodeToString(cUser.ID),
-				Type:      message.Type,
-				Created:   message.Created,
-			},
-		})
+
+		return
 	}
+
+	util.BroadcastToChannel(channel.ID, events.O{
+		Type: events.OMessageCreateType,
+		Data: events.OMessageCreate{
+			ID:        util.EncodeBinary(message.ID),
+			ChannelID: util.EncodeBinary(channel.ID),
+			UserID:    util.EncodeBinary(cUser.ID),
+			Type:      message.Type,
+			Created:   message.Created,
+		},
+	})
 }

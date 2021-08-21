@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -45,7 +44,7 @@ func CreateChannel(c *gin.Context) {
 	users := []models.User{cUser}
 
 	for _, userID := range body.UserIDs {
-		userID, _ := base64.RawURLEncoding.DecodeString(userID)
+		userID := util.DecodeBinary(userID)
 
 		if found, _ := util.FriendCollection.CountDocuments(util.Context, bson.M{
 			"$or": bson.A{
@@ -102,11 +101,11 @@ func CreateChannel(c *gin.Context) {
 			}
 
 			eventUsers = append(eventUsers, events.OChannelCreate_User{
-				ID:        base64.RawURLEncoding.EncodeToString(user2.ID),
+				ID:        util.EncodeBinary(user2.ID),
 				Username:  user2.Username,
 				Name:      user2.Name,
-				AvatarID:  base64.RawURLEncoding.EncodeToString(user2.AvatarID),
-				PublicKey: base64.RawURLEncoding.EncodeToString(user2.PublicKey),
+				AvatarID:  util.EncodeBinary(user2.AvatarID),
+				PublicKey: util.EncodeBinary(user2.PublicKey),
 				InVoice:   false,
 				Hidden:    false,
 			})
@@ -115,7 +114,7 @@ func CreateChannel(c *gin.Context) {
 		util.BroadcastToUser(user.ID, events.O{
 			Type: events.OChannelCreateType,
 			Data: events.OChannelCreate{
-				ID:       base64.RawURLEncoding.EncodeToString(channel.ID),
+				ID:       util.EncodeBinary(channel.ID),
 				Name:     channel.Name,
 				AvatarID: "",
 				Type:     channel.Type,
@@ -123,8 +122,8 @@ func CreateChannel(c *gin.Context) {
 				Owner:    bytes.Equal(user.ID, cUser.ID),
 				Users:    eventUsers,
 				LastMessage: events.OChannelCreate_LastMessage{
-					ID:      base64.RawURLEncoding.EncodeToString(groupCreateMessage.ID),
-					UserID:  base64.RawURLEncoding.EncodeToString(groupCreateMessage.UserID),
+					ID:      util.EncodeBinary(groupCreateMessage.ID),
+					UserID:  util.EncodeBinary(groupCreateMessage.UserID),
 					Body:    "",
 					Key:     "",
 					Type:    groupCreateMessage.Type,
@@ -153,10 +152,10 @@ func CreateChannel(c *gin.Context) {
 		util.BroadcastToChannel(channel.ID, events.O{
 			Type: events.OMessageCreateType,
 			Data: events.OMessageCreate{
-				ID:        base64.RawURLEncoding.EncodeToString(groupAddMessage.ID),
-				ChannelID: base64.RawURLEncoding.EncodeToString(groupAddMessage.ChannelID),
-				UserID:    base64.RawURLEncoding.EncodeToString(groupAddMessage.UserID),
-				Body:      base64.RawURLEncoding.EncodeToString(groupAddMessage.Body),
+				ID:        util.EncodeBinary(groupAddMessage.ID),
+				ChannelID: util.EncodeBinary(groupAddMessage.ChannelID),
+				UserID:    util.EncodeBinary(groupAddMessage.UserID),
+				Body:      util.EncodeBinary(groupAddMessage.Body),
 				Key:       "",
 				Type:      groupAddMessage.Type,
 				Created:   groupAddMessage.Created,

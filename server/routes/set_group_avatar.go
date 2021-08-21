@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -23,7 +22,7 @@ func SetGroupAvatar(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
+	channelID := util.DecodeBinary(uri.ChannelID)
 
 	if count, _ := util.ChannelCollection.CountDocuments(util.Context, bson.M{
 		"_id": channelID,
@@ -82,7 +81,7 @@ func SetGroupAvatar(c *gin.Context) {
 		Type: events.OChannelSetAvatarIDType,
 		Data: events.OChannelSetAvatarID{
 			ID:       uri.ChannelID,
-			AvatarID: base64.RawURLEncoding.EncodeToString(avatar),
+			AvatarID: util.EncodeBinary(avatar),
 		},
 	})
 
@@ -99,10 +98,10 @@ func SetGroupAvatar(c *gin.Context) {
 	util.BroadcastToChannel(channelID, events.O{
 		Type: events.OMessageCreateType,
 		Data: events.OMessageCreate{
-			ID:        base64.RawURLEncoding.EncodeToString(message.ID),
-			ChannelID: base64.RawURLEncoding.EncodeToString(message.ChannelID),
-			UserID:    base64.RawURLEncoding.EncodeToString(message.UserID),
-			Body:      base64.RawURLEncoding.EncodeToString(message.Body),
+			ID:        util.EncodeBinary(message.ID),
+			ChannelID: util.EncodeBinary(message.ChannelID),
+			UserID:    util.EncodeBinary(message.UserID),
+			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
 			Created:   message.Created,
 		},

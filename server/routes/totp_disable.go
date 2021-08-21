@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +22,7 @@ func TotpDisable(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	authKey, _ := base64.RawURLEncoding.DecodeString(body.AuthKey)
+	authKey := util.DecodeBinary(body.AuthKey)
 
 	if !bytes.Equal(authKey, cUser.AuthKey) {
 		c.JSON(http.StatusBadRequest, gin.H{

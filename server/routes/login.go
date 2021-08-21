@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 	"time"
@@ -25,13 +24,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	authKey, _ := base64.RawURLEncoding.DecodeString(body.AuthKey)
+	authKey := util.DecodeBinary(body.AuthKey)
 
 	var user models.User
-	if err := util.UserCollection.FindOne(util.Context, bson.M{
+	if util.UserCollection.FindOne(util.Context, bson.M{
 		"username": strings.ToLower(body.Username),
 		"authKey":  authKey,
-	}).Decode(&user); err != nil {
+	}).Decode(&user) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid password",
 		})
@@ -72,7 +71,7 @@ func Login(c *gin.Context) {
 	util.BroadcastToUser(user.ID, events.O{
 		Type: events.OSessionCreateType,
 		Data: events.OSessionCreate{
-			ID:      base64.RawURLEncoding.EncodeToString(session.ID),
+			ID:      util.EncodeBinary(session.ID),
 			Agent:   session.Agent,
 			IP:      session.IP,
 			Created: session.Created,
@@ -80,8 +79,8 @@ func Login(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":               base64.RawURLEncoding.EncodeToString(session.Token),
-		"publicKey":           base64.RawURLEncoding.EncodeToString(user.PublicKey),
-		"encryptedPrivateKey": base64.RawURLEncoding.EncodeToString(user.EncryptedPrivateKey),
+		"token":               util.EncodeBinary(session.Token),
+		"publicKey":           util.EncodeBinary(user.PublicKey),
+		"encryptedPrivateKey": util.EncodeBinary(user.EncryptedPrivateKey),
 	})
 }

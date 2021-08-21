@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,13 +20,13 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
-	sessionID, _ := base64.RawURLEncoding.DecodeString(uri.SessionID)
+	sessionID := util.DecodeBinary(uri.SessionID)
 
 	var session models.Session
-	if err := util.SessionCollection.FindOneAndDelete(util.Context, bson.M{
+	if util.SessionCollection.FindOneAndDelete(util.Context, bson.M{
 		"_id":    sessionID,
 		"userId": c.MustGet("session").(models.Session).UserID,
-	}).Decode(&session); err != nil {
+	}).Decode(&session) != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Session not found",
 		})
@@ -42,7 +41,7 @@ func DeleteSession(c *gin.Context) {
 	util.BroadcastToUser(session.UserID, events.O{
 		Type: events.OSessionDeleteType,
 		Data: events.OSessionDelete{
-			ID: base64.RawURLEncoding.EncodeToString(session.ID),
+			ID: util.EncodeBinary(session.ID),
 		},
 	})
 }

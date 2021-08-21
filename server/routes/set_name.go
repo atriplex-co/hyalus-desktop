@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
-
 	"github.com/gin-gonic/gin"
 	"github.com/hyalusapp/hyalus/server/events"
 	"github.com/hyalusapp/hyalus/server/models"
@@ -39,7 +37,7 @@ func SetName(c *gin.Context) {
 	util.BroadcastToRelated(cUser.ID, events.O{
 		Type: events.OForeignUserSetNameType,
 		Data: events.OForeignUserSetName{
-			ID:   base64.RawURLEncoding.EncodeToString(cUser.ID),
+			ID:   util.EncodeBinary(cUser.ID),
 			Name: body.Name,
 		},
 	})

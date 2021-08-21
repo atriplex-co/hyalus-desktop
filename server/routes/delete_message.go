@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,11 +22,11 @@ func DeleteMessage(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
-	messageID, _ := base64.RawURLEncoding.DecodeString(uri.MessageID)
+	channelID := util.DecodeBinary(uri.ChannelID)
+	messageID := util.DecodeBinary(uri.MessageID)
 
 	var channel models.Channel
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -35,7 +34,7 @@ func DeleteMessage(c *gin.Context) {
 				"hidden": false,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Channel not found",
 		})

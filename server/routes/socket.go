@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"math/rand"
 	"time"
@@ -49,12 +48,12 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IStart
 			json.Unmarshal(msg.Data, &event)
 
-			token, _ := base64.RawURLEncoding.DecodeString(event.Token)
-			voiceChannelId, _ := base64.RawURLEncoding.DecodeString(event.VoiceChannelID)
+			token := util.DecodeBinary(event.Token)
+			voiceChannelId := util.DecodeBinary(event.VoiceChannelID)
 
 			var cSession models.Session
 
-			if err := util.SessionCollection.FindOneAndUpdate(util.Context, bson.M{
+			if util.SessionCollection.FindOneAndUpdate(util.Context, bson.M{
 				"token": token,
 			}, bson.M{
 				"$set": bson.M{
@@ -62,7 +61,7 @@ func SocketUpgrade(c *gin.Context) {
 					"ip":        c.ClientIP(),
 					"lastStart": time.Now().UnixNano() / 1e6,
 				},
-			}).Decode(&cSession); err != nil {
+			}).Decode(&cSession) != nil {
 				socket.Write(events.O{
 					Type: events.OResetType,
 				})
@@ -74,7 +73,7 @@ func SocketUpgrade(c *gin.Context) {
 				util.BroadcastToUser(cSession.UserID, events.O{
 					Type: events.OSessionStartType,
 					Data: events.OSessionStarted{
-						ID:    base64.RawURLEncoding.EncodeToString(cSession.ID),
+						ID:    util.EncodeBinary(cSession.ID),
 						Agent: cSession.Agent,
 						IP:    cSession.IP,
 					},
@@ -141,10 +140,10 @@ func SocketUpgrade(c *gin.Context) {
 				}).Decode(&friendUser)
 
 				formattedFriends = append(formattedFriends, events.OReady_Friend{
-					ID:        base64.RawURLEncoding.EncodeToString(friendUser.ID),
+					ID:        util.EncodeBinary(friendUser.ID),
 					Username:  friendUser.Username,
 					Name:      friendUser.Name,
-					AvatarID:  base64.RawURLEncoding.EncodeToString(friendUser.AvatarID),
+					AvatarID:  util.EncodeBinary(friendUser.AvatarID),
 					Accepted:  friend.Accepted,
 					CanAccept: canAccept,
 				})
@@ -170,11 +169,11 @@ func SocketUpgrade(c *gin.Context) {
 					voiceSocket := util.GetVoiceSocketFromUserID(user.ID)
 
 					formattedChannelUsers = append(formattedChannelUsers, events.OReady_ChannelUser{
-						ID:        base64.RawURLEncoding.EncodeToString(user.ID),
+						ID:        util.EncodeBinary(user.ID),
 						Username:  user.Username,
 						Name:      user.Name,
-						AvatarID:  base64.RawURLEncoding.EncodeToString(user.AvatarID),
-						PublicKey: base64.RawURLEncoding.EncodeToString(user.PublicKey),
+						AvatarID:  util.EncodeBinary(user.AvatarID),
+						PublicKey: util.EncodeBinary(user.PublicKey),
 						InVoice:   voiceSocket != nil && bytes.Equal(channel.ID, voiceSocket.VoiceChannelID),
 						Hidden:    userInfo.Hidden,
 					})
@@ -198,18 +197,18 @@ func SocketUpgrade(c *gin.Context) {
 				}
 
 				formattedChannels = append(formattedChannels, events.OReady_Channel{
-					ID:       base64.RawURLEncoding.EncodeToString(channel.ID),
-					AvatarID: base64.RawURLEncoding.EncodeToString(channel.AvatarID),
+					ID:       util.EncodeBinary(channel.ID),
+					AvatarID: util.EncodeBinary(channel.AvatarID),
 					Name:     channel.Name,
 					Type:     channel.Type,
 					Created:  channel.Created,
 					Owner:    ownUserInfo.Owner,
 					Users:    formattedChannelUsers,
 					LastMessage: events.OReady_ChannelLastMessage{
-						ID:      base64.RawURLEncoding.EncodeToString(lastMessage.ID),
-						UserID:  base64.RawURLEncoding.EncodeToString(lastMessage.UserID),
-						Body:    base64.RawURLEncoding.EncodeToString(lastMessage.Body),
-						Key:     base64.RawURLEncoding.EncodeToString(lastMessageKey),
+						ID:      util.EncodeBinary(lastMessage.ID),
+						UserID:  util.EncodeBinary(lastMessage.UserID),
+						Body:    util.EncodeBinary(lastMessage.Body),
+						Key:     util.EncodeBinary(lastMessageKey),
 						Type:    lastMessage.Type,
 						Created: lastMessage.Created,
 					},
@@ -221,7 +220,7 @@ func SocketUpgrade(c *gin.Context) {
 				sessionCursor.Decode(&session)
 
 				formattedSessions = append(formattedSessions, events.OReady_Session{
-					ID:        base64.RawURLEncoding.EncodeToString(session.ID),
+					ID:        util.EncodeBinary(session.ID),
 					Agent:     session.Agent,
 					IP:        session.IP,
 					Created:   session.Created,
@@ -231,7 +230,7 @@ func SocketUpgrade(c *gin.Context) {
 			}
 
 			for _, hashText := range event.FileChunks {
-				hash, _ := base64.RawURLEncoding.DecodeString(hashText)
+				hash := util.DecodeBinary(hashText)
 				socket.FileChunks = append(socket.FileChunks, hash)
 			}
 
@@ -240,9 +239,9 @@ func SocketUpgrade(c *gin.Context) {
 				Data: events.OReady{
 					Proto: util.SocketProto,
 					User: events.OReady_User{
-						ID:             base64.RawURLEncoding.EncodeToString(cUser.ID),
+						ID:             util.EncodeBinary(cUser.ID),
 						Name:           cUser.Name,
-						AvatarID:       base64.RawURLEncoding.EncodeToString(cUser.AvatarID),
+						AvatarID:       util.EncodeBinary(cUser.AvatarID),
 						Username:       cUser.Username,
 						TotpEnabled:    len(cUser.TotpSecret) > 0,
 						Created:        cUser.Created,
@@ -269,7 +268,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IFileChunkOwned
 			json.Unmarshal(msg.Data, &event)
 
-			hash, _ := base64.RawURLEncoding.DecodeString(event.Hash)
+			hash := util.DecodeBinary(event.Hash)
 			found := false
 
 			for _, h := range socket.FileChunks {
@@ -287,7 +286,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IFileChunkLost
 			json.Unmarshal(msg.Data, &event)
 
-			hash, _ := base64.RawURLEncoding.DecodeString(event.Hash)
+			hash := util.DecodeBinary(event.Hash)
 			var new [][]byte
 
 			for _, h := range socket.FileChunks {
@@ -303,7 +302,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IFileChunkGet
 			json.Unmarshal(msg.Data, &event)
 
-			hash, _ := base64.RawURLEncoding.DecodeString(event.Hash)
+			hash := util.DecodeBinary(event.Hash)
 			var hasSockets []*util.Socket
 
 			for _, s := range util.Sockets {
@@ -333,7 +332,7 @@ func SocketUpgrade(c *gin.Context) {
 					Type: events.OFileChunkRequestType,
 					Data: events.OFileChunkRequest{
 						Hash:     event.Hash,
-						SocketID: base64.RawURLEncoding.EncodeToString(socket.ID),
+						SocketID: util.EncodeBinary(socket.ID),
 					},
 				})
 			}
@@ -343,7 +342,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IFileChunkRTC
 			json.Unmarshal(msg.Data, &event)
 
-			socketID, _ := base64.RawURLEncoding.DecodeString(event.SocketID)
+			socketID := util.DecodeBinary(event.SocketID)
 			target := -1
 
 			for i, s := range util.Sockets {
@@ -359,7 +358,7 @@ func SocketUpgrade(c *gin.Context) {
 			util.Sockets[target].Write(events.O{
 				Type: events.OFileChunkRTCType,
 				Data: events.OFileChunkRTC{
-					SocketID:    base64.RawURLEncoding.EncodeToString(socket.ID),
+					SocketID:    util.EncodeBinary(socket.ID),
 					Hash:        event.Hash,
 					Payload:     event.Payload,
 					PayloadType: event.PayloadType,
@@ -371,7 +370,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IVoiceStart
 			json.Unmarshal(msg.Data, &event)
 
-			channelID, _ := base64.RawURLEncoding.DecodeString(event.ChannelID)
+			channelID := util.DecodeBinary(event.ChannelID)
 
 			util.VoiceStart(socket, channelID)
 		}
@@ -384,7 +383,7 @@ func SocketUpgrade(c *gin.Context) {
 			var event events.IVoiceRTC
 			json.Unmarshal(msg.Data, &event)
 
-			userID, _ := base64.RawURLEncoding.DecodeString(event.UserID)
+			userID := util.DecodeBinary(event.UserID)
 			userVoiceSocket := util.GetVoiceSocketFromUserID(userID)
 
 			if userVoiceSocket == nil || !bytes.Equal(socket.VoiceChannelID, userVoiceSocket.VoiceChannelID) {
@@ -394,7 +393,7 @@ func SocketUpgrade(c *gin.Context) {
 			userVoiceSocket.Write(events.O{
 				Type: events.OVoiceRTCType,
 				Data: events.OVoiceRTC{
-					UserID:  base64.RawURLEncoding.EncodeToString(socket.Session.UserID),
+					UserID:  util.EncodeBinary(socket.Session.UserID),
 					Payload: event.Payload,
 				},
 			})

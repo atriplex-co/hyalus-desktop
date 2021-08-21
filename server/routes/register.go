@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 	"time"
@@ -38,10 +37,10 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	salt, _ := base64.RawURLEncoding.DecodeString(body.Salt)
-	authKey, _ := base64.RawURLEncoding.DecodeString(body.AuthKey)
-	publicKey, _ := base64.RawURLEncoding.DecodeString(body.PublicKey)
-	encryptedPrivateKey, _ := base64.RawURLEncoding.DecodeString(body.EncryptedPrivateKey)
+	salt := util.DecodeBinary(body.Salt)
+	authKey := util.DecodeBinary(body.AuthKey)
+	publicKey := util.DecodeBinary(body.PublicKey)
+	encryptedPrivateKey := util.DecodeBinary(body.EncryptedPrivateKey)
 
 	user := models.User{
 		ID:                  util.GenerateID(),
@@ -73,6 +72,6 @@ func Register(c *gin.Context) {
 	util.SessionCollection.InsertOne(util.Context, &session)
 
 	c.JSON(http.StatusOK, gin.H{
-		"token": base64.RawURLEncoding.EncodeToString(session.Token),
+		"token": util.EncodeBinary(session.Token),
 	})
 }

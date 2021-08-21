@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 
@@ -53,7 +52,7 @@ func SetUsername(c *gin.Context) {
 	util.BroadcastToRelated(cUser.ID, events.O{
 		Type: events.OForeignUserSetUsernameType,
 		Data: events.OForeignUserSetUsername{
-			ID:       base64.RawURLEncoding.EncodeToString(cUser.ID),
+			ID:       util.EncodeBinary(cUser.ID),
 			Username: strings.ToLower(body.Username),
 		},
 	})

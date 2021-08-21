@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 	"strings"
 
@@ -22,9 +21,9 @@ func Prelogin(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := util.UserCollection.FindOne(util.Context, bson.M{
+	if util.UserCollection.FindOne(util.Context, bson.M{
 		"username": strings.ToLower(body.Username),
-	}).Decode(&user); err != nil {
+	}).Decode(&user) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid username",
 		})
@@ -33,6 +32,6 @@ func Prelogin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"salt": base64.RawURLEncoding.EncodeToString(user.Salt),
+		"salt": util.EncodeBinary(user.Salt),
 	})
 }

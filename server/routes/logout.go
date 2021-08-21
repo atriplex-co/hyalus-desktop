@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
-
 	"github.com/gin-gonic/gin"
 	"github.com/hyalusapp/hyalus/server/events"
 	"github.com/hyalusapp/hyalus/server/models"
@@ -25,7 +23,7 @@ func Logout(c *gin.Context) {
 	util.BroadcastToUser(user.ID, events.O{
 		Type: events.OSessionDeleteType,
 		Data: events.OSessionDelete{
-			ID: base64.RawURLEncoding.EncodeToString(session.ID),
+			ID: util.EncodeBinary(session.ID),
 		},
 	})
 }

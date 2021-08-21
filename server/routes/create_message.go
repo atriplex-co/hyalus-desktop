@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"time"
@@ -54,10 +53,10 @@ func CreateMessage(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
+	channelID := util.DecodeBinary(uri.ChannelID)
 
 	var channel models.Channel
-	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
@@ -65,7 +64,7 @@ func CreateMessage(c *gin.Context) {
 				"hidden": false,
 			},
 		},
-	}).Decode(&channel); err != nil {
+	}).Decode(&channel) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Channel not found",
 		})
@@ -113,11 +112,11 @@ func CreateMessage(c *gin.Context) {
 		keyFound := false
 
 		for _, bodyKey := range body.Keys {
-			userID, _ := base64.RawURLEncoding.DecodeString(bodyKey.UserID)
+			userID := util.DecodeBinary(bodyKey.UserID)
 
 			if bytes.Equal(userInfo.ID, userID) {
 				keyFound = true
-				key, _ := base64.RawURLEncoding.DecodeString(bodyKey.Key)
+				key := util.DecodeBinary(bodyKey.Key)
 				keys = append(keys, models.MessageKey{
 					UserID: userID,
 					Key:    key,
@@ -129,14 +128,14 @@ func CreateMessage(c *gin.Context) {
 
 		if !keyFound {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("Missing key for %s", base64.RawURLEncoding.EncodeToString(userInfo.ID)),
+				"error": fmt.Sprintf("Missing key for %s", util.EncodeBinary(userInfo.ID)),
 			})
 
 			return
 		}
 	}
 
-	messageBody, _ := base64.RawURLEncoding.DecodeString(body.Body)
+	messageBody := util.DecodeBinary(body.Body)
 
 	message := models.Message{
 		ID:        util.GenerateID(),
@@ -154,11 +153,11 @@ func CreateMessage(c *gin.Context) {
 		util.BroadcastToUser(key.UserID, events.O{
 			Type: events.OMessageCreateType,
 			Data: events.OMessageCreate{
-				ID:        base64.RawURLEncoding.EncodeToString(message.ID),
-				ChannelID: base64.RawURLEncoding.EncodeToString(channelID),
-				UserID:    base64.RawURLEncoding.EncodeToString(cUser.ID),
-				Body:      base64.RawURLEncoding.EncodeToString(messageBody),
-				Key:       base64.RawURLEncoding.EncodeToString(key.Key),
+				ID:        util.EncodeBinary(message.ID),
+				ChannelID: util.EncodeBinary(channelID),
+				UserID:    util.EncodeBinary(cUser.ID),
+				Body:      util.EncodeBinary(messageBody),
+				Key:       util.EncodeBinary(key.Key),
 				Type:      message.Type,
 				Created:   message.Created,
 			},

@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,12 +19,12 @@ func GetAvatar(c *gin.Context) {
 		return
 	}
 
-	id, _ := base64.RawURLEncoding.DecodeString(uri.AvatarID)
+	id := util.DecodeBinary(uri.AvatarID)
 
 	var avatar models.Avatar
-	if err := util.AvatarCollection.FindOne(util.Context, bson.M{
+	if util.AvatarCollection.FindOne(util.Context, bson.M{
 		"_id": id,
-	}).Decode(&avatar); err != nil {
+	}).Decode(&avatar) != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Avatar not found",
 		})

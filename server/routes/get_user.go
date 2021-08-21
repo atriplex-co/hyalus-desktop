@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +21,9 @@ func GetUser(c *gin.Context) {
 
 	var user models.User
 
-	if err := util.UserCollection.FindOne(util.Context, bson.M{
+	if util.UserCollection.FindOne(util.Context, bson.M{
 		"username": uri.Username,
-	}).Decode(&user); err != nil {
+	}).Decode(&user) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid username",
 		})
@@ -33,10 +32,10 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":        base64.RawURLEncoding.EncodeToString(user.ID),
+		"id":        util.EncodeBinary(user.ID),
 		"username":  user.Username,
 		"name":      user.Name,
-		"avatarId":  base64.RawURLEncoding.EncodeToString(user.AvatarID),
-		"publicKey": base64.RawURLEncoding.EncodeToString(user.PublicKey),
+		"avatarId":  util.EncodeBinary(user.AvatarID),
+		"publicKey": util.EncodeBinary(user.PublicKey),
 	})
 }

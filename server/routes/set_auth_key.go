@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bytes"
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,10 +24,10 @@ func SetAuthKey(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	oldAuthKey, _ := base64.RawURLEncoding.DecodeString(body.OldAuthKey)
-	salt, _ := base64.RawURLEncoding.DecodeString(body.Salt)
-	authKey, _ := base64.RawURLEncoding.DecodeString(body.AuthKey)
-	privateKey, _ := base64.RawURLEncoding.DecodeString(body.PrivateKey)
+	oldAuthKey := util.DecodeBinary(body.OldAuthKey)
+	salt := util.DecodeBinary(body.Salt)
+	authKey := util.DecodeBinary(body.AuthKey)
+	privateKey := util.DecodeBinary(body.PrivateKey)
 
 	if !bytes.Equal(oldAuthKey, cUser.AuthKey) {
 		c.JSON(http.StatusBadRequest, gin.H{
