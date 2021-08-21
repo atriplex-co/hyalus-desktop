@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -167,6 +168,15 @@ func ValidateTotpSecret(fl validator.FieldLevel) bool {
 
 	log.Println(len(data))
 	return err != nil || len(data) != 32
+}
+
+func ValidateUsername(fl validator.FieldLevel) bool {
+	if fl.Field().Type().String() != "string" ||
+		!regexp.MustCompile("^[a-zA-Z0-9_-]{3,32}$").MatchString(fl.Field().String()) {
+		return false
+	}
+
+	return true
 }
 
 func AuthMiddleware(c *gin.Context) {

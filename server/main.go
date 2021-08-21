@@ -123,6 +123,7 @@ func main() {
 	validate.RegisterValidation("base64urlmax", util.ValidateBase64URLMax)
 	validate.RegisterValidation("base64urlexact", util.ValidateBase64URLExact)
 	validate.RegisterValidation("totpSecret", util.ValidateTotpSecret)
+	validate.RegisterValidation("username", util.ValidateUsername)
 	util.Validate = validate
 
 	util.Server.Run(fmt.Sprintf(":%s", port))

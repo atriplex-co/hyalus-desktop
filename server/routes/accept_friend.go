@@ -27,8 +27,9 @@ func AcceptFriend(c *gin.Context) {
 
 	var friend models.Friend
 	if err := util.FriendCollection.FindOneAndUpdate(util.Context, bson.M{
-		"user1Id": friendID,
-		"user2Id": cUser.ID,
+		"user1Id":  friendID,
+		"user2Id":  cUser.ID,
+		"accepted": false,
 	}, bson.M{
 		"$set": bson.M{
 			"accepted": true,

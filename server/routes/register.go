@@ -13,7 +13,7 @@ import (
 )
 
 type RegisterBody struct {
-	Username            string `json:"username" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
+	Username            string `json:"username" binding:"required,username"`
 	Salt                string `json:"salt" binding:"required,base64urlexact=16"`
 	AuthKey             string `json:"authKey" binding:"required,base64urlexact=32"`
 	PublicKey           string `json:"publicKey" binding:"required,base64urlexact=32"`

@@ -1,6 +1,6 @@
 import Vuex from "vuex";
 import axios from "axios";
-import sodium, { sodium_version_string } from "libsodium-wrappers";
+import sodium from "libsodium-wrappers";
 import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
@@ -1408,26 +1408,6 @@ const store = new Vuex.Store({
           userId: peer.userId,
         });
       }
-
-      // const channel = getters.channels.find(
-      //   (c) => c.id === getters.voice.channelId
-      // );
-
-      // if (!channel) {
-      //   return await dispatch("voiceStop");
-      // }
-
-      // for (const user of channel.users) {
-      //   if (user.inVoice) {
-      //     await dispatch("handleVoiceUserJoin", {
-      //       userId: user.id,
-      //     });
-      //   } else {
-      //     await dispatch("handleVoiceUserLeave", {
-      //       userId: user.id,
-      //     });
-      //   }
-      // }
     },
     async updateFavicon({ getters, commit }) {
       const { default: icon } = await import(

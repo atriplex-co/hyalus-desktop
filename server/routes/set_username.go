@@ -13,7 +13,7 @@ import (
 )
 
 type SetUsernameBody struct {
-	Username string `json:"username" binding:"required,alphanum,min=3,max=32"`
+	Username string `json:"username" binding:"required,username"`
 }
 
 func SetUsername(c *gin.Context) {

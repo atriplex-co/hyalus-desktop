@@ -14,7 +14,7 @@ import (
 )
 
 type LoginBody struct {
-	Username string `json:"username" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
+	Username string `json:"username" binding:"required,username"`
 	AuthKey  string `json:"authKey" binding:"required,base64urlexact=32"`
 	TotpCode string `json:"totpCode"`
 }
