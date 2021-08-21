@@ -23,6 +23,14 @@ func CreateFriend(c *gin.Context) {
 		return
 	}
 
+	if strings.ToLower(body.Username) == "deleted" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Can't add deleted users",
+		})
+
+		return
+	}
+
 	cUser := c.MustGet("user").(models.User)
 	if cUser.Username == strings.ToLower(body.Username) {
 		c.JSON(http.StatusBadRequest, gin.H{
