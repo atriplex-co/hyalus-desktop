@@ -1447,7 +1447,8 @@ const store = new Vuex.Store({
           "voiceRtcNoise",
           "voiceRnnoise",
         ].indexOf(k) !== -1 &&
-        getters.voice?.tracks?.audio
+        getters.voice &&
+        getters.voice.tracks.find((t) => t.type === "audio")
       ) {
         await dispatch("stopLocalTrack", { type: "audio" });
         await dispatch("startLocalTrack", { type: "audio" });
@@ -1455,7 +1456,8 @@ const store = new Vuex.Store({
 
       if (
         ["videoInput", "videoMode"].indexOf(k) !== -1 &&
-        getters.voice?.tracks?.video
+        getters.voice &&
+        getters.voice.tracks.find((t) => t.type === "video")
       ) {
         await dispatch("stopLocalTrack", { type: "video" });
         await dispatch("startLocalTrack", { type: "video" });
