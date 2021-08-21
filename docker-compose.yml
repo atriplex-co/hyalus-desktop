@@ -1,23 +1,18 @@
 version: "3"
 services:
-  mongo:
+  db:
     image: mongo
     restart: always
     volumes:
       - db:/data/db
-  redis:
-    image: redis
+  web:
+    build: "."
     restart: always
-  node:
-    build: .
-    restart: always
+    depends_on:
+      - db
+    environment:
+      - DB=mongodb://db
     ports:
       - 3000:3000
-    environment:
-      - MONGO=mongodb://mongo
-      - REDIS=redis://redis
-    depends_on:
-      - mongo
-      - redis
 volumes:
   db:

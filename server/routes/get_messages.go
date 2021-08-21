@@ -1,0 +1,103 @@
+package routes
+
+import (
+	"bytes"
+	"encoding/base64"
+	"math"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/hyalusapp/hyalus/server/models"
+	"github.com/hyalusapp/hyalus/server/util"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+type GetChannelMessagesUri struct {
+	ChannelID string `uri:"channelId" binding:"required,base64urlexact=16"`
+}
+
+func GetMessages(c *gin.Context) {
+	var uri GetChannelMessagesUri
+	if !util.BindUri(c, &uri) {
+		return
+	}
+
+	cUser := c.MustGet("user").(models.User)
+	channelID, _ := base64.RawURLEncoding.DecodeString(uri.ChannelID)
+
+	var channel models.Channel
+	if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+		"_id": channelID,
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":     cUser.ID,
+				"hidden": false,
+			},
+		},
+	}).Decode(&channel); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Channel not found",
+		})
+
+		return
+	}
+
+	var ownUserInfo models.ChannelUser
+	for _, userInfo := range channel.Users {
+		if bytes.Equal(userInfo.ID, cUser.ID) {
+			ownUserInfo = userInfo
+			break
+		}
+	}
+
+	before, _ := strconv.Atoi(c.Query("before"))
+	after, _ := strconv.Atoi(c.Query("after"))
+
+	query := bson.M{}
+	sort := bson.M{
+		"created": -1,
+	}
+
+	if before != 0 {
+		query["$lte"] = before
+	}
+
+	if after != 0 {
+		query["$gte"] = int(math.Max(float64(ownUserInfo.Added), float64(after)))
+		sort["created"] = 1
+	} else {
+		query["$gte"] = ownUserInfo.Added
+	}
+
+	cursor, _ := util.MessageCollection.Find(util.Context, bson.M{
+		"channelId": channelID,
+		"created":   query,
+	}, options.Find().SetSort(sort).SetLimit(50))
+
+	formatted := []gin.H{}
+
+	for cursor.Next(util.Context) {
+		var message models.Message
+		cursor.Decode(&message)
+
+		var ownKey []byte
+		for _, key := range message.Keys {
+			if bytes.Equal(key.UserID, cUser.ID) {
+				ownKey = key.Key
+			}
+		}
+
+		formatted = append(formatted, gin.H{
+			"id":      base64.RawURLEncoding.EncodeToString(message.ID),
+			"userId":  base64.RawURLEncoding.EncodeToString(message.UserID),
+			"body":    base64.RawURLEncoding.EncodeToString(message.Body),
+			"key":     base64.RawURLEncoding.EncodeToString(ownKey),
+			"type":    message.Type,
+			"created": message.Created,
+		})
+	}
+
+	c.JSON(http.StatusOK, formatted)
+}

@@ -1,0 +1,48 @@
+{
+  "name": "hyalus",
+  "version": "0.0.48",
+  "license": "AGPL-3.0-only",
+  "author": {
+    "name": "Hyalus",
+    "email": "team@hyalus.app"
+  },
+  "main": "electron/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron:start": "electron .",
+    "electron:build": "yarn build && electron-builder -wml",
+    "electron:publish": "yarn electron:build -p always",
+    "clean": "rm -rf dist*"
+  },
+  "dependencies": {
+    "electron-updater": "^4.3.9"
+  },
+  "devDependencies": {
+    "@hyalusapp/rnnoise": "hyalusapp/rnnoise#e60d2cb353ffc043fa6ec7d1ef3c22194d69a848",
+    "@vitejs/plugin-vue": "^1.4.0",
+    "@vue/compiler-sfc": "^3.2.4",
+    "autoprefixer": "^10.3.1",
+    "axios": "^0.21.1",
+    "base32-encode": "^2.0.0",
+    "electron": "^13.2.1",
+    "electron-builder": "^22.11.7",
+    "highlight.js": "^11.2.0",
+    "libsodium": "^0.7.9",
+    "libsodium-wrappers": "^0.7.9",
+    "markdown-it": "^12.2.0",
+    "markdown-it-emoji": "^2.0.0",
+    "markdown-it-link-attributes": "^3.0.0",
+    "moment": "^2.29.1",
+    "postcss": "^8.3.6",
+    "qrcode": "^1.4.4",
+    "tailwindcss": "^2.2.7",
+    "tailwindcss-theme-swapper": "^0.4.1",
+    "ua-parser-js": "^0.7.28",
+    "vite": "^2.5.0",
+    "vue": "^3.2.4",
+    "vue-observe-visibility": "^1.0.0",
+    "vue-router": "^4.0.11",
+    "vuex": "^4.0.2"
+  }
+}

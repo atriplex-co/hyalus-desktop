@@ -1,0 +1,27 @@
+appId: "app.hyalus"
+productName: "hyalus"
+extraMetadata:
+  name: "hyalus"
+win:
+  target: "nsis"
+  artifactName: "HyalusDesktop-win32.exe"
+mac:
+  target: "zip"
+  category: "public.app-category.social-networking"
+  artifactName: "HyalusDesktop-osx.zip"
+linux:
+  target: "AppImage"
+  category: "Internet"
+  artifactName: "HyalusDesktop-linux.AppImage"
+files:
+  - "electron"
+  - "dist"
+  - "build"
+directories:
+  output: "dist_electron"
+publish:
+  provider: "github"
+  repo: "hyalus"
+  owner: "hyalusapp"
+  vPrefixedTagName: false
+  releaseType: "release"

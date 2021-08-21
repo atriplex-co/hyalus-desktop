@@ -1,16 +1,24 @@
-FROM --platform=amd64 node:lts AS build
+FROM alpine:latest
+RUN apk add go
 WORKDIR /app
-COPY package.json yarn.lock ./
-COPY packages/client-web ./
-RUN yarn
-RUN yarn build:web
+COPY server/go.mod server/go.sum ./
+RUN go mod download
+COPY server ./
+RUN go build -ldflags '-s -w'
 
-FROM --platform=amd64 node:lts
+FROM alpine:latest
+RUN apk add nodejs yarn
 WORKDIR /app
-COPY . ./
-COPY --from=build /app/packages/client-web/dist packages/client-web/dist
-RUN yarn --prod
-ENV NODE_ENV=production
+COPY frontend/package.json frontend/yarn.lock ./
+RUN yarn
+COPY frontend ./
+RUN yarn build
+
+FROM alpine:latest
+RUN apk add ffmpeg
+WORKDIR /app
+COPY --from=0 /app/server ./
+COPY --from=1 /app/dist ./dist
 ENV PORT=3000
-EXPOSE ${PORT}
-CMD ["yarn", "start"]
+ENV GIN_MODE=release
+CMD ["./server"]
