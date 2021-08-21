@@ -1706,7 +1706,6 @@ const store = new Vuex.Store({
               });
 
               if (ice) {
-                console.log("adding ice");
                 await peer.addIceCandidate(JSON.parse(ice.d.payload));
               }
             }
