@@ -1630,7 +1630,6 @@ const store = new Vuex.Store({
             break;
           }
 
-          // eslint-disable-next-line
           await new Promise(async (resolve) => {
             let peer = new RTCPeerConnection({ iceServers });
             let parts = [];
@@ -1679,12 +1678,10 @@ const store = new Vuex.Store({
               }
             });
 
-            await peer.setRemoteDescription(
-              new RTCSessionDescription({
-                type: "offer",
-                sdp: offer.d.payload,
-              })
-            );
+            await peer.setRemoteDescription({
+              type: "offer",
+              sdp: offer.d.payload,
+            });
 
             await peer.setLocalDescription(await peer.createAnswer());
 
@@ -1703,15 +1700,14 @@ const store = new Vuex.Store({
                 timeout: 1000 * 15,
                 filter: (msg) =>
                   msg.t === "fileChunkRtc" &&
-                  msg.t.hash === hash &&
-                  msg.t.socketId === msg.t.socketId &&
-                  msg.t.payloadType === "ice",
+                  msg.d.hash === hash &&
+                  msg.d.socketId === offer.d.socketId &&
+                  msg.d.payloadType === "ice",
               });
 
               if (ice) {
-                await peer.addIceCandidate(
-                  new RTCIceCandidate(JSON.parse(ice.d.payload))
-                );
+                console.log("adding ice");
+                await peer.addIceCandidate(JSON.parse(ice.d.payload));
               }
             }
           });

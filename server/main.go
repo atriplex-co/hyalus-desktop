@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -63,23 +62,18 @@ func main() {
 	util.Server.Use(gin.Recovery())
 
 	util.Server.NoRoute(func(c *gin.Context) {
+		parts := strings.Split(c.Request.URL.Path, "/")
+		part := parts[len(parts)-1]
 		wd, _ := os.Getwd()
-		path := c.Request.URL.Path
+		path := filepath.Join(wd, "dist/index.html")
 
-		if strings.Contains(path, "/assets") {
-			c.Header("cache-control", "public, max-age=31536000")
-
-			parts := strings.SplitAfter(path, "/assets")
-			log.Println(parts)
-			if len(parts) > 1 {
-				path = fmt.Sprintf("/assets/%s", parts[1])
-			}
+		if s, err := os.Stat(filepath.Join(wd, "dist", part)); err == nil && !s.IsDir() {
+			path = filepath.Join(wd, "dist", part)
 		}
 
-		path = filepath.Join(wd, "dist", path)
-
-		if _, err := os.Stat(path); err != nil {
-			path = filepath.Join(wd, "dist/index.html")
+		if s, err := os.Stat(filepath.Join(wd, "dist/assets", part)); err == nil && !s.IsDir() {
+			path = filepath.Join(wd, "dist/assets", part)
+			c.Header("cache-control", "public, max-age=31536000")
 		}
 
 		c.File(path)
