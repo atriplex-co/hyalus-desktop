@@ -267,7 +267,7 @@ const update = async () => {
   tiles.value = out
     .map((tile) => ({
       ...tile,
-      id: `${tile.user.id}:${tile.track?.id}`,
+      id: `${tile.user.id}:${tile.track?.type || "audio"}`,
     }))
     .sort((a, b) => (a.id > b.id ? 1 : -1));
 };
