@@ -1898,8 +1898,8 @@ const store = new Vuex.Store({
             for (; i + sampleLength < bufIn.length; i += sampleLength) {
               const sample = bufIn.slice(i, i + sampleLength);
 
-              for (const [i, val] of sample.entries()) {
-                sample[i] = val * 0x7fff;
+              for (let j = 0; j < sample.length; j++) {
+                sample[j] = sample[j] * 0x7fff;
               }
 
               rnnoise.HEAPF32.set(sample, inMem / 4);
