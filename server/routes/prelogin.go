@@ -11,7 +11,7 @@ import (
 )
 
 type PreloginBody struct {
-	Username string `json:"username" binding:"required,alphanum,min=3,max=32"`
+	Username string `json:"username" binding:"required,regexp=^[a-zA-Z0-9_-]{3,32}$"`
 }
 
 func Prelogin(c *gin.Context) {
