@@ -62,9 +62,10 @@
           -bottom-px
           -mx-px
           flex
-          items-center
+          items-end
           justify-between
           w-full
+          h-9
         "
         v-if="controls"
       >
@@ -76,14 +77,15 @@
             overflow-hidden
             bg-gray-800
             border border-gray-600
-            space-x-2
+            space-x-4
             px-3
-            py-2
+            h-full
           "
         >
-          <UserAvatar class="w-5 h-5 rounded-full" :id="tile.user.avatarId" />
-          <p class="font-bold text-sm">{{ tile.user.name }}</p>
-          <div />
+          <div class="flex items-center space-x-2">
+            <UserAvatar class="w-5 h-5 rounded-full" :id="tile.user.avatarId" />
+            <p class="font-bold text-sm">{{ tile.user.name }}</p>
+          </div>
           <MicOffIcon class="w-4 h-4 text-gray-300" v-if="!tile.track" />
           <DisplayIcon
             class="w-4 h-4 text-gray-300"
@@ -94,8 +96,6 @@
           class="
             flex
             items-center
-            px-3
-            py-2
             rounded-tl-md
             shadow-md
             opacity-0
@@ -106,6 +106,8 @@
             text-gray-300
             hover:text-white
             cursor-pointer
+            px-3
+            h-full
           "
           @click="expand"
         >

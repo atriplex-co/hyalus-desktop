@@ -1408,6 +1408,26 @@ const store = new Vuex.Store({
           userId: peer.userId,
         });
       }
+
+      // const channel = getters.channels.find(
+      //   (c) => c.id === getters.voice.channelId
+      // );
+
+      // if (!channel) {
+      //   return await dispatch("voiceStop");
+      // }
+
+      // for (const user of channel.users) {
+      //   if (user.inVoice) {
+      //     await dispatch("handleVoiceUserJoin", {
+      //       userId: user.id,
+      //     });
+      //   } else {
+      //     await dispatch("handleVoiceUserLeave", {
+      //       userId: user.id,
+      //     });
+      //   }
+      // }
     },
     async updateFavicon({ getters, commit }) {
       const { default: icon } = await import(
@@ -2119,7 +2139,10 @@ const store = new Vuex.Store({
 
       return true;
     },
-    async createVoicePeer({ getters, commit, dispatch }, { userId }) {
+    async createVoicePeer(
+      { getters, commit, dispatch },
+      { userId, polite = false }
+    ) {
       const user = getters
         .channelById(getters.voice.channelId)
         .users.find((u) => u.id === userId);
@@ -2132,6 +2155,10 @@ const store = new Vuex.Store({
 
       peer.userId = userId;
       peer.tracks = [];
+      peer.polite = polite;
+      peer.makingOffer = false;
+      peer.ignoreOffer = false;
+      peer.isSettingRemoteAnswerPending = false;
 
       peer.sendPayload = (msg) => {
         const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
@@ -2193,12 +2220,18 @@ const store = new Vuex.Store({
       };
 
       peer.addEventListener("negotiationneeded", async () => {
-        await peer.setLocalDescription(await peer.createOffer());
+        try {
+          peer.makingOffer = true;
+          await peer.setLocalDescription();
+          peer.sendPayload({
+            desc: peer.localDescription,
+            trackMap: peer.getTrackMap(),
+          });
+        } catch (e) {
+          console.warn(e);
+        }
 
-        peer.sendPayload({
-          desc: peer.localDescription,
-          trackMap: peer.getTrackMap(),
-        });
+        peer.makingOffer = false;
       });
 
       peer.addEventListener("icecandidate", ({ candidate }) => {
@@ -2320,6 +2353,7 @@ const store = new Vuex.Store({
       if (!peer) {
         peer = await dispatch("createVoicePeer", {
           userId,
+          polite: true,
         });
       }
 
@@ -2338,11 +2372,22 @@ const store = new Vuex.Store({
       }
 
       if (payload.desc) {
+        const readyForOffer =
+          !peer.makingOffer &&
+          (peer.signalingState == "stable" ||
+            peer.isSettingRemoteAnswerPending);
+        const offerCollision = payload.desc.type == "offer" && !readyForOffer;
+
+        peer.ignoreOffer = !peer.polite && offerCollision;
+        if (peer.ignoreOffer) {
+          return;
+        }
+
+        peer.isSettingRemoteAnswerPending = payload.desc.type == "answer";
         await peer.setRemoteDescription(payload.desc);
-
+        peer.isSettingRemoteAnswerPending = false;
         if (payload.desc.type === "offer") {
-          await peer.setLocalDescription(await peer.createAnswer());
-
+          await peer.setLocalDescription();
           peer.sendPayload({
             desc: peer.localDescription,
             trackMap: peer.getTrackMap(),
@@ -2351,7 +2396,13 @@ const store = new Vuex.Store({
       }
 
       if (payload.candidate) {
-        await peer.addIceCandidate(payload.candidate);
+        try {
+          await peer.addIceCandidate(payload.candidate);
+        } catch (e) {
+          if (!peer.ignoreOffer) {
+            console.warn(e);
+          }
+        }
       }
     },
     async setVoiceDeaf({ commit, dispatch }, val) {

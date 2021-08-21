@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-2">
+  <div class="space-y-2 w-full">
     <p class="text-sm text-gray-300">Friends</p>
     <div class="bg-gray-800 border rounded-md border-gray-600">
       <input
