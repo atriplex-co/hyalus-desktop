@@ -10,7 +10,7 @@
     </template>
     <template v-slot:main>
       <ModalError :error="error" v-if="error" />
-      <div class="space-y-2">
+      <div class="space-y-2 w-full">
         <p class="text-sm text-gray-300">User</p>
         <div
           class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-md"

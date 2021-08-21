@@ -9,7 +9,7 @@
       <DisplayIcon />
     </template>
     <template v-slot:main>
-      <div class="space-y-2">
+      <div class="space-y-2 w-full">
         <p class="text-sm text-gray-300">Source</p>
         <div
           class="

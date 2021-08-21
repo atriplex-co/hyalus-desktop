@@ -33,7 +33,7 @@
     <DesktopTitlebar v-if="isDesktop" />
     <BetaBanner v-if="!betaBannerHidden" />
     <div class="flex-1 min-h-0">
-      <LoadingView v-show="isLoading" />
+      <LoadingView v-show="isLoading && !updateRequired" />
       <UpdateRequiredView v-show="updateRequired" />
       <div v-if="!isLoading && !updateRequired" class="flex h-full">
         <Sidebar v-if="showSidebar" />
