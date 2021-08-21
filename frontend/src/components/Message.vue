@@ -108,7 +108,7 @@
             <div
               v-if="message.type === 'text'"
               v-html="message.bodyFormatted"
-              class="p-2"
+              class="p-2 whitespace-pre-wrap"
             />
             <div v-if="message.type === 'file'">
               <div class="flex items-center space-x-2 p-2" v-if="!previewUrl">
