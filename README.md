@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/hyalusapp/hyalus/blob/master/packages/client-web/src/static/icon-128.png?raw=true">
+  <img src="https://raw.githubusercontent.com/hyalusapp/hyalus/master/frontend/src/assets/images/icon-circle.png">
 </div>
 
 # Hyalus
