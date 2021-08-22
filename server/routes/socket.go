@@ -38,6 +38,7 @@ func SocketUpgrade(c *gin.Context) {
 
 			if !alive {
 				socket.Close()
+				return
 			}
 
 			socket.Write(websocket.PingMessage, util.GenerateID())
@@ -278,7 +279,7 @@ func SocketUpgrade(c *gin.Context) {
 				})
 
 				if len(voiceChannelId) != 0 {
-					util.VoiceStart(socket, voiceChannelId)
+					socket.VoiceStart(voiceChannelId)
 				}
 			}
 
@@ -392,13 +393,11 @@ func SocketUpgrade(c *gin.Context) {
 				var event events.IVoiceStart
 				json.Unmarshal(msg.Data, &event)
 
-				channelID := util.DecodeBinary(event.ChannelID)
-
-				util.VoiceStart(socket, channelID)
+				socket.VoiceStart(util.DecodeBinary(event.ChannelID))
 			}
 
 			if msg.Type == events.IVoiceStopType {
-				util.VoiceStop(socket)
+				socket.VoiceStop()
 			}
 
 			if msg.Type == events.IVoiceRTCType {

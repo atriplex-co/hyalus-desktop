@@ -80,7 +80,7 @@ func GroupRemove(c *gin.Context) {
 			Type: events.OVoiceResetType,
 		})
 
-		util.VoiceStop(voiceSocket)
+		voiceSocket.VoiceStop()
 	}
 
 	util.BroadcastToUser(userID, events.O{

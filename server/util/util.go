@@ -102,19 +102,15 @@ func (s *Socket) Close() {
 	s.Open = false
 	s.Conn.Close()
 
-	if s.Ready {
-		voiceSocket := GetVoiceSocketFromUserID(s.Session.UserID)
-
-		if voiceSocket == s {
-			VoiceStop(s)
-		}
+	if s.Ready && s.VoiceChannelID != nil {
+		s.VoiceStop()
 	}
 
 	var newSockets []*Socket
 
 	for _, s2 := range Sockets {
 		if s2 != s {
-			newSockets = append(newSockets, s)
+			newSockets = append(newSockets, s2)
 		}
 	}
 
@@ -577,23 +573,23 @@ func CheckAvatar(id []byte) {
 	})
 }
 
-func VoiceStart(socket *Socket, channelID []byte) {
+func (s *Socket) VoiceStart(channelID []byte) {
 	var channel models.Channel
 	if ChannelCollection.FindOne(Context, bson.M{
 		"_id": channelID,
 		"users": bson.M{
 			"$elemMatch": bson.M{
-				"id":     socket.Session.UserID,
+				"id":     s.Session.UserID,
 				"hidden": false,
 			},
 		},
 	}).Decode(&channel) != nil {
-		socket.WriteJSON(events.O{
+		s.WriteJSON(events.O{
 			Type: events.OVoiceResetType,
 		})
 	}
 
-	voiceSocket := GetVoiceSocketFromUserID(socket.Session.UserID)
+	voiceSocket := GetVoiceSocketFromUserID(s.Session.UserID)
 
 	if voiceSocket != nil {
 		voiceSocket.WriteJSON(events.O{
@@ -603,33 +599,33 @@ func VoiceStart(socket *Socket, channelID []byte) {
 		voiceSocket.VoiceChannelID = nil
 	}
 
-	BroadcastToChannelOther(channelID, socket.Session.UserID, events.O{
+	BroadcastToChannelOther(channelID, s.Session.UserID, events.O{
 		Type: events.OChannelUserSetInVoiceType,
 		Data: events.OChannelUserSetInVoice{
-			ID:        EncodeBinary(socket.Session.UserID),
+			ID:        EncodeBinary(s.Session.UserID),
 			ChannelID: EncodeBinary(channelID),
 			InVoice:   true,
 		},
 	})
 
-	socket.VoiceChannelID = channelID
+	s.VoiceChannelID = channelID
 }
 
-func VoiceStop(socket *Socket) {
-	if socket.VoiceChannelID == nil {
+func (s *Socket) VoiceStop() {
+	if s.VoiceChannelID == nil {
 		return
 	}
 
-	BroadcastToChannelOther(socket.VoiceChannelID, socket.Session.UserID, events.O{
+	BroadcastToChannelOther(s.VoiceChannelID, s.Session.UserID, events.O{
 		Type: events.OChannelUserSetInVoiceType,
 		Data: events.OChannelUserSetInVoice{
-			ID:        EncodeBinary(socket.Session.UserID),
-			ChannelID: EncodeBinary(socket.VoiceChannelID),
+			ID:        EncodeBinary(s.Session.UserID),
+			ChannelID: EncodeBinary(s.VoiceChannelID),
 			InVoice:   false,
 		},
 	})
 
-	socket.VoiceChannelID = nil
+	s.VoiceChannelID = nil
 }
 
 func GetVoiceSocketFromUserID(userID []byte) *Socket {
