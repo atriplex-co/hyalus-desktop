@@ -77,7 +77,7 @@
             overflow-hidden
             bg-gray-800
             border border-gray-600
-            space-x-4
+            space-x-3
             px-3
             h-full
           "

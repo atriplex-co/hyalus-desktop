@@ -2,7 +2,7 @@
   <Modal
     title="Create group"
     submit-text="Create"
-    @close="emit('close')"
+    @close="$emit('close')"
     @submit="submit"
   >
     <template #icon>

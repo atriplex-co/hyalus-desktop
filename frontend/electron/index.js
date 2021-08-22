@@ -19,10 +19,6 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
 
-if (!app.isPackaged) {
-  app.commandLine.appendSwitch("ignore-certificate-errors", "true");
-}
-
 nativeTheme.themeSource = "dark";
 
 let mainWindow;
@@ -73,7 +69,7 @@ const start = () => {
 
     mainWindow.loadURL(entryUrl);
   } else {
-    mainWindow.loadURL("https://localhost:3000#/app");
+    mainWindow.loadURL("http://localhost:3000/app");
   }
 
   mainWindow.removeMenu();

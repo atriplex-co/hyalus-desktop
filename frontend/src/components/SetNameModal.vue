@@ -1,5 +1,10 @@
 <template>
-  <Modal title="Change name" submit-text="Change" @submit="submit">
+  <Modal
+    title="Change name"
+    submit-text="Change"
+    @submit="submit"
+    @close="$emit('close')"
+  >
     <template #icon>
       <IdentityIcon />
     </template>

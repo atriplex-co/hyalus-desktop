@@ -31,6 +31,42 @@ const iceServers = [
   },
 ];
 
+const patchSdp = (desc) => {
+  let lines = desc.sdp.split("\r\n").slice(0, -1);
+  let fmtp = lines.find((l) =>
+    l.endsWith(
+      "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f"
+    )
+  );
+
+  if (fmtp) {
+    const id = fmtp.split(" ")[0].replace("a=fmtp:", "");
+    const bitrate = {
+      "480p30": 1000,
+      "480p60": 2000,
+      "720p30": 3000,
+      "720p60": 4500,
+      "1080p30": 4500,
+      "1080p60": 6000,
+    }[store.getters.localConfig.videoMode];
+
+    for (const line of lines) {
+      if (line.startsWith("m=video")) {
+        lines[lines.indexOf(line)] = line
+          .replace(`${id} `, "")
+          .replace("F ", `F ${id} `);
+      }
+
+      if (line.endsWith("42e01f")) {
+        lines[lines.indexOf(line)] += `;x-google-max-bitrate=${bitrate}`;
+      }
+    }
+  }
+
+  desc.sdp = `${lines.join("\r\n")}\r\n`;
+  return desc;
+};
+
 const messageFormatter = new MarkdownIt("zero", {
   html: false,
   linkify: true,
@@ -65,8 +101,6 @@ const messageFormatter = new MarkdownIt("zero", {
       class: "font-bold underline",
     },
   });
-
-let rnnoise;
 
 const notify = async (opts) => {
   if (store.getters.localConfig.notifySound) {
@@ -701,10 +735,6 @@ const store = new Vuex.Store({
     },
     async start({ getters, commit, dispatch }) {
       await sodium.ready;
-
-      rnnoise = await Rnnoise({
-        locateFile: () => RnnoiseWasm,
-      });
 
       if (window.HyalusDesktop?.isPackaged) {
         commit("setBaseUrl", "https://hyalus.app");
@@ -1614,8 +1644,7 @@ const store = new Vuex.Store({
       return hash;
     },
     async getFileChunk({ getters, dispatch }, hash) {
-      // let chunk = await idb.get(`file:${hash}`);
-      let chunk;
+      let chunk = await idb.get(`file:${hash}`);
       let attempts = 0;
 
       while (!chunk && attempts++ < 3) {
@@ -1713,8 +1742,11 @@ const store = new Vuex.Store({
               });
 
               if (ice) {
-                console.log("adding ice");
-                await peer.addIceCandidate(JSON.parse(ice.d.payload));
+                try {
+                  await peer.addIceCandidate(JSON.parse(ice.d.payload));
+                } catch {
+                  //
+                }
               } else {
                 break;
               }
@@ -1876,10 +1908,15 @@ const store = new Vuex.Store({
         src.connect(gain);
         gain.gain.value = getters.localConfig.audioOutputGain / 100;
 
+        let rnnoise;
         let rnnoiseInMem;
         let rnnoiseOutMem;
         let rnnoiseState;
         if (getters.localConfig.voiceRnnoise) {
+          rnnoise = await Rnnoise({
+            locateFile: () => RnnoiseWasm,
+          });
+
           const rnnoiseSampleSize = 480;
           rnnoiseInMem = rnnoise._malloc(rnnoiseSampleSize * 4);
           rnnoiseOutMem = rnnoise._malloc(rnnoiseSampleSize * 4);
@@ -1994,6 +2031,10 @@ const store = new Vuex.Store({
             },
           })
         ).getTracks()[0];
+
+        if (height < 800) {
+          track.contentHint = "detail";
+        }
       }
 
       if (type === "desktop") {
@@ -2215,7 +2256,7 @@ const store = new Vuex.Store({
       peer.addEventListener("negotiationneeded", async () => {
         try {
           peer.makingOffer = true;
-          await peer.setLocalDescription();
+          await peer.setLocalDescription(patchSdp(await peer.createOffer()));
           peer.sendPayload({
             desc: peer.localDescription,
             trackMap: peer.getTrackMap(),
@@ -2382,7 +2423,7 @@ const store = new Vuex.Store({
         await peer.setRemoteDescription(payload.desc);
         peer.isSettingRemoteAnswerPending = false;
         if (payload.desc.type === "offer") {
-          await peer.setLocalDescription();
+          await peer.setLocalDescription(patchSdp(await peer.createAnswer()));
           peer.sendPayload({
             desc: peer.localDescription,
             trackMap: peer.getTrackMap(),

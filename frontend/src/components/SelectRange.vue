@@ -20,7 +20,13 @@
       @mousedown="showValue = true"
       @mouseup="showValue = false"
     />
-    <div ref="bar" class="absolute h-3 bg-primary-500 rounded-l-md -top-px" />
+    <div
+      ref="bar"
+      class="absolute h-3 bg-primary-500 rounded-l-md -top-px"
+      :class="{
+        'rounded-r-md': modelValue > max / 2,
+      }"
+    />
   </div>
 </template>
 

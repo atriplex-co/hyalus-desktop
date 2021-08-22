@@ -21,11 +21,11 @@
         v-if="type === 'video'"
         :src="url"
         class="object-cover w-full h-full"
-        autoplay
-        muted
         :class="{
           'border border-transparent rounded-full': status,
         }"
+        muted
+        loop
         @mouseover="animatedPlay"
         @mouseout="animatedReset"
       />

@@ -147,6 +147,7 @@ func GroupAdd(c *gin.Context) {
 					"id":     userID,
 					"hidden": false,
 					"owner":  false,
+					"added":  time.Now().UnixNano() / 1e6,
 				},
 			},
 		})

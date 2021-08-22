@@ -16,9 +16,9 @@ linux:
 files:
   - "electron"
   - "dist"
-  - "build"
 directories:
   output: "dist_electron"
+  buildResources: "electron"
 publish:
   provider: "github"
   repo: "hyalus"

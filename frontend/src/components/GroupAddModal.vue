@@ -2,7 +2,7 @@
   <Modal
     title="Invite friends"
     submit-text="Invite"
-    @close="emit('close')"
+    @close="$emit('close')"
     @submit="submit"
   >
     <template #icon>

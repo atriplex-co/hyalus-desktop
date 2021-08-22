@@ -59,13 +59,13 @@ func GetMessages(c *gin.Context) {
 		"created": -1,
 	}
 
-	if before != 0 {
-		query["$lte"] = before
+	if int64(before) != 0 && int64(before) > ownUserInfo.Added {
+		query["$lte"] = int64(before)
 	}
 
 	if after != 0 {
-		query["$gte"] = int(math.Max(float64(ownUserInfo.Added), float64(after)))
 		sort["created"] = 1
+		query["$gte"] = int64(math.Max(float64(ownUserInfo.Added), float64(after)))
 	} else {
 		query["$gte"] = ownUserInfo.Added
 	}
