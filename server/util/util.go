@@ -10,6 +10,7 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
@@ -62,22 +63,62 @@ type Socket struct {
 	Session        models.Session
 	FileChunks     [][]byte
 	Open           bool
-	Authenticated  bool
+	Ready          bool
 	VoiceChannelID []byte
 }
 
-func (s *Socket) Write(e events.O) {
+func NewSocket(conn *websocket.Conn) *Socket {
+	Sockets = append(Sockets, &Socket{
+		ID:    GenerateID(),
+		Conn:  conn,
+		Open:  true,
+		Ready: false,
+	})
+
+	return Sockets[len(Sockets)-1]
+}
+
+func (s *Socket) Write(t int, d []byte) {
 	if !s.Open {
 		return
 	}
 
 	s.ConnMutex.Lock()
-	s.Conn.WriteJSON(e)
+	s.Conn.SetWriteDeadline(time.Now().Add(60 * time.Second))
+	s.Conn.WriteMessage(t, d)
 	s.ConnMutex.Unlock()
+}
+
+func (s *Socket) WriteJSON(e events.O) {
+	d, _ := json.Marshal(e)
+	s.Write(websocket.TextMessage, d)
 
 	if e.Type == events.OResetType {
 		s.Conn.Close()
 	}
+}
+
+func (s *Socket) Close() {
+	s.Open = false
+	s.Conn.Close()
+
+	if s.Ready {
+		voiceSocket := GetVoiceSocketFromUserID(s.Session.UserID)
+
+		if voiceSocket == s {
+			VoiceStop(s)
+		}
+	}
+
+	var newSockets []*Socket
+
+	for _, s2 := range Sockets {
+		if s2 != s {
+			newSockets = append(newSockets, s)
+		}
+	}
+
+	Sockets = newSockets
 }
 
 func HandleBindErrors(c *gin.Context, err error) bool {
@@ -218,7 +259,7 @@ func AuthMiddleware(c *gin.Context) {
 func BroadcastToUser(userID []byte, msg events.O) {
 	for _, socket := range Sockets {
 		if bytes.Equal(userID, socket.Session.UserID) {
-			socket.Write(msg)
+			socket.WriteJSON(msg)
 		}
 	}
 }
@@ -226,7 +267,7 @@ func BroadcastToUser(userID []byte, msg events.O) {
 func BroadcastToSession(sessionID []byte, msg events.O) {
 	for _, socket := range Sockets {
 		if bytes.Equal(sessionID, socket.Session.ID) {
-			socket.Write(msg)
+			socket.WriteJSON(msg)
 		}
 	}
 }
@@ -547,7 +588,7 @@ func VoiceStart(socket *Socket, channelID []byte) {
 			},
 		},
 	}).Decode(&channel) != nil {
-		socket.Write(events.O{
+		socket.WriteJSON(events.O{
 			Type: events.OVoiceResetType,
 		})
 	}
@@ -555,7 +596,7 @@ func VoiceStart(socket *Socket, channelID []byte) {
 	voiceSocket := GetVoiceSocketFromUserID(socket.Session.UserID)
 
 	if voiceSocket != nil {
-		voiceSocket.Write(events.O{
+		voiceSocket.WriteJSON(events.O{
 			Type: events.OVoiceResetType,
 		})
 

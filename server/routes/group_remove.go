@@ -76,7 +76,7 @@ func GroupRemove(c *gin.Context) {
 
 	voiceSocket := util.GetVoiceSocketFromUserID(userID)
 	if voiceSocket != nil && bytes.Equal(voiceSocket.VoiceChannelID, channelID) {
-		voiceSocket.Write(events.O{
+		voiceSocket.WriteJSON(events.O{
 			Type: events.OVoiceResetType,
 		})
 
