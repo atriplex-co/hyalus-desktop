@@ -9,7 +9,7 @@
   "main": "electron/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "yarn clean && vite build",
     "electron:start": "electron .",
     "electron:build": "yarn build && electron-builder -wml",
     "electron:publish": "yarn electron:build -p always",
