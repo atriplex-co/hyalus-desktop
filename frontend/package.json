@@ -14,7 +14,8 @@
     "electron:build": "yarn build && electron-builder -wml",
     "electron:publish": "yarn electron:build -p always",
     "clean": "rm -rf dist*",
-    "lint": "eslint --fix --ext .js,.vue src"
+    "lint": "eslint --fix --ext .js,.vue src",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "electron-updater": "^4.3.9"
@@ -39,6 +40,7 @@
     "markdown-it-emoji": "^2.0.0",
     "markdown-it-link-attributes": "^3.0.0",
     "moment": "^2.29.1",
+    "patch-package": "^6.4.7",
     "postcss": "^8.3.6",
     "prettier": "^2.3.2",
     "qrcode": "^1.4.4",

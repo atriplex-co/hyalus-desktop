@@ -10,6 +10,7 @@
       border border-gray-500
       rounded-md
       bg-gray-600
+      w-full
     "
   >
     <ErrorIcon class="w-6 h-6" />

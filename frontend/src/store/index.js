@@ -1614,9 +1614,11 @@ const store = new Vuex.Store({
       return hash;
     },
     async getFileChunk({ getters, dispatch }, hash) {
-      let chunk = await idb.get(`file:${hash}`);
+      // let chunk = await idb.get(`file:${hash}`);
+      let chunk;
+      let attempts = 0;
 
-      if (!chunk) {
+      while (!chunk && attempts++ < 3) {
         getters.ws.send({
           t: "fileChunkGet",
           d: {
@@ -1624,115 +1626,114 @@ const store = new Vuex.Store({
           },
         });
 
-        while (!chunk) {
-          const offer = await dispatch("getWsMessage", {
-            timeout: 1000 * 15,
-            filter: (msg) =>
-              msg.t === "fileChunkRtc" &&
-              msg.d.hash === hash &&
-              msg.d.payloadType === "offer",
-          });
+        const offer = await dispatch("getWsMessage", {
+          timeout: 1000 * 15,
+          filter: (msg) =>
+            msg.t === "fileChunkRtc" &&
+            msg.d.hash === hash &&
+            msg.d.payloadType === "offer",
+        });
 
-          if (!offer) {
-            break;
-          }
+        if (!offer) {
+          break;
+        }
 
-          await new Promise((resolve) => {
-            let peer = new RTCPeerConnection({ iceServers });
-            let parts = [];
+        await new Promise((resolve) => {
+          let peer = new RTCPeerConnection({ iceServers });
+          let parts = [];
 
-            peer.addEventListener("icecandidate", ({ candidate }) => {
-              if (candidate) {
-                getters.ws.send({
-                  t: "fileChunkRtc",
-                  d: {
-                    hash,
-                    socketId: offer.d.socketId,
-                    payload: JSON.stringify(candidate),
-                    payloadType: "ice",
-                  },
-                });
-              }
-            });
-
-            peer.addEventListener("datachannel", ({ channel }) => {
-              channel.addEventListener("message", ({ data }) => {
-                if (data) {
-                  parts.push(new Uint8Array(data));
-                } else {
-                  chunk = new Uint8Array(
-                    parts.map((p) => p.length).reduce((a, b) => a + b)
-                  );
-
-                  for (let i = 0; i < parts.length; i++) {
-                    chunk.set(parts[i], i * parts[0].length);
-                  }
-
-                  peer.close();
-                  resolve();
-                }
-              });
-            });
-
-            peer.addEventListener("connectionstatechange", () => {
-              if (
-                ["disconnected", "failed"].indexOf(peer.connectionState) !== -1
-              ) {
-                peer.close();
-                resolve();
-              }
-            });
-
-            (async () => {
-              await peer.setRemoteDescription({
-                type: "offer",
-                sdp: offer.d.payload,
-              });
-
-              await peer.setLocalDescription(await peer.createAnswer());
-
+          peer.addEventListener("icecandidate", ({ candidate }) => {
+            if (candidate) {
               getters.ws.send({
                 t: "fileChunkRtc",
                 d: {
                   hash,
                   socketId: offer.d.socketId,
-                  payload: peer.localDescription.sdp,
-                  payloadType: "answer",
+                  payload: JSON.stringify(candidate),
+                  payloadType: "ice",
                 },
               });
-
-              for (;;) {
-                const ice = await dispatch("getWsMessage", {
-                  timeout: 1000 * 15,
-                  filter: (msg) =>
-                    msg.t === "fileChunkRtc" &&
-                    msg.d.hash === hash &&
-                    msg.d.socketId === offer.d.socketId &&
-                    msg.d.payloadType === "ice",
-                });
-
-                if (ice) {
-                  await peer.addIceCandidate(JSON.parse(ice.d.payload));
-                } else {
-                  break;
-                }
-              }
-            })();
+            }
           });
 
-          if (chunk) {
-            //the chunk was retreived successfully. (somehow)
-            const gotHash = sodium.to_base64(sodium.crypto_hash(chunk));
+          peer.addEventListener("datachannel", ({ channel }) => {
+            channel.addEventListener("message", ({ data }) => {
+              if (data) {
+                parts.push(new Uint8Array(data));
+              } else {
+                chunk = new Uint8Array(
+                  parts.map((p) => p.length).reduce((a, b) => a + b)
+                );
 
-            if (gotHash === hash) {
-              await dispatch("storeFileChunk", {
-                hash,
-                data: chunk,
-              });
-            } else {
-              console.warn(`Invalid hash for chunk ${hash}`);
-              chunk = null;
+                for (let i = 0; i < parts.length; i++) {
+                  chunk.set(parts[i], i * parts[0].length);
+                }
+
+                peer.close();
+                resolve();
+              }
+            });
+          });
+
+          peer.addEventListener("connectionstatechange", () => {
+            if (
+              ["disconnected", "failed"].indexOf(peer.connectionState) !== -1
+            ) {
+              peer.close();
+              resolve();
             }
+          });
+
+          (async () => {
+            await peer.setRemoteDescription({
+              type: "offer",
+              sdp: offer.d.payload,
+            });
+
+            await peer.setLocalDescription(await peer.createAnswer());
+
+            getters.ws.send({
+              t: "fileChunkRtc",
+              d: {
+                hash,
+                socketId: offer.d.socketId,
+                payload: peer.localDescription.sdp,
+                payloadType: "answer",
+              },
+            });
+
+            for (;;) {
+              const ice = await dispatch("getWsMessage", {
+                timeout: 1000 * 15,
+                filter: (msg) =>
+                  msg.t === "fileChunkRtc" &&
+                  msg.d.hash === hash &&
+                  msg.d.socketId === offer.d.socketId &&
+                  msg.d.payloadType === "ice",
+              });
+
+              if (ice) {
+                console.log("adding ice");
+                await peer.addIceCandidate(JSON.parse(ice.d.payload));
+              } else {
+                break;
+              }
+            }
+          })();
+        });
+
+        if (chunk) {
+          //the chunk was retreived successfully. (somehow)
+          const gotHash = sodium.to_base64(sodium.crypto_hash(chunk));
+
+          if (gotHash === hash) {
+            await dispatch("storeFileChunk", {
+              hash,
+              data: chunk,
+            });
+          } else {
+            console.warn(`Invalid hash for chunk ${hash}`);
+            chunk = null;
           }
         }
       }
@@ -2227,7 +2228,9 @@ const store = new Vuex.Store({
       });
 
       peer.addEventListener("icecandidate", ({ candidate }) => {
-        peer.sendPayload({ candidate });
+        if (candidate) {
+          peer.sendPayload({ candidate });
+        }
       });
 
       peer.addEventListener("connectionstatechange", () => {
