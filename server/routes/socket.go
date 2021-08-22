@@ -402,7 +402,6 @@ func SocketUpgrade(c *gin.Context) {
 
 	conn.Close()
 	socket.Open = false
-	time.Sleep(5 * time.Second)
 
 	if socket.Authenticated {
 		voiceSocket := util.GetVoiceSocketFromUserID(socket.Session.UserID)
