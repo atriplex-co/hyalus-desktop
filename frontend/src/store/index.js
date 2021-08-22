@@ -1875,15 +1875,15 @@ const store = new Vuex.Store({
         src.connect(gain);
         gain.gain.value = getters.localConfig.audioOutputGain / 100;
 
-        let inMem;
-        let outMem;
+        let rnnoiseInMem;
+        let rnnoiseOutMem;
         let rnnoiseState;
         if (getters.localConfig.voiceRnnoise) {
-          const sampleLength = 480;
-          inMem = rnnoise._malloc(sampleLength * 4);
-          outMem = rnnoise._malloc(sampleLength * 4);
+          const rnnoiseSampleSize = 480;
+          rnnoiseInMem = rnnoise._malloc(rnnoiseSampleSize * 4);
+          rnnoiseOutMem = rnnoise._malloc(rnnoiseSampleSize * 4);
           rnnoiseState = rnnoise._rnnoise_create();
-          const rnnoiseProc = ctx.createScriptProcessor(4096, 1, 1);
+          const rnnoiseProc = ctx.createScriptProcessor(512, 1, 1);
           const rnnoiseDelay = ctx.createDelay();
           const rnnoiseGainIn = ctx.createGain();
           const rnnoiseGainOut = ctx.createGain();
@@ -1899,18 +1899,26 @@ const store = new Vuex.Store({
             let results = [];
             let i = 0;
 
-            for (; i + sampleLength < bufIn.length; i += sampleLength) {
-              const sample = bufIn.slice(i, i + sampleLength);
+            for (
+              ;
+              i + rnnoiseSampleSize < bufIn.length;
+              i += rnnoiseSampleSize
+            ) {
+              const sample = bufIn.slice(i, i + rnnoiseSampleSize);
 
               for (let j = 0; j < sample.length; j++) {
                 sample[j] = sample[j] * 0x7fff;
               }
 
-              rnnoise.HEAPF32.set(sample, inMem / 4);
+              rnnoise.HEAPF32.set(sample, rnnoiseInMem / 4);
 
               try {
                 results.push(
-                  rnnoise._rnnoise_process_frame(rnnoiseState, outMem, inMem)
+                  rnnoise._rnnoise_process_frame(
+                    rnnoiseState,
+                    rnnoiseOutMem,
+                    rnnoiseInMem
+                  )
                 );
               } catch {
                 // sometimes, rnnoise gets into a broken/erroring state.
@@ -1933,15 +1941,15 @@ const store = new Vuex.Store({
               closeTimeout = setTimeout(() => {
                 rnnoiseGainOut.gain.linearRampToValueAtTime(
                   0,
-                  ctx.currentTime + 0.2
+                  ctx.currentTime + 0.1
                 );
-              }, 200);
+              }, 100);
             }
           });
 
           rnnoiseGainIn.gain.value = 2;
           rnnoiseGainOut.gain.value = 0;
-          rnnoiseDelay.delayTime.value = 0.2;
+          rnnoiseDelay.delayTime.value = 0.1;
 
           [
             [gain, rnnoiseProc, ctx.destination],
@@ -1961,8 +1969,8 @@ const store = new Vuex.Store({
           ctx.close();
           if (rnnoiseState) {
             rnnoise._rnnoise_destroy(rnnoiseState);
-            rnnoise._free(inMem);
-            rnnoise._free(outMem);
+            rnnoise._free(rnnoiseInMem);
+            rnnoise._free(rnnoiseOutMem);
           }
         };
       }
@@ -2206,11 +2214,7 @@ const store = new Vuex.Store({
       peer.addEventListener("negotiationneeded", async () => {
         try {
           peer.makingOffer = true;
-          await peer.setLocalDescription(
-            await peer.createOffer({
-              voiceActivityDetection: true,
-            })
-          );
+          await peer.setLocalDescription();
           peer.sendPayload({
             desc: peer.localDescription,
             trackMap: peer.getTrackMap(),
