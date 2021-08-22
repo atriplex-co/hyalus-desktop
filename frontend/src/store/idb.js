@@ -34,7 +34,8 @@ const set = async (k, v) => {
   const store = await getStore();
   store.put(v, k);
 
-  return await promisify(store.transaction);
+  await promisify(store.transaction);
+  return v;
 };
 
 const keys = async () => {

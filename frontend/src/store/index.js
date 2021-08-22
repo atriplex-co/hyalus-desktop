@@ -713,28 +713,29 @@ const store = new Vuex.Store({
       }
 
       //localConfig setup
-      let localConfig = await idb.get("localConfig");
-      localConfig = {
-        colorTheme: localConfig?.colorTheme || "green",
-        fontScale: localConfig?.fontScale || 100,
-        grayscale: localConfig?.grayscale || false,
-        adaptiveLayout: localConfig?.adaptiveLayout || false,
-        audioOutput: localConfig?.audioOutput || "default",
-        audioInput: localConfig?.audioInput || "default",
-        videoInput: localConfig?.videoInput || "default",
-        videoMode: localConfig?.videoMode || "720p60",
-        audioOutputGain: localConfig?.audioOutputGain || 100,
-        audioInputGain: localConfig?.audioInputGain || 100,
-        voiceRtcEcho: localConfig?.voiceRtcEcho || true,
-        voiceRtcGain: localConfig?.voiceRtcGain || true,
-        voiceRtcNoise: localConfig?.voiceRtcNoise || true,
-        voiceRnnoise: localConfig?.voiceRnnoise || true,
-        notifySound: localConfig?.notifySound || true,
-        notifySystem: localConfig?.notifySystem || true,
-        betaBannerHidden: localConfig?.betaBannerHidden || false,
-      };
-      await idb.set("localConfig", localConfig);
-      commit("setLocalConfig", localConfig);
+      commit(
+        "setLocalConfig",
+        await idb.set("localConfig", {
+          colorTheme: "green",
+          fontScale: 100,
+          grayscale: false,
+          adaptiveLayout: false,
+          audioOutput: "default",
+          audioInput: "default",
+          videoInput: "default",
+          videoMode: "720p60",
+          audioOutputGain: 100,
+          audioInputGain: 100,
+          voiceRtcEcho: true,
+          voiceRtcGain: true,
+          voiceRtcNoise: true,
+          voiceRnnoise: true,
+          notifySound: true,
+          notifySystem: true,
+          betaBannerHidden: false,
+          ...(await idb.get("localConfig")),
+        })
+      );
 
       //userKeys migration (TODO: remove after 8/28)
       if (localStorage.token) {
@@ -1430,10 +1431,13 @@ const store = new Vuex.Store({
       await axios.delete(`/api/sessions/${id}`);
     },
     async writeLocalConfig({ getters, commit, dispatch }, [k, v]) {
-      const localConfig = await idb.get("localConfig");
-      localConfig[k] = v;
-      await idb.set("localConfig", localConfig);
-      commit("setLocalConfig", localConfig);
+      commit(
+        "setLocalConfig",
+        await idb.set("localConfig", {
+          ...getters.localConfig,
+          [k]: v,
+        })
+      );
 
       if (
         getters.voice &&
@@ -2202,7 +2206,11 @@ const store = new Vuex.Store({
       peer.addEventListener("negotiationneeded", async () => {
         try {
           peer.makingOffer = true;
-          await peer.setLocalDescription();
+          await peer.setLocalDescription(
+            await peer.createOffer({
+              voiceActivityDetection: true,
+            })
+          );
           peer.sendPayload({
             desc: peer.localDescription,
             trackMap: peer.getTrackMap(),
