@@ -95,8 +95,8 @@ defineProps({
     default: "Submit",
   },
   base: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: " ", //so you can just put 'base' instead of 'base="true"'
   },
 });
 </script>
