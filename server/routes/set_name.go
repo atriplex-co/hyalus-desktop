@@ -9,7 +9,7 @@ import (
 )
 
 type SetNameBody struct {
-	Name string `json:"name" binding:"required,min=3,max=32,regexp=^[a-zA-Z0-9_-]$"`
+	Name string `json:"name" binding:"required,min=1,max=32"`
 }
 
 func SetName(c *gin.Context) {
