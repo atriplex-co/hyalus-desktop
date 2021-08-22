@@ -32,7 +32,8 @@ Hyalus is currently in beta, please report bugs & issues.
 
 ## Hacking
 
-Setting up a basic development enviornment can be done like this.
+* Please format/lint your code before making a PR.
+* Setting up a basic development enviornment can be done like this.
 
 1. Spin up a MongoDB container.
 

@@ -1,15 +1,17 @@
 # Security
 
-## Release support
+## Releases
 
-* As we're in beta, only the latest code is supported.
-* In the future, we'll have LTS releases available.
+* Only the latest code is supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
 | 0.0.x   | :white_check_mark: |
 
-## Reporting vulnerabilites
+## Vvulnerabilites
+
+* Users can report vulnerabilites with the process outlined below. 
+* We ask that you do not publish the issue until we've had the time to patch your vulnerability.
 
 1. Encrypt your message with our PGP key.
 
@@ -29,6 +31,6 @@ AP9vJ2Yexwwj3EA6sT3gKKrx5PxczzJjdMyalSeKmeaGBw==
 -----END PGP PUBLIC KEY BLOCK-----
 ```
 
-2. Email your message to `security@hyalus.app`.
+2. Email your message to `team@hyalus.app`.
 
-3. You'll receive a reply within 48 hours.
+3. We'll reply within a couple hours.
