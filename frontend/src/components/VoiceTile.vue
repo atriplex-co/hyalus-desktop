@@ -123,7 +123,7 @@ import UserAvatar from "./UserAvatar.vue";
 import FullscreenIcon from "../icons/Fullscreen.vue";
 import DisplayIcon from "../icons/Display.vue";
 import MicOffIcon from "../icons/MicOff.vue";
-import { ref, defineProps, onMounted } from "vue";
+import { ref, defineProps, onMounted, onBeforeUnmount } from "vue";
 
 const props = defineProps({
   tile: {
@@ -171,4 +171,7 @@ const updateIsFullscreen = () => {
 };
 
 onMounted(updateSrcObject);
+onBeforeUnmount(() => {
+  srcObject.value = null; // https://webrtchacks.com/srcobject-intervention
+});
 </script>
