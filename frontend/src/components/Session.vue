@@ -85,9 +85,10 @@ if (agentParsed.browser) {
   }
 }
 
-const parts = props.session.agent.split("Hyalus/");
+const parts = props.session.agent.split("Electron/");
 if (parts.length >= 2) {
   agentFormatted = `Hyalus ${parts[1].split(" ")[0]}`;
+  agentType = "desktop";
 }
 
 if (agentParsed.os) {
@@ -104,13 +105,9 @@ if (agentParsed.os) {
 
 let agentType = "web";
 
-if (agentParsed.browser?.name === "Electron") {
-  agentType = "desktop";
-}
-
 if (
-  agentParsed.device?.type === "mobile" ||
-  agentParsed.device?.type === "tablet"
+  agentParsed?.device?.type === "mobile" ||
+  agentParsed?.device?.type === "tablet"
 ) {
   agentType = "mobile";
 }
