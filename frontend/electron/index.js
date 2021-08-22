@@ -104,7 +104,7 @@ const start = () => {
     }
   });
 
-  const tray = new Tray(path.join(__dirname, "../build/icon.png"));
+  const tray = new Tray(path.join(__dirname, "icon.png"));
 
   tray.setToolTip(`Hyalus ${version}`);
 
