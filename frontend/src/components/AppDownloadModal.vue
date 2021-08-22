@@ -48,6 +48,7 @@
 </template>
 
 <script setup>
+import Modal from "./Modal.vue";
 import WindowsIcon from "../icons/Windows.vue";
 import AppleIcon from "../icons/Apple.vue";
 import LinuxIcon from "../icons/Linux.vue";
