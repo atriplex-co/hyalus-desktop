@@ -1471,9 +1471,9 @@ const store = new Vuex.Store({
 
       if (
         getters.voice &&
-        ["audioInputGain", "audioOutputGain"].indexOf(k) !== -1
+        ["audioOutput", "audioOutputGain", "audioInputGain"].indexOf(k) !== -1
       ) {
-        await dispatch("updateVoiceAudio");
+        await dispatch("updateVoiceTracks");
       }
 
       if (
@@ -2311,7 +2311,7 @@ const store = new Vuex.Store({
               track.gain = gain;
               track.el = el;
 
-              await dispatch("updateVoiceAudio");
+              await dispatch("updateVoiceTracks");
             });
 
             audio.srcObject = new MediaStream([track]);
@@ -2443,7 +2443,7 @@ const store = new Vuex.Store({
     },
     async setVoiceDeaf({ commit, dispatch }, val) {
       commit("setVoiceDeaf", val);
-      await dispatch("updateVoiceAudio");
+      await dispatch("updateVoiceTracks");
 
       if (val) {
         new Audio(sndNavBackwardMin).play();
@@ -2451,7 +2451,7 @@ const store = new Vuex.Store({
         new Audio(sndNavForwardMin).play();
       }
     },
-    async updateVoiceAudio({ getters }) {
+    async updateVoiceTracks({ getters }) {
       for (const track of getters.voice.tracks) {
         if (track.gain) {
           track.gain.gain.value = getters.localConfig.audioInputGain / 100;
