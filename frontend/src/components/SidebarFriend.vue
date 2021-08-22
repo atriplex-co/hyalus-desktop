@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-between p-2">
     <div class="flex items-center space-x-3">
-      <UserAvatar class="w-8 h-8 rounded-full" :id="friend.avatarId" />
+      <UserAvatar :id="friend.avatarId" class="w-8 h-8 rounded-full" />
       <div>
         <p class="font-bold text-sm">{{ friend.name }}</p>
         <p class="text-gray-300 text-sm">@{{ friend.username }}</p>
@@ -50,7 +50,12 @@ import { defineProps } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const props = defineProps(["friend"]);
+const props = defineProps({
+  friend: {
+    type: Object,
+    default: null,
+  },
+});
 
 const accept = () => store.dispatch("acceptFriend", props.friend.id);
 const remove = () => store.dispatch("removeFriend", props.friend.id);

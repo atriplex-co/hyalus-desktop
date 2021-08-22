@@ -14,7 +14,7 @@
           @mousedown.stop
         >
           <slot v-if="base === ''" />
-          <div class="overflow-hidden opacity-100 w-96" v-else>
+          <div v-else class="overflow-hidden opacity-100 w-96">
             <div class="p-4 space-y-4">
               <div class="flex items-center space-x-2">
                 <div
@@ -34,7 +34,10 @@
                   {{ title }}
                 </p>
               </div>
-              <form class="space-y-4 flex flex-col items-start" @submit.prevent="$emit('submit')">
+              <form
+                class="space-y-4 flex flex-col items-start"
+                @submit.prevent="$emit('submit')"
+              >
                 <slot name="main" />
               </form>
             </div>
@@ -67,7 +70,7 @@
                 "
                 @click="$emit('submit')"
               >
-                {{ submitText || "Submit" }}
+                {{ submitText }}
               </p>
             </div>
           </div>
@@ -78,7 +81,22 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 
-defineProps(["title", "submitText", "base"]);
+defineEmits(["close", "submit"]);
+
+defineProps({
+  title: {
+    type: String,
+    default: "",
+  },
+  submitText: {
+    type: String,
+    default: "Submit",
+  },
+  base: {
+    type: Boolean,
+    default: false,
+  },
+});
 </script>

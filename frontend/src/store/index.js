@@ -1087,10 +1087,10 @@ const store = new Vuex.Store({
       el.type = "file";
       el.click();
     },
-    async setAuthKey({ getters, commit }, { password, newPassword }) {
+    async setAuthKey({ getters, commit }, { oldPassword, password }) {
       const oldSymKey = sodium.crypto_pwhash(
         32,
-        password,
+        oldPassword,
         getters.userKeys.salt,
         sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
         sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -1110,7 +1110,7 @@ const store = new Vuex.Store({
 
       const symKey = sodium.crypto_pwhash(
         32,
-        newPassword,
+        password,
         salt,
         sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
         sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -1409,7 +1409,7 @@ const store = new Vuex.Store({
         });
       }
     },
-    async updateFavicon({ getters, commit }) {
+    async updateFavicon({ getters }) {
       const { default: icon } = await import(
         `../assets/images/icon-standalone-${getters.localConfig.colorTheme}.png`
       );
@@ -1435,7 +1435,10 @@ const store = new Vuex.Store({
       await idb.set("localConfig", localConfig);
       commit("setLocalConfig", localConfig);
 
-      if (["audioInputGain", "audioOutputGain"].indexOf(k) !== -1) {
+      if (
+        getters.voice &&
+        ["audioInputGain", "audioOutputGain"].indexOf(k) !== -1
+      ) {
         await dispatch("updateVoiceAudio");
       }
 
@@ -1630,7 +1633,7 @@ const store = new Vuex.Store({
             break;
           }
 
-          await new Promise(async (resolve) => {
+          await new Promise((resolve) => {
             let peer = new RTCPeerConnection({ iceServers });
             let parts = [];
 
@@ -1662,7 +1665,6 @@ const store = new Vuex.Store({
                   }
 
                   peer.close();
-                  peer = null;
                   resolve();
                 }
               });
@@ -1673,42 +1675,45 @@ const store = new Vuex.Store({
                 ["disconnected", "failed"].indexOf(peer.connectionState) !== -1
               ) {
                 peer.close();
-                peer = null;
                 resolve();
               }
             });
 
-            await peer.setRemoteDescription({
-              type: "offer",
-              sdp: offer.d.payload,
-            });
-
-            await peer.setLocalDescription(await peer.createAnswer());
-
-            getters.ws.send({
-              t: "fileChunkRtc",
-              d: {
-                hash,
-                socketId: offer.d.socketId,
-                payload: peer.localDescription.sdp,
-                payloadType: "answer",
-              },
-            });
-
-            while (peer) {
-              const ice = await dispatch("getWsMessage", {
-                timeout: 1000 * 15,
-                filter: (msg) =>
-                  msg.t === "fileChunkRtc" &&
-                  msg.d.hash === hash &&
-                  msg.d.socketId === offer.d.socketId &&
-                  msg.d.payloadType === "ice",
+            (async () => {
+              await peer.setRemoteDescription({
+                type: "offer",
+                sdp: offer.d.payload,
               });
 
-              if (ice) {
-                await peer.addIceCandidate(JSON.parse(ice.d.payload));
+              await peer.setLocalDescription(await peer.createAnswer());
+
+              getters.ws.send({
+                t: "fileChunkRtc",
+                d: {
+                  hash,
+                  socketId: offer.d.socketId,
+                  payload: peer.localDescription.sdp,
+                  payloadType: "answer",
+                },
+              });
+
+              for (;;) {
+                const ice = await dispatch("getWsMessage", {
+                  timeout: 1000 * 15,
+                  filter: (msg) =>
+                    msg.t === "fileChunkRtc" &&
+                    msg.d.hash === hash &&
+                    msg.d.socketId === offer.d.socketId &&
+                    msg.d.payloadType === "ice",
+                });
+
+                if (ice) {
+                  await peer.addIceCandidate(JSON.parse(ice.d.payload));
+                } else {
+                  break;
+                }
               }
-            }
+            })();
           });
 
           if (chunk) {

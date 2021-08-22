@@ -1,10 +1,10 @@
 <template>
-  <div class="flex-1 flex flex-col min-h-0 p-2" v-if="voice">
-    <div class="flex-1 relative" ref="tileContainer">
+  <div v-if="voice" class="flex-1 flex flex-col min-h-0 p-2">
+    <div ref="tileContainer" class="flex-1 relative">
       <VoiceTile
-        class="absolute"
         v-for="tile in tiles"
-        v-bind:key="tile.id"
+        :key="tile.id"
+        class="absolute"
         :tile="tile"
       />
     </div>

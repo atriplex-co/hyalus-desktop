@@ -17,5 +17,10 @@
 <script setup>
 import { defineProps } from "vue";
 
-defineProps(["name"]);
+defineProps({
+  name: {
+    type: String,
+    default: "?",
+  },
+});
 </script>

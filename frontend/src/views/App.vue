@@ -11,6 +11,9 @@ import { onMounted } from "@vue/runtime-core";
 import AppIcon from "../icons/App.vue";
 
 export default {
+  components: {
+    AppIcon,
+  },
   created() {
     if (this.$store.getters.invite) {
       this.$store.dispatch("processInvite");
@@ -20,9 +23,6 @@ export default {
   },
   async mounted() {
     Notification.requestPermission();
-  },
-  components: {
-    AppIcon,
   },
 };
 

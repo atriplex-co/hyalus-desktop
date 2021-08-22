@@ -3,72 +3,72 @@
     <!-- yes, they're listed one-by-one. -->
     <!-- thanks, webpack! :) -->
     <img
-      src="../assets/images/icon-standalone-red.png"
       v-if="colorTheme === 'red'"
+      src="../assets/images/icon-standalone-red.png"
     />
     <img
-      src="../assets/images/icon-standalone-orange.png"
       v-if="colorTheme === 'orange'"
+      src="../assets/images/icon-standalone-orange.png"
     />
     <img
-      src="../assets/images/icon-standalone-amber.png"
       v-if="colorTheme === 'amber'"
+      src="../assets/images/icon-standalone-amber.png"
     />
     <img
-      src="../assets/images/icon-standalone-yellow.png"
       v-if="colorTheme === 'yellow'"
+      src="../assets/images/icon-standalone-yellow.png"
     />
     <img
-      src="../assets/images/icon-standalone-lime.png"
       v-if="colorTheme === 'lime'"
+      src="../assets/images/icon-standalone-lime.png"
     />
     <img
-      src="../assets/images/icon-standalone-green.png"
       v-if="colorTheme === 'green'"
+      src="../assets/images/icon-standalone-green.png"
     />
     <img
-      src="../assets/images/icon-standalone-emerald.png"
       v-if="colorTheme === 'emerald'"
+      src="../assets/images/icon-standalone-emerald.png"
     />
     <img
-      src="../assets/images/icon-standalone-teal.png"
       v-if="colorTheme === 'teal'"
+      src="../assets/images/icon-standalone-teal.png"
     />
     <img
-      src="../assets/images/icon-standalone-cyan.png"
       v-if="colorTheme === 'cyan'"
+      src="../assets/images/icon-standalone-cyan.png"
     />
     <img
-      src="../assets/images/icon-standalone-sky.png"
       v-if="colorTheme === 'sky'"
+      src="../assets/images/icon-standalone-sky.png"
     />
     <img
-      src="../assets/images/icon-standalone-blue.png"
       v-if="colorTheme === 'blue'"
+      src="../assets/images/icon-standalone-blue.png"
     />
     <img
-      src="../assets/images/icon-standalone-indigo.png"
       v-if="colorTheme === 'indigo'"
+      src="../assets/images/icon-standalone-indigo.png"
     />
     <img
-      src="../assets/images/icon-standalone-violet.png"
       v-if="colorTheme === 'violet'"
+      src="../assets/images/icon-standalone-violet.png"
     />
     <img
-      src="../assets/images/icon-standalone-purple.png"
       v-if="colorTheme === 'purple'"
+      src="../assets/images/icon-standalone-purple.png"
     />
     <img
-      src="../assets/images/icon-standalone-fuchsia.png"
       v-if="colorTheme === 'fuchsia'"
+      src="../assets/images/icon-standalone-fuchsia.png"
     />
     <img
-      src="../assets/images/icon-standalone-pink.png"
       v-if="colorTheme === 'pink'"
+      src="../assets/images/icon-standalone-pink.png"
     />
     <img
-      src="../assets/images/icon-standalone-rose.png"
       v-if="colorTheme === 'rose'"
+      src="../assets/images/icon-standalone-rose.png"
     />
   </div>
 </template>

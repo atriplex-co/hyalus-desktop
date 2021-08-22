@@ -40,7 +40,12 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 
 const store = useStore();
-const props = defineProps(["message", "channel"]);
+const props = defineProps({
+  channel: {
+    type: Object,
+    default: null,
+  },
+});
 const lastMessageTime = ref("");
 const lastMessage = computed(() => {
   const message = props.channel.messages[props.channel.messages.length - 1];

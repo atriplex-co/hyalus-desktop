@@ -1,14 +1,14 @@
 <template>
   <Modal
     title="Enable 2FA"
-    submitText="Enable"
+    submit-text="Enable"
     @submit="submit"
     @close="$emit('close')"
   >
-    <template v-slot:icon>
+    <template #icon>
       <LockIcon />
     </template>
-    <template v-slot:main>
+    <template #main>
       <div class="rounded-md border border-gray-600 overflow-hidden">
         <img ref="qrcodeEl" class="w-full h-full qrcode" />
       </div>
@@ -69,14 +69,14 @@
           <p v-else>Show TOTP secret</p>
         </div>
       </div>
-      <ModalError v-if="error" :error="error" />
+      <ModalError :error="error" />
       <ModalInput
+        v-model="password"
         type="password"
         label="Password"
-        v-model="password"
         autocomplete="current-password"
       />
-      <ModalInput type="text" label="2FA Code" v-model="totpCode" />
+      <ModalInput v-model="totpCode" type="text" label="2FA Code" />
     </template>
   </Modal>
 </template>

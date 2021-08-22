@@ -12,7 +12,7 @@
     "
   >
     <p>Hyalus is currently in beta, please report bugs &amp; issues.</p>
-    <div @click="hide" class="text-xs font-bold cursor-pointer">X</div>
+    <div class="text-xs font-bold cursor-pointer" @click="hide">X</div>
   </div>
 </template>
 

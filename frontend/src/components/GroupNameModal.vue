@@ -1,16 +1,16 @@
 <template>
   <Modal
     title="Rename group"
-    submitText="Rename"
+    submit-text="Rename"
     @submit="submit"
     @close="$emit('close')"
   >
-    <template v-slot:icon>
+    <template #icon>
       <PencilIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
-      <ModalInput type="text" label="Name" v-model="name" autofocus />
+    <template #main>
+      <ModalError :error="error" />
+      <ModalInput v-model="name" type="text" label="Name" autofocus />
     </template>
   </Modal>
 </template>
@@ -24,7 +24,12 @@ import { defineProps, defineEmits, ref } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const props = defineProps(["channel"]);
+const props = defineProps({
+  channel: {
+    type: Object,
+    default: null,
+  },
+});
 const emit = defineEmits(["close"]);
 const name = ref(props.channel.name);
 const error = ref("");

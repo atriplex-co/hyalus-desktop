@@ -1,11 +1,12 @@
 <template>
   <div
+    v-observe-visibility="getPreview"
     :class="{
       'pt-2': firstInChunk && !showDate,
     }"
-    v-observe-visibility="getPreview"
   >
     <p
+      v-if="showDate"
       class="
         text-center text-sm text-gray-300
         py-4
@@ -13,7 +14,6 @@
         mt-4
         mb-2
       "
-      v-if="showDate"
     >
       {{ date }}
     </p>
@@ -36,32 +36,32 @@
     >
       <div class="flex space-x-3">
         <FriendsIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'friendAccept'"
+          class="w-5 h-5 text-gray-400"
         />
         <GroupIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupCreate'"
+          class="w-5 h-5 text-gray-400"
         />
         <UserAddIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupAdd'"
+          class="w-5 h-5 text-gray-400"
         />
         <UserRemoveIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupRemove'"
+          class="w-5 h-5 text-gray-400"
         />
         <LogoutIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupLeave'"
+          class="w-5 h-5 text-gray-400"
         />
         <PencilIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupName'"
+          class="w-5 h-5 text-gray-400"
         />
         <PhotographIcon
-          class="w-5 h-5 text-gray-400"
           v-if="message.type === 'groupAvatar'"
+          class="w-5 h-5 text-gray-400"
         />
         <p>{{ message.eventText }}</p>
       </div>
@@ -75,15 +75,15 @@
     >
       <div class="flex items-end space-x-2">
         <UserAvatar
+          v-if="lastInChunk"
           :id="user.avatarId"
           class="w-8 h-8 rounded-full"
-          v-if="lastInChunk"
         />
-        <div class="p-4" v-else></div>
+        <div v-else class="p-4"></div>
         <div class="space-y-1 flex flex-col items-start">
           <p
-            class="text-xs text-gray-400 mt-1"
             v-if="firstInChunk && channel.type === 'group'"
+            class="text-xs text-gray-400 mt-1"
           >
             {{ user.name }}
           </p>
@@ -105,19 +105,21 @@
               'bg-gray-700 border border-gray-600': !sentByMe && !previewUrl,
             }"
           >
+            <!-- eslint-disable vue/no-v-html -->
             <div
               v-if="message.type === 'text'"
-              v-html="message.bodyFormatted"
               class="p-2 whitespace-pre-wrap"
+              v-html="message.bodyFormatted"
             />
+            <!-- eslint-enable -->
             <div v-if="message.type === 'file'">
-              <div class="flex items-center space-x-2 p-2" v-if="!previewUrl">
+              <div v-if="!previewUrl" class="flex items-center space-x-2 p-2">
                 <div
-                  @click="fileDownload('local')"
                   class="rounded-full bg-primary-400 w-8 h-8 p-2"
                   :class="{
                     'cursor-pointer': !downloadStage,
                   }"
+                  @click="fileDownload('local')"
                 >
                   <DownloadIcon v-if="!downloadStage" />
                   <LoadingIcon v-if="downloadStage === 'pending'" />
@@ -135,7 +137,7 @@
                   </p>
                 </div>
               </div>
-              <div class="flex items-center justify-center" v-if="previewUrl">
+              <div v-if="previewUrl" class="flex items-center justify-center">
                 <img
                   v-if="message.file.preview === 'image'"
                   :src="previewUrl"
@@ -178,18 +180,18 @@
         "
       >
         <div
+          v-if="sentByMe"
           class="w-4 h-4 hover:text-gray-200 cursor-pointer"
           @click="del"
-          v-if="sentByMe"
         >
           <TrashIcon />
         </div>
         <a
-          class="w-4 h-4 hover:text-gray-200 cursor-pointer"
-          @click="fileDownload('local')"
           v-if="previewUrl"
+          class="w-4 h-4 hover:text-gray-200 cursor-pointer"
           :href="previewUrl"
           :download="message.file.name"
+          @click="fileDownload('local')"
         >
           <DownloadIcon />
         </a>
@@ -197,8 +199,8 @@
       </div>
     </div>
     <ImageView
-      :src="previewUrl"
       v-if="previewUrl && imageView"
+      :src="previewUrl"
       @close="imageView = false"
     />
   </div>
@@ -223,7 +225,12 @@ import { useStore } from "vuex";
 
 const chunkThreshold = 1000 * 60 * 5;
 const store = useStore();
-const props = defineProps(["message"]);
+const props = defineProps({
+  message: {
+    type: Object,
+    default: null,
+  },
+});
 const date = ref("");
 const previewUrl = ref("");
 const imageView = ref(false);

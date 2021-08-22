@@ -9,7 +9,7 @@
       <div></div>
       <SidebarChannel
         v-for="channel in channels"
-        v-bind:key="channel.id"
+        :key="channel.id"
         :channel="channel"
       />
       <div></div>
@@ -26,7 +26,12 @@ import { useRoute, useRouter } from "vue-router";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const props = defineProps(["type"]);
+const props = defineProps({
+  type: {
+    type: String,
+    default: "",
+  },
+});
 const channels = computed(() =>
   store.getters.channels
     .filter((c) => c.type === props.type)

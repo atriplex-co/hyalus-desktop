@@ -7,7 +7,7 @@
       <div class="flex items-center justify-between h-16 px-6">
         <div class="flex items-center">
           <p class="w-48 font-bold">Avatar</p>
-          <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatarId" />
+          <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
         </div>
         <div
           class="

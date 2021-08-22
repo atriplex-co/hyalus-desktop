@@ -14,14 +14,26 @@
     <router-link class="mx-4 hover:text-white transition" to="/"
       >Home</router-link
     >
-    <router-link class="mx-4 hover:text-white transition" to="/blog"
-      >Blog</router-link
+    <a
+      class="mx-4 hover:text-white transition"
+      target="_blank"
+      rel="noreferrer noopener"
+      href="https://github.com/hyalusapp/hyalus/commits/master"
+      >Changelog</a
     >
-    <router-link class="mx-4 hover:text-white transition" to="/security"
-      >Security</router-link
+    <a
+      class="mx-4 hover:text-white transition"
+      target="_blank"
+      rel="noreferrer noopener"
+      href="https://github.com/hyalusapp/hyalus/blob/master/SECURITY.md"
+      >Security</a
     >
-    <router-link class="mx-4 hover:text-white transition" to="/code"
-      >Code</router-link
+    <a
+      class="mx-4 hover:text-white transition"
+      target="_blank"
+      rel="noreferrer noopener"
+      href="https://github.com/hyalusapp/hyalus"
+      >Code</a
     >
   </div>
 </template>

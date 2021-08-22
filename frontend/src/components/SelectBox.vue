@@ -22,6 +22,7 @@
     </div>
     <div class="relative z-10">
       <div
+        v-if="open"
         class="
           absolute
           flex flex-col
@@ -35,7 +36,6 @@
           overflow-auto
           shadow-lg
         "
-        v-if="open"
       >
         <slot name="items" />
       </div>

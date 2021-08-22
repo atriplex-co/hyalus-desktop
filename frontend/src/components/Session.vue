@@ -23,14 +23,14 @@
             <p>Signed in:</p>
             <p class="text-gray-400">{{ created }}</p>
           </div>
-          <div class="text-sm flex items-center space-x-2" v-if="!session.self">
+          <div v-if="!session.self" class="text-sm flex items-center space-x-2">
             <p>Active:</p>
             <p class="text-gray-400">{{ lastStart }}</p>
           </div>
         </div>
       </div>
     </div>
-    <div @click="del" v-if="!session.self">
+    <div v-if="!session.self" @click="del">
       <TrashIcon
         class="
           w-8
@@ -60,7 +60,12 @@ import { useStore } from "vuex";
 
 const store = useStore();
 
-const props = defineProps(["session"]);
+const props = defineProps({
+  session: {
+    type: Object,
+    default: null,
+  },
+});
 
 const created = moment(props.session.created).calendar();
 

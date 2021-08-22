@@ -1,14 +1,14 @@
 <template>
   <Modal
     title="Share desktop"
-    submitText="Share"
+    submit-text="Share"
     @submit="submit"
     @close="$emit('close')"
   >
-    <template v-slot:icon>
+    <template #icon>
       <DisplayIcon />
     </template>
-    <template v-slot:main>
+    <template #main>
       <div class="space-y-2 w-full">
         <p class="text-sm text-gray-300">Source</p>
         <div
@@ -22,6 +22,8 @@
           "
         >
           <div
+            v-for="source in sources"
+            :key="source.id"
             class="
               flex
               items-center
@@ -31,13 +33,11 @@
               space-x-2
               cursor-pointer
             "
-            v-for="source in sources"
-            v-bind:key="source.id"
-            @click="sourceId = source.id"
             :class="{
               'hover:bg-gray-700 text-gray-300': sourceId !== source.id,
               'bg-gray-600 text-white': sourceId === source.id,
             }"
+            @click="sourceId = source.id"
           >
             <div class="flex items-center w-full min-w-0 space-x-3">
               <img class="w-12 rounded-sm shadow-sm" :src="source.thumbnail" />

@@ -51,4 +51,7 @@
 import WindowsIcon from "../icons/Windows.vue";
 import AppleIcon from "../icons/Apple.vue";
 import LinuxIcon from "../icons/Linux.vue";
+import { defineEmits } from "vue";
+
+defineEmits(["close"]);
 </script>

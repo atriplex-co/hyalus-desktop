@@ -11,38 +11,52 @@
     "
   >
     <input
+      ref="input"
       type="range"
       :min="min"
       :max="max"
-      ref="input"
       class="appearance-none h-3 w-96 absolute bg-transparent -top-px"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @input="$emit('update:modelValue', +$event.target.value)"
       @mousedown="showValue = true"
       @mouseup="showValue = false"
     />
-    <div class="absolute h-3 bg-primary-500 rounded-l-md -top-px" ref="bar" />
+    <div ref="bar" class="absolute h-3 bg-primary-500 rounded-l-md -top-px" />
   </div>
 </template>
 
-<script>
-export default {
-  props: ["min", "max", "modelValue"],
-  methods: {
-    update() {
-      this.$refs.bar.style.width = `${
-        (this.$refs.input.value / this.max) * 24
-      }rem`;
-    },
+<script setup>
+import { defineEmits, defineProps, onMounted, ref, watch } from "vue";
+
+defineEmits(["update:modelValue"]);
+
+const props = defineProps({
+  min: {
+    type: String,
+    default: "0",
   },
-  mounted() {
-    this.$refs.input.value = this.modelValue;
-    this.update();
-    // prevents it from being reactive (makes it laggy and weird if we do that.)
+  max: {
+    type: String,
+    default: "0",
   },
-  updated() {
-    this.update();
+  modelValue: {
+    type: Number,
+    default: 0,
   },
+});
+
+const bar = ref(null);
+const input = ref(null);
+
+const update = () => {
+  bar.value.style.width = `${(input.value.value / +props.max) * 24}rem`;
 };
+
+onMounted(() => {
+  input.value.value = +props.modelValue;
+  update();
+});
+
+watch(() => props.modelValue, update);
 </script>
 
 <style scoped>

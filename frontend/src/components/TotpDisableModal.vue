@@ -1,19 +1,19 @@
 <template>
   <Modal
     title="Disable 2FA"
-    submitText="Disable"
+    submit-text="Disable"
     @submit="submit"
     @close="$emit('close')"
   >
-    <template v-slot:icon>
+    <template #icon>
       <LockIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
+    <template #main>
+      <ModalError :error="error" />
       <ModalInput
+        v-model="password"
         type="password"
         label="Password"
-        v-model="password"
         autocomplete="current-password"
       />
     </template>

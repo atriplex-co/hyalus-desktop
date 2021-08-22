@@ -14,8 +14,8 @@
         >
           <div class="relative">
             <UserAvatar
-              class="w-10 h-10 rounded-full"
               :id="user.avatarId"
+              class="w-10 h-10 rounded-full"
               status="online"
               @click="menu !== 'status' ? (menu = 'status') : (menu = '')"
             />
@@ -23,6 +23,7 @@
           </div>
         </div>
         <router-link
+          v-if="voice"
           class="
             h-16
             flex
@@ -38,7 +39,6 @@
             'text-primary-400': active === 'call',
           }"
           to="/call"
-          v-if="voice"
         >
           <PhoneIcon class="w-6 h-6" />
         </router-link>

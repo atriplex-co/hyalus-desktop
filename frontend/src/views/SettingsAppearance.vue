@@ -7,14 +7,14 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Color Theme</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             <div class="w-3 h-3 rounded-full bg-primary-500" />
             <p>{{ `${colorTheme[0].toUpperCase()}${colorTheme.slice(1)}` }}</p>
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="usableColorTheme in usableColorThemes"
-              v-bind:key="usableColorTheme"
+              :key="usableColorTheme"
               @click="colorTheme = usableColorTheme"
             >
               <div
@@ -53,13 +53,13 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Font Scale</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             <p>{{ fontScale }}%</p>
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="usableFontScale in usableFontScales"
-              v-bind:key="usableFontScale"
+              :key="usableFontScale"
               @click="fontScale = usableFontScale"
             >
               <p>{{ usableFontScale }}%</p>

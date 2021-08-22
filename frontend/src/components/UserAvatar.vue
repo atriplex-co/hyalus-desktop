@@ -8,26 +8,26 @@
       'border-rose-500': status === 'busy',
     }"
   >
-    <div class="w-full h-full" v-if="id">
+    <div v-if="id" class="w-full h-full">
       <img
-        :src="url"
         v-if="type === 'image'"
+        :src="url"
         class="object-cover w-full h-full"
         :class="{
           'border border-transparent rounded-full': status,
         }"
       />
       <video
-        :src="url"
         v-if="type === 'video'"
+        :src="url"
         class="object-cover w-full h-full"
         autoplay
         muted
-        @mouseover="animatedPlay"
-        @mouseout="animatedReset"
         :class="{
           'border border-transparent rounded-full': status,
         }"
+        @mouseover="animatedPlay"
+        @mouseout="animatedReset"
       />
     </div>
     <div
@@ -46,7 +46,16 @@ import { useStore } from "vuex";
 
 const store = useStore();
 
-const props = defineProps(["id", "status"]);
+const props = defineProps({
+  id: {
+    type: String,
+    default: "",
+  },
+  status: {
+    type: String,
+    default: "",
+  },
+});
 
 const type = ref("");
 const url = ref("");

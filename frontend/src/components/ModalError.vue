@@ -1,5 +1,6 @@
 <template>
   <div
+    v-if="error"
     class="
       flex
       items-center
@@ -20,5 +21,10 @@
 import ErrorIcon from "../icons/Error.vue";
 import { defineProps } from "vue";
 
-defineProps(["error"]);
+defineProps({
+  error: {
+    type: String,
+    default: "",
+  },
+});
 </script>

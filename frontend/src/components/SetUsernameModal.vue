@@ -1,46 +1,39 @@
 <template>
-  <Modal title="Change username" submitText="Change" @submit="submit">
-    <template v-slot:icon>
+  <Modal title="Change username" submit-text="Change" @submit="submit">
+    <template #icon>
       <AtSymbolIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
-      <ModalInput type="text" label="Username" v-model="username" />
+    <template #main>
+      <ModalError :error="error" />
+      <ModalInput v-model="username" type="text" label="Username" />
     </template>
   </Modal>
 </template>
 
-<script>
+<script setup>
 import Modal from "./Modal.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import AtSymbolIcon from "../icons/AtSymbol.vue";
+import { ref, defineEmits } from "vue";
+import { useStore } from "vuex";
 
-export default {
-  data() {
-    return {
-      username: this.$store.getters.user.username,
-      error: null,
-    };
-  },
-  methods: {
-    async submit() {
-      try {
-        await this.$store.dispatch("setUsername", this.username);
-      } catch (e) {
-        console.log(e);
-        this.error = e.response?.data?.error || e.message;
-        return;
-      }
+const store = useStore();
 
-      this.$emit("close");
-    },
-  },
-  components: {
-    Modal,
-    ModalInput,
-    ModalError,
-    AtSymbolIcon,
-  },
+const emit = defineEmits(["close"]);
+
+const username = ref(store.getters.user.username);
+const error = ref("");
+
+const submit = async () => {
+  try {
+    await store.dispatch("setUsername", username.value);
+  } catch (e) {
+    console.log(e);
+    error.value = e.response?.data?.error || e.message;
+    return;
+  }
+
+  emit("close");
 };
 </script>

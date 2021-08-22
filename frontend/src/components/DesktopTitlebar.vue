@@ -6,7 +6,6 @@
     </div>
     <div class="flex">
       <div
-        @click="minimize"
         class="
           w-10
           h-8
@@ -18,13 +17,13 @@
           items-center
           justify-center
         "
+        @click="minimize"
       >
         <svg width="11" height="1" viewBox="0 0 11 1" fill="currentColor">
           <path d="m11 0v1h-11v-1z" stroke-width=".25" />
         </svg>
       </div>
       <div
-        @click="maximize"
         class="
           w-10
           h-8
@@ -36,6 +35,7 @@
           items-center
           justify-center
         "
+        @click="maximize"
       >
         <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
           <path
@@ -45,7 +45,6 @@
         </svg>
       </div>
       <div
-        @click="close"
         class="
           w-10
           h-8
@@ -57,6 +56,7 @@
           items-center
           justify-center
         "
+        @click="close"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
           <path

@@ -30,6 +30,7 @@
       <p v-if="channel.type === 'group'">Invite friends</p>
     </div>
     <div
+      v-if="channel.type === 'group'"
       class="
         flex
         items-center
@@ -40,7 +41,6 @@
         hover:text-gray-200
       "
       @click="leave"
-      v-if="channel.type === 'group'"
     >
       <TrashIcon
         class="w-8 h-8 p-2 transition bg-gray-600 rounded-full cursor-pointer"
@@ -49,7 +49,7 @@
     </div>
     <ChannelUserInfo
       v-for="user in users"
-      v-bind:key="user.id"
+      :key="user.id"
       :channel="channel"
       :user="user"
     />
@@ -72,11 +72,20 @@ import UserAddIcon from "../icons/UserAdd.vue";
 import GroupAddModal from "./GroupAddModal.vue";
 import TrashIcon from "../icons/Trash.vue";
 import GroupCreateModal from "./GroupCreateModal.vue";
-import { ref, computed, defineProps } from "vue";
+import { ref, computed, defineProps, defineEmits } from "vue";
 import { useStore } from "vuex";
 
+defineEmits(["close"]);
+
 const store = useStore();
-const props = defineProps(["channel"]);
+
+const props = defineProps({
+  channel: {
+    type: Object,
+    default: null,
+  },
+});
+
 const inviteModal = ref(false);
 
 const users = computed(() => {

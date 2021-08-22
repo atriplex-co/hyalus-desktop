@@ -1,16 +1,16 @@
 <template>
   <Modal
     title="Create group"
-    submitText="Create"
+    submit-text="Create"
     @close="emit('close')"
     @submit="submit"
   >
-    <template v-slot:icon>
+    <template #icon>
       <GroupIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
-      <ModalInput type="text" label="Name" v-model="name" />
+    <template #main>
+      <ModalError :error="error" />
+      <ModalInput v-model="name" type="text" label="Name" />
       <SelectUser :users="users" />
     </template>
   </Modal>
@@ -26,7 +26,12 @@ import { defineProps, defineEmits, ref } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const props = defineProps(["selected"]);
+const props = defineProps({
+  selected: {
+    type: String,
+    default: "",
+  },
+});
 const emit = defineEmits(["close"]);
 const users = ref([]);
 const error = ref("");

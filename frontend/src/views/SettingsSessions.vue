@@ -6,7 +6,7 @@
     <div class="border-t border-b border-gray-700 divide-y divide-gray-700">
       <Session
         v-for="session in sessions"
-        v-bind:key="session.id"
+        :key="session.id"
         :session="session"
       />
     </div>

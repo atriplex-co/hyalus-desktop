@@ -7,13 +7,13 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Output</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             <p class="truncate max-w-xs">{{ audioOutput }}</p>
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="device in usableAudioOutputs"
-              v-bind:key="device.id"
+              :key="device.id"
               @click="audioOutput = device.deviceId"
             >
               <p class="truncate">{{ device.label }}</p>
@@ -23,7 +23,7 @@
       </div>
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Output Volume</p>
-        <SelectScale min="0" max="200" v-model="audioOutputGain" />
+        <SelectScale v-model="audioOutputGain" min="0" max="200" />
       </div>
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Output Test</p>
@@ -31,13 +31,13 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Input</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             <p class="truncate max-w-xs">{{ audioInput }}</p>
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="device in usableAudioInputs"
-              v-bind:key="device.id"
+              :key="device.id"
               @click="audioInput = device.deviceId"
             >
               <p class="truncate">{{ device.label }}</p>
@@ -47,7 +47,7 @@
       </div>
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Input Volume</p>
-        <SelectScale min="0" max="200" v-model="audioInputGain" />
+        <SelectScale v-model="audioInputGain" min="0" max="200" />
       </div>
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Audio Input Test</p>
@@ -71,13 +71,13 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Video Input</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             <p class="truncate max-w-xs">{{ videoInput }}</p>
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="device in usableVideoInputs"
-              v-bind:key="device.id"
+              :key="device.id"
               @click="videoInput = device.deviceId"
             >
               <p class="truncate">{{ device.label }}</p>
@@ -88,13 +88,13 @@
       <div class="flex items-center justify-between h-16 px-6">
         <p class="font-bold">Video Quality</p>
         <SelectBox>
-          <template v-slot:selected>
+          <template #selected>
             {{ videoMode }}
           </template>
-          <template v-slot:items>
+          <template #items>
             <SelectBoxItem
               v-for="mode in usableVideoModes"
-              v-bind:key="mode"
+              :key="mode"
               @click="videoMode = mode"
             >
               {{ mode }}

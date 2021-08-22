@@ -1,23 +1,23 @@
 <template>
   <Modal
     title="Send friend request"
-    submitText="Send"
+    submit-text="Send"
     @submit="submit"
     @close="reset"
   >
-    <template v-slot:icon>
+    <template #icon>
       <UserAddIcon />
     </template>
-    <template v-slot:main>
-      <ModalError :error="error" v-if="error" />
+    <template #main>
+      <ModalError :error="error" />
       <div class="space-y-2 w-full">
         <p class="text-sm text-gray-300">User</p>
         <div
-          class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-md"
           v-if="user"
+          class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-md"
         >
           <div class="flex items-center space-x-4">
-            <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatarId" />
+            <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
             <div>
               <p class="font-bold text-sm">{{ user.name }}</p>
               <p class="text-gray-300 text-sm">@{{ user.username }}</p>

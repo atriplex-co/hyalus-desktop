@@ -1,13 +1,13 @@
 <template>
   <div
     ref="main"
-    @mousemove="resetControlsTimeout"
-    @fullscreenchange="updateIsFullscreen"
     :class="{
       'cursor-none': !controls,
       'border border-gray-600 shadow-lg rounded-md overflow-hidden':
         !isFullscreen,
     }"
+    @mousemove="resetControlsTimeout"
+    @fullscreenchange="updateIsFullscreen"
   >
     <div
       class="w-full h-full overflow-hidden border border-gray-600"
@@ -17,9 +17,9 @@
       }"
     >
       <UserAvatar
-        class="h-full w-full"
         v-if="!srcObject && tile.user.avatarId"
         :id="tile.user.avatarId"
+        class="h-full w-full"
       />
     </div>
     <div
@@ -42,21 +42,22 @@
       }"
     >
       <video
+        v-if="srcObject"
         class="w-full h-full"
         :class="{
           'object-cover': !isFullscreen && tile.trackType !== 'desktopvideo',
         }"
         :srcObject.prop="srcObject"
-        v-if="srcObject"
         autoplay
         muted
       />
       <UserAvatar
-        class="w-32 h-32 rounded-full shadow-2xl"
-        :id="tile.user.avatarId"
         v-else
+        :id="tile.user.avatarId"
+        class="w-32 h-32 rounded-full shadow-2xl"
       />
       <div
+        v-if="controls"
         class="
           absolute
           -bottom-px
@@ -67,7 +68,6 @@
           w-full
           h-9
         "
-        v-if="controls"
       >
         <div
           class="
@@ -83,13 +83,13 @@
           "
         >
           <div class="flex items-center space-x-2">
-            <UserAvatar class="w-5 h-5 rounded-full" :id="tile.user.avatarId" />
+            <UserAvatar :id="tile.user.avatarId" class="w-5 h-5 rounded-full" />
             <p class="font-bold text-sm">{{ tile.user.name }}</p>
           </div>
-          <MicOffIcon class="w-4 h-4 text-gray-300" v-if="!tile.track" />
+          <MicOffIcon v-if="!tile.track" class="w-4 h-4 text-gray-300" />
           <DisplayIcon
-            class="w-4 h-4 text-gray-300"
             v-if="tile.trackType === 'desktopvideo'"
+            class="w-4 h-4 text-gray-300"
           />
         </div>
         <div
@@ -125,7 +125,12 @@ import DisplayIcon from "../icons/Display.vue";
 import MicOffIcon from "../icons/MicOff.vue";
 import { ref, defineProps, onMounted } from "vue";
 
-const props = defineProps(["tile"]);
+const props = defineProps({
+  tile: {
+    type: Object,
+    default: null,
+  },
+});
 const controls = ref(true);
 const isFullscreen = ref(false);
 const srcObject = ref(null);

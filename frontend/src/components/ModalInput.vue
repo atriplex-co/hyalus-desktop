@@ -15,15 +15,38 @@
       "
       :type="type"
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
       :autocomplete="autocomplete"
       :autofocus="autofocus"
+      @input="$emit('update:modelValue', $event.target.value)"
     />
   </div>
 </template>
 
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 
-defineProps(["type", "label", "modelValue", "autocomplete", "autofocus"]);
+defineProps({
+  type: {
+    type: String,
+    default: "text",
+  },
+  label: {
+    type: String,
+    default: "",
+  },
+  modelValue: {
+    type: String,
+    default: "",
+  },
+  autocomplete: {
+    type: String,
+    default: "",
+  },
+  autofocus: {
+    type: String,
+    default: null,
+  },
+});
+
+defineEmits(["update:modelValue"]);
 </script>

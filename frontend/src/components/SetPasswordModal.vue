@@ -1,73 +1,66 @@
 <template>
-  <Modal title="Change password" submitText="Change" @submit="submit">
-    <template v-slot:icon>
+  <Modal title="Change password" submit-text="Change" @submit="submit">
+    <template #icon>
       <KeyIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
+    <template #main>
+      <ModalError :error="error" />
       <ModalInput
+        v-model="password"
         type="password"
         label="Current password"
-        v-model="password"
         autocomplete="current-password"
       />
       <ModalInput
+        v-model="newPassword"
         type="password"
         label="New password"
-        v-model="newPassword"
         autocomplete="new-password"
       />
       <ModalInput
+        v-model="newPasswordConfirm"
         type="password"
         label="Confirm new password"
-        v-model="newPasswordConfirm"
         autocomplete="new-password"
       />
     </template>
   </Modal>
 </template>
 
-<script>
+<script setup>
 import Modal from "./Modal.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import KeyIcon from "../icons/Key.vue";
+import { ref, defineEmits } from "vue";
+import { useStore } from "vuex";
 
-export default {
-  data() {
-    return {
-      password: "",
-      newPassword: "",
-      newPasswordConfirm: "",
-      error: null,
-    };
-  },
-  methods: {
-    async submit() {
-      if (this.newPassword != this.newPasswordConfirm) {
-        this.error = "Passwords don't match";
-        return;
-      }
+const store = useStore();
 
-      try {
-        await this.$store.dispatch("setAuthKey", {
-          password: this.password,
-          newPassword: this.newPassword,
-        });
-      } catch (e) {
-        console.log(e);
-        this.error = e.response?.data?.error || e.message;
-        return;
-      }
+const emit = defineEmits(["close"]);
 
-      this.$emit("close");
-    },
-  },
-  components: {
-    Modal,
-    ModalInput,
-    ModalError,
-    KeyIcon,
-  },
+const oldPassword = ref("");
+const password = ref("");
+const passwordConfirm = ref("");
+const error = ref("");
+
+const submit = async () => {
+  if (password.value !== passwordConfirm.value) {
+    error.value = "Passwords must match";
+    return;
+  }
+
+  try {
+    await store.dispatch("setAuthKey", {
+      oldPassword: oldPassword.value,
+      password: password.value,
+    });
+  } catch (e) {
+    console.log(e);
+    error.value = e.response?.data?.error || e.message;
+    return;
+  }
+
+  emit("close");
 };
 </script>

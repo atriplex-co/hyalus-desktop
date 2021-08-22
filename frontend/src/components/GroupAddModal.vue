@@ -1,15 +1,15 @@
 <template>
   <Modal
     title="Invite friends"
-    submitText="Invite"
+    submit-text="Invite"
     @close="emit('close')"
     @submit="submit"
   >
-    <template v-slot:icon>
+    <template #icon>
       <UserAddIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
+    <template #main>
+      <ModalError :error="error" />
       <SelectUser :users="users" />
     </template>
   </Modal>
@@ -24,7 +24,12 @@ import { defineProps, defineEmits, ref } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const props = defineProps(["channel"]);
+const props = defineProps({
+  channel: {
+    type: Object,
+    default: null,
+  },
+});
 const emit = defineEmits(["close"]);
 const users = ref([]);
 const error = ref("");

@@ -23,7 +23,7 @@
       <div />
       <SidebarFriend
         v-for="friend in friends"
-        v-bind:key="friend.id"
+        :key="friend.id"
         :friend="friend"
       />
       <div />

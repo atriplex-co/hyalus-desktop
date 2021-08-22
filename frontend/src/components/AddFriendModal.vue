@@ -1,16 +1,16 @@
 <template>
   <Modal
     title="Add friend"
-    submitText="Add"
+    submit-text="Add"
     @submit="submit"
     @close="$emit('close')"
   >
-    <template v-slot:icon>
+    <template #icon>
       <UserAddIcon />
     </template>
-    <template v-slot:main>
-      <ModalError v-if="error" :error="error" />
-      <ModalInput type="text" label="Username" v-model="username" autofocus />
+    <template #main>
+      <ModalError :error="error" />
+      <ModalInput v-model="username" type="text" label="Username" autofocus />
     </template>
   </Modal>
 </template>

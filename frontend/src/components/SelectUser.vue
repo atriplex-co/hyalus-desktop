@@ -3,6 +3,7 @@
     <p class="text-sm text-gray-300">Friends</p>
     <div class="bg-gray-800 border rounded-md border-gray-600">
       <input
+        v-model="search"
         class="
           w-full
           px-4
@@ -18,18 +19,17 @@
         "
         type="text"
         placeholder="Search for friends"
-        v-model="search"
         @input="updateSearch"
       />
       <div class="h-48 overflow-auto">
-        <div class="p-3 space-y-3" v-if="users.length">
+        <div v-if="users.length" class="p-3 space-y-3">
           <div
             v-for="user in shownUsers"
-            v-bind:key="user.id"
+            :key="user.id"
             class="flex items-center justify-between"
           >
             <div class="flex items-center space-x-4">
-              <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatarId" />
+              <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
               <div>
                 <p class="font-bold">{{ user.name }}</p>
                 <p class="text-xs text-gray-400">@{{ user.username }}</p>
@@ -39,6 +39,7 @@
           </div>
         </div>
         <div
+          v-else
           class="
             flex flex-col
             items-center
@@ -48,7 +49,6 @@
             space-y-4
             text-gray-500
           "
-          v-else
         >
           <GroupIcon class="w-8 h-8" />
           <p>No more friends to add</p>
@@ -64,7 +64,12 @@ import GroupIcon from "../icons/Group.vue";
 import UserAvatar from "./UserAvatar.vue";
 import { defineProps, ref, computed } from "vue";
 
-const props = defineProps(["users"]);
+const props = defineProps({
+  users: {
+    type: Array,
+    default: () => [], //wtf
+  },
+});
 const search = ref("");
 const shownUsers = computed(() => props.users.filter((u) => !u.hidden));
 

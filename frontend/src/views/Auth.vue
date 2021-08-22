@@ -79,17 +79,18 @@
           "
         >
           <AppIcon class="w-16 h-16" />
-          <p class="text-3xl font-bold" v-if="stage === 'login'">
+          <p v-if="stage === 'login'" class="text-3xl font-bold">
             Sign in to Hyalus
           </p>
-          <p class="text-3xl font-bold" v-if="stage === 'loginTotp'">
+          <p v-if="stage === 'loginTotp'" class="text-3xl font-bold">
             2FA Verification
           </p>
-          <p class="text-3xl font-bold" v-if="stage === 'register'">
+          <p v-if="stage === 'register'" class="text-3xl font-bold">
             Create an account
           </p>
         </div>
         <div
+          v-if="error"
           class="
             flex
             items-center
@@ -101,20 +102,20 @@
             bg-gray-800
             border-gray-700
           "
-          v-if="error"
         >
           <ErrorIcon class="w-8 h-8" />
           <p class="flex-1">{{ error }}</p>
         </div>
         <div class="flex flex-col items-center p-8">
-          <form @submit.prevent="submit" class="w-full text-gray-300">
+          <form class="w-full text-gray-300" @submit.prevent="submit">
             <div class="space-y-4">
               <div
-                class="space-y-2"
                 v-if="['login', 'register'].indexOf(stage) !== -1"
+                class="space-y-2"
               >
                 <p>Username</p>
                 <input
+                  v-model="username"
                   class="
                     w-full
                     px-4
@@ -128,15 +129,15 @@
                   "
                   type="text"
                   autocomplete="username"
-                  v-model="username"
                 />
               </div>
               <div
-                class="space-y-2"
                 v-if="['login', 'register'].indexOf(stage) !== -1"
+                class="space-y-2"
               >
                 <p>Password</p>
                 <input
+                  v-model="password"
                   class="
                     w-full
                     px-4
@@ -150,12 +151,12 @@
                   "
                   type="password"
                   autocomplete="current-password"
-                  v-model="password"
                 />
               </div>
-              <div class="space-y-2" v-if="stage === 'register'">
+              <div v-if="stage === 'register'" class="space-y-2">
                 <p>Confirm password</p>
                 <input
+                  v-model="passwordConfirm"
                   class="
                     w-full
                     px-4
@@ -169,12 +170,12 @@
                   "
                   type="passwordConfirm"
                   autocomplete="current-password"
-                  v-model="passwordConfirm"
                 />
               </div>
-              <div class="space-y-2" v-if="stage === 'loginTotp'">
+              <div v-if="stage === 'loginTotp'" class="space-y-2">
                 <p>Code</p>
                 <input
+                  v-model="totpCode"
                   class="
                     w-full
                     px-4
@@ -188,7 +189,6 @@
                   "
                   type="totpCode"
                   autocomplete="current-password"
-                  v-model="totpCode"
                   autofocus
                 />
               </div>
@@ -212,6 +212,7 @@
             </button>
           </form>
           <p
+            v-if="stage === 'login'"
             class="
               mt-4
               transition
@@ -219,7 +220,6 @@
               hover:text-primary-600
               cursor-pointer
             "
-            v-if="stage === 'login'"
             @click="
               error = '';
               stage = 'register';
@@ -228,6 +228,7 @@
             Register
           </p>
           <p
+            v-if="stage === 'register'"
             class="
               mt-4
               transition
@@ -235,7 +236,6 @@
               hover:text-primary-600
               cursor-pointer
             "
-            v-if="stage === 'register'"
             @click="
               error = '';
               stage = 'login';
@@ -244,6 +244,7 @@
             Sign in
           </p>
           <p
+            v-if="stage === 'loginTotp'"
             class="
               mt-4
               transition
@@ -251,7 +252,6 @@
               hover:text-primary-600
               cursor-pointer
             "
-            v-if="stage === 'loginTotp'"
             @click="
               error = '';
               stage = 'login';

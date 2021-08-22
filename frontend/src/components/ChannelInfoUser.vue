@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <UserAvatar class="w-8 h-8 rounded-full" :id="user.avatarId" />
+      <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
       <div>
         <p class="font-bold">{{ user.name }}</p>
         <p class="text-xs text-gray-400">@{{ user.username }}</p>
@@ -35,7 +35,16 @@ import { useStore } from "vuex";
 
 const store = useStore();
 
-const props = defineProps(["channel", "user"]);
+const props = defineProps({
+  channel: {
+    type: Object,
+    default: null,
+  },
+  user: {
+    type: Object,
+    default: null,
+  },
+});
 
 const removable = computed(
   () =>

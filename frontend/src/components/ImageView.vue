@@ -1,14 +1,21 @@
 <template>
-  <Modal base @click="$emit('close')" class="cursor-pointer">
+  <Modal base class="cursor-pointer" @click="$emit('close')">
     <img :src="src" />
   </Modal>
 </template>
 
 <script setup>
 import Modal from "./Modal.vue";
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 
-defineProps(["src"]);
+defineEmits(["close"]);
+
+defineProps({
+  src: {
+    type: String,
+    default: "",
+  },
+});
 </script>
 
 <style scoped>

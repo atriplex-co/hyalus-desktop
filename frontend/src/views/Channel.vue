@@ -23,8 +23,8 @@
             />
             <UserAvatar
               v-else
-              class="w-10 h-10 rounded-full"
               :id="channel.avatarId"
+              class="w-10 h-10 rounded-full"
             />
           </div>
           <div>
@@ -39,14 +39,15 @@
           </div>
         </div>
         <div class="flex items-center space-x-2 text-gray-300 px-2">
-          <div class="flex mr-2 -space-x-2" v-if="voiceUsers.length">
+          <div v-if="voiceUsers.length" class="flex mr-2 -space-x-2">
             <UserAvatar
-              class="border border-gray-900 rounded-full w-7 h-7"
               v-for="user in voiceUsersShown"
-              v-bind:key="user.id"
               :id="user.avatarId"
+              :key="user.id"
+              class="border border-gray-900 rounded-full w-7 h-7"
             />
             <div
+              v-if="voiceUsers.length !== voiceUsersShown.length"
               class="
                 flex
                 items-center
@@ -60,13 +61,11 @@
                 w-7
                 h-7
               "
-              v-if="voiceUsers.length !== voiceUsersShown.length"
             >
               <p>+{{ voiceUsers.length - voiceUsersShown.length }}</p>
             </div>
           </div>
           <div
-            @click="voiceStart"
             class="
               w-8
               h-8
@@ -77,11 +76,11 @@
               cursor-pointer
               hover:bg-gray-500
             "
+            @click="voiceStart"
           >
             <PhoneIcon />
           </div>
           <div
-            @click="showInfo = !showInfo"
             class="
               w-8
               h-8
@@ -92,20 +91,21 @@
               cursor-pointer
               hover:bg-gray-500
             "
+            @click="showInfo = !showInfo"
           >
             <DotsIcon />
           </div>
         </div>
       </div>
       <p
-        class="px-4 py-2 text-sm bg-gray-900 border-b border-gray-700"
         v-if="!writable"
+        class="px-4 py-2 text-sm bg-gray-900 border-b border-gray-700"
       >
         You can't send messages in this channel.
       </p>
     </div>
     <div class="flex flex-1 min-h-0 relative">
-      <div class="absolute p-2 z-10 w-full" v-if="typingStatus">
+      <div v-if="typingStatus" class="absolute p-2 z-10 w-full">
         <div
           :class="{
             'pr-80': showInfo,
@@ -132,30 +132,32 @@
         </div>
       </div>
       <div
+        ref="messageList"
         class="flex flex-col flex-1 space-y-1 overflow-auto"
         @scroll="messageListScroll"
-        ref="messageList"
       >
-        <div class="pt-2" v-observe-visibility="getChannelMessages('before')" />
+        <div v-observe-visibility="getChannelMessages('before')" class="pt-2" />
         <Message
           v-for="message in channel.messages"
-          v-bind:key="message.id"
+          :key="message.id"
           :message="message"
         />
-        <div class="pb-2" v-observe-visibility="getChannelMessages('after')" />
+        <div v-observe-visibility="getChannelMessages('after')" class="pb-2" />
       </div>
       <ChannelInfo
-        class="absolute top-0 right-0"
         v-if="showInfo"
+        class="absolute top-0 right-0"
         :channel="channel"
         @close="showInfo = false"
       />
     </div>
     <div
-      class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
       v-if="writable"
+      class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
     >
       <textarea
+        ref="messageBox"
+        v-model="messageBoxText"
         rows="1"
         placeholder="Send a message"
         class="
@@ -167,10 +169,8 @@
           max-h-32
           focus:border-transparent
         "
-        v-model="message"
         @input="messageBoxInput"
         @keydown="messageBoxKeydown"
-        ref="messageBox"
       />
       <div class="flex space-x-2 text-gray-300">
         <div @click="attachFile">
@@ -205,8 +205,8 @@
     </div>
     <GroupNameModal
       v-if="groupNameModal"
-      @close="groupNameModal = false"
       :channel="channel"
+      @close="groupNameModal = false"
     />
   </div>
 </template>
@@ -229,7 +229,7 @@ import { useRoute, useRouter } from "vue-router";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const message = ref("");
+const messageBoxText = ref("");
 const groupNameModal = ref("");
 const showInfo = ref(false);
 const messageBox = ref(null);
@@ -309,8 +309,8 @@ const getChannelMessages = (method) => async (e) => {
 const sendMessage = async () => {
   lastScrollBottom = true;
 
-  const body = message.value.trim();
-  message.value = "";
+  const body = messageBoxText.value.trim();
+  messageBoxText.value = "";
   setTimeout(messageBoxInput, 1);
 
   if (body) {
