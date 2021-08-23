@@ -346,12 +346,8 @@ func SocketUpgrade(c *gin.Context) {
 					hasSockets[i], hasSockets[j] = hasSockets[j], hasSockets[i]
 				})
 
-				if len(hasSockets) > 5 {
-					hasSockets = hasSockets[:5]
-				}
-
-				for _, s := range hasSockets {
-					s.WriteJSON(events.O{
+				for len(hasSockets) > 0 {
+					hasSockets[0].WriteJSON(events.O{
 						Type: events.OFileChunkRequestType,
 						Data: events.OFileChunkRequest{
 							Hash:     event.Hash,
