@@ -346,7 +346,7 @@ func SocketUpgrade(c *gin.Context) {
 					hasSockets[i], hasSockets[j] = hasSockets[j], hasSockets[i]
 				})
 
-				for len(hasSockets) > 0 {
+				if len(hasSockets) > 0 {
 					hasSockets[0].WriteJSON(events.O{
 						Type: events.OFileChunkRequestType,
 						Data: events.OFileChunkRequest{
