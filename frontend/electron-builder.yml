@@ -1,7 +1,7 @@
 appId: "app.hyalus"
 productName: "hyalus"
 extraMetadata:
-  name: "hyalus"
+  name: "Hyalus"
 win:
   target: "nsis"
   artifactName: "HyalusDesktop-win32.exe"

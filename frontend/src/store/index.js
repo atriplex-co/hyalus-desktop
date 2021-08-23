@@ -767,35 +767,6 @@ const store = new Vuex.Store({
         })
       );
 
-      //userKeys migration (TODO: remove after 8/28)
-      if (localStorage.token) {
-        await idb.set("userKeys", {
-          token: sodium.to_base64(
-            sodium.from_base64(
-              localStorage.token,
-              sodium.base64_variants.ORIGINAL
-            )
-          ),
-          salt: sodium.from_base64(
-            localStorage.salt,
-            sodium.base64_variants.ORIGINAL
-          ),
-          publicKey: sodium.from_base64(
-            localStorage.publicKey,
-            sodium.base64_variants.ORIGINAL
-          ),
-          privateKey: sodium.from_base64(
-            localStorage.privateKey,
-            sodium.base64_variants.ORIGINAL
-          ),
-        });
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("salt");
-        localStorage.removeItem("publicKey");
-        localStorage.removeItem("privateKey");
-      }
-
       //userKeys setup
       commit("setUserKeys", await idb.get("userKeys"));
 
