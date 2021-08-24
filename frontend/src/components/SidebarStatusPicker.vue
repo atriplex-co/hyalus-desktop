@@ -10,6 +10,7 @@
       select-none
       text-sm
       shadow-md
+      z-10
     "
   >
     <div
