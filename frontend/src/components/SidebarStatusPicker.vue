@@ -51,6 +51,5 @@ import { useStore } from "vuex";
 const store = useStore();
 const emit = defineEmits(["close"]);
 
-const submit = (preferredStatus) =>
-  store.dispatch("setPreferredStatus", preferredStatus);
+const submit = (wantStatus) => store.dispatch("setWantStatus", wantStatus);
 </script>

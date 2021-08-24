@@ -20,7 +20,12 @@
       :name="channel.name"
       class="w-8 h-8"
     />
-    <UserAvatar v-else :id="channel.avatarId" class="w-8 h-8 rounded-full" />
+    <UserAvatar
+      v-else
+      :id="channel.avatarId"
+      :status="status"
+      class="w-8 h-8 rounded-full"
+    />
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between w-full">
         <p class="font-bold text-sm">{{ channel.name }}</p>
@@ -40,6 +45,7 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 
 const store = useStore();
+
 const props = defineProps({
   channel: {
     type: Object,
@@ -47,6 +53,7 @@ const props = defineProps({
   },
 });
 const lastMessageTime = ref("");
+
 const lastMessage = computed(() => {
   const message = props.channel.messages[props.channel.messages.length - 1];
 
@@ -77,11 +84,20 @@ const lastMessage = computed(() => {
 
   return `${name} \u2022 ${text}`;
 });
+
 const selected = computed(() => {
   const route = useRoute();
   return (
     route.name === "channel" && route.params.channelId === props.channel.id
   );
+});
+
+const status = computed(() => {
+  if (props.channel.type === "private") {
+    return props.channel.users[0].status;
+  }
+
+  return "";
 });
 
 const updateLastMessageTime = () => {

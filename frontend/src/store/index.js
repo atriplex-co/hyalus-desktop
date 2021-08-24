@@ -103,6 +103,10 @@ const messageFormatter = new MarkdownIt("zero", {
   });
 
 const notify = async (opts) => {
+  if (store.getters.user.wantStatus === "busy") {
+    return;
+  }
+
   if (store.getters.localConfig.notifySound) {
     try {
       new Audio(sndNotification).play();
@@ -114,7 +118,7 @@ const notify = async (opts) => {
   let icon = imgIcon;
 
   if (opts.avatarId) {
-    icon = `${store.getters.baseUrl}/api/avatars/${opts.avatarId}`;
+    icon = `/api/avatars/${opts.avatarId}`;
   }
 
   if (store.getters.localConfig.notifySystem) {
@@ -130,6 +134,9 @@ const notify = async (opts) => {
   }
 };
 
+let away = false;
+let awayTimeout;
+
 const store = new Vuex.Store({
   state: {
     loginKeys: null,
@@ -143,14 +150,12 @@ const store = new Vuex.Store({
     sessions: [],
     lastEvent: "",
     voice: null,
-    baseUrl: null,
     invite: null,
     sidebarHidden: false,
     updateRequired: false,
     userInvite: "",
   },
   getters: {
-    baseUrl: (state) => state.baseUrl,
     ws: (state) => state.ws,
     ready: (state) => state.ready,
     localConfig: (state) => state.localConfig,
@@ -181,10 +186,6 @@ const store = new Vuex.Store({
       }
 
       state.ws = val;
-    },
-    setBaseUrl(state, val) {
-      state.baseUrl = val;
-      axios.defaults.baseURL = val;
     },
     setVoice(state, channelId) {
       if (channelId) {
@@ -293,6 +294,19 @@ const store = new Vuex.Store({
           if (channel.type === "private") {
             channel.avatarId = avatarId;
           }
+        }
+      });
+    },
+    handleForeignUserSetStatus(state, { id, status }) {
+      const friend = state.friends.find((f) => f.id === id);
+      if (friend) {
+        friend.status = status;
+      }
+
+      state.channels.map((channel) => {
+        const user = channel.users.find((u) => u.id === id);
+        if (user) {
+          user.status = status;
         }
       });
     },
@@ -597,6 +611,9 @@ const store = new Vuex.Store({
     setUserInvite(state, val) {
       state.userInvite = val;
     },
+    handleSetWantStatus(state, { wantStatus }) {
+      state.user.wantStatus = wantStatus;
+    },
   },
   actions: {
     async register({ dispatch }, data) {
@@ -736,10 +753,38 @@ const store = new Vuex.Store({
     async start({ getters, commit, dispatch }) {
       await sodium.ready;
 
-      if (window.HyalusDesktop?.isPackaged) {
-        commit("setBaseUrl", "https://hyalus.app");
-      } else {
-        commit("setBaseUrl", location.origin);
+      if (!awayTimeout) {
+        const setAway = (_away) => {
+          if (away === _away) {
+            return;
+          }
+
+          away = _away;
+
+          if (getters.ready) {
+            getters.ws.send({
+              t: "setAway",
+              d: {
+                away,
+              },
+            });
+          }
+        };
+
+        const resetAwayTimeout = () => {
+          setAway(false);
+          clearTimeout(awayTimeout);
+
+          awayTimeout = setTimeout(() => {
+            setAway(true);
+          }, 1000 * 60 * 15);
+        };
+
+        addEventListener("mousemove", resetAwayTimeout);
+        addEventListener("mousedown", resetAwayTimeout);
+        addEventListener("click", resetAwayTimeout);
+        addEventListener("scroll", resetAwayTimeout);
+        addEventListener("keypress", resetAwayTimeout);
       }
 
       //localConfig setup
@@ -775,7 +820,7 @@ const store = new Vuex.Store({
         axios.defaults.headers.authorization = getters.userKeys.token;
 
         const ws = new WebSocket(
-          `${getters.baseUrl.replace("http", "ws")}/api/ws`
+          `${location.origin.replace("http", "ws")}/api/ws`
         );
 
         ws.filterCallbacks = [];
@@ -800,6 +845,7 @@ const store = new Vuex.Store({
             fileChunks: (await idb.keys())
               .filter((k) => /^file:/.test(k))
               .map((k) => k.slice("file:".length)),
+            away,
           };
 
           if (getters.voice) {
@@ -908,6 +954,10 @@ const store = new Vuex.Store({
 
           if (msg.t === "setTypingEvents") {
             commit("handleSetTypingEvents", msg.d);
+          }
+
+          if (msg.t === "setWantStatus") {
+            commit("handleSetWantStatus", msg.d);
           }
 
           if (msg.t === "sessionCreate") {
@@ -1019,6 +1069,10 @@ const store = new Vuex.Store({
 
           if (msg.t === "foreignUserSetAvatarId") {
             commit("handleForeignUserSetAvatarId", msg.d);
+          }
+
+          if (msg.t === "foreignUserSetStatus") {
+            commit("handleForeignUserSetStatus", msg.d);
           }
 
           if (msg.t === "messageCreate") {
@@ -1423,9 +1477,9 @@ const store = new Vuex.Store({
     async processInvite({ getters, dispatch }) {
       await dispatch("addFriend", getters.invite.username);
     },
-    async setPreferredStatus(_, preferredStatus) {
-      await axios.post("/api/me/preferredStatus", {
-        preferredStatus,
+    async setWantStatus(_, wantStatus) {
+      await axios.post("/api/me/wantStatus", {
+        wantStatus,
       });
     },
     async deleteSession(_, id) {
@@ -2331,7 +2385,7 @@ const store = new Vuex.Store({
       { getters, dispatch },
       { userId, sound = false }
     ) {
-      if (new Date() - getters.voice.resetTime < 1000 * 5) {
+      if (new Date() - getters.voice.resetTime < 1000 * 10) {
         sound = false;
       }
 
@@ -2348,7 +2402,7 @@ const store = new Vuex.Store({
       }
     },
     async handleVoiceUserLeave({ getters, commit }, { userId, sound = false }) {
-      if (new Date() - getters.voice.resetTime < 1000 * 5) {
+      if (new Date() - getters.voice.resetTime < 1000 * 10) {
         sound = false;
       }
 

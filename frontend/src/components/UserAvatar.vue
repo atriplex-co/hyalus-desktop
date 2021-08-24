@@ -6,6 +6,7 @@
       'border-green-500': status === 'online',
       'border-amber-500': status === 'away',
       'border-rose-500': status === 'busy',
+      'border-gray-400': status === 'invisible' || status === 'offline',
     }"
   >
     <div v-if="id" class="w-full h-full">
@@ -32,7 +33,17 @@
     </div>
     <div
       v-else
-      class="bg-primary-500 w-full h-full flex items-center justify-center"
+      class="
+        rounded-full
+        bg-primary-500
+        w-full
+        flex
+        items-center
+        justify-center
+      "
+      :class="{
+        'm-px': status,
+      }"
     >
       <UserIcon class="w-2/3 h-2/3" />
     </div>
@@ -42,9 +53,6 @@
 <script setup>
 import UserIcon from "../icons/User.vue";
 import { defineProps, watch, ref, onUnmounted } from "vue";
-import { useStore } from "vuex";
-
-const store = useStore();
 
 const props = defineProps({
   id: {
@@ -70,7 +78,7 @@ const update = async () => {
   reset();
 
   if (props.id) {
-    const res = await fetch(`${store.getters.baseUrl}/api/avatars/${props.id}`);
+    const res = await fetch(`/api/avatars/${props.id}`);
     url.value = URL.createObjectURL(await res.blob());
     type.value = res.headers.get("content-type").split("/")[0];
   }

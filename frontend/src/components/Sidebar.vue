@@ -16,7 +16,7 @@
             <UserAvatar
               :id="user.avatarId"
               class="w-10 h-10 rounded-full"
-              status="online"
+              :status="user.wantStatus"
               @click="menu !== 'status' ? (menu = 'status') : (menu = '')"
             />
             <SidebarStatusPicker v-if="menu === 'status'" @close="menu = ''" />
