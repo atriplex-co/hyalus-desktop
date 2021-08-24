@@ -3,7 +3,6 @@ package routes
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"math/rand"
 	"time"
 
@@ -51,8 +50,6 @@ func SocketUpgrade(c *gin.Context) {
 			t, data, err := conn.ReadMessage()
 
 			if err != nil {
-				log.Println("here 1")
-				log.Println(err)
 				break
 			}
 

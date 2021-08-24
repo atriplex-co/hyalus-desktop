@@ -119,8 +119,6 @@ func (s *Socket) Close() {
 
 func HandleBindErrors(c *gin.Context, err error) bool {
 	if err != nil {
-		log.Println(err)
-
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.(validator.ValidationErrors)[0].Error(),
 		})
@@ -203,7 +201,6 @@ func ValidateTotpSecret(fl validator.FieldLevel) bool {
 
 	data, err := base32.HexEncoding.DecodeString(fl.Field().String())
 
-	log.Println(len(data))
 	return err != nil || len(data) != 32
 }
 
@@ -378,7 +375,6 @@ func ProcessAvatar(file multipart.File) []byte {
 	inData, err := io.ReadAll(file)
 
 	if err != nil {
-		log.Println("can't read avatar") //TODO: remove
 		return nil
 	}
 
@@ -537,8 +533,6 @@ func ProcessAvatar(file multipart.File) []byte {
 	err = cmd.Run()
 
 	if err != nil {
-		log.Println("ffmpeg failed")         //TODO: remove
-		log.Println(strings.Join(args, " ")) //TODO: remove
 		return nil
 	}
 
