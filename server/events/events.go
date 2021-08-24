@@ -13,6 +13,7 @@ const (
 	OSetTotpEnabledType         = "setTotpEnabled"
 	OSetColorThemeType          = "setColorTheme"
 	OSetTypingEventsType        = "setTypingEvents"
+	OSetWantStatusType          = "setWantStatus"
 	OSessionCreateType          = "sessionCreate"
 	OSessionDeleteType          = "sessionDelete"
 	OSessionStartType           = "sessionStart"
@@ -32,6 +33,7 @@ const (
 	OForeignUserSetUsernameType = "foreignUserSetUsername"
 	OForeignUserSetNameType     = "foreignUserSetName"
 	OForeignUserSetAvatarIDType = "foreignUserSetAvatarId"
+	OForeignUserSetStatusType   = "foreignUserSetStatus"
 	IFileChunkOwnedType         = "fileChunkOwned"
 	IFileChunkLostType          = "fileChunkLost"
 	IFileChunkGetType           = "fileChunkGet"
@@ -43,18 +45,7 @@ const (
 	IVoiceRTCType               = "voiceRtc"
 	OVoiceResetType             = "voiceReset"
 	OVoiceRTCType               = "voiceRtc"
-
-	// OChannelUserSetInVoiceType  = "CHANNEL_USER_SET_IN_VOICE"
-	// OChannelVoiceKickType       = "CHANNEL_VOICE_KICK"
-	// OChannelVoiceSDPType        = "CHANNEL_VOICE_SDP"
-	// IVoiceRequestPauseType      = "VOICE_REQUEST_PAUSE"
-	// IVoiceRequestResumeType     = "VOICE_REQUEST_RESUME"
-	// OFriendSetUsernameType      = "FRIEND_SET_USERNAME"
-	// OFriendSetNameType          = "FRIEND_SET_NAME"
-	// OFriendSetAvatarType        = "FRIEND_SET_AVATAR"
-	// OChannelUserSetUsernameType = "CHANNEL_USER_SET_USERNAME"
-	// OChannelUserSetaNameType    = "CHANNEL_USER_SET_NAME"
-	// OChannelUserSetAvatarType   = "CHANNEL_USER_SET_AVATAR"
+	ISetAwayType                = "setAway"
 )
 
 // before we begin, i'll take this time to complain about naming conventions.
@@ -73,6 +64,7 @@ type IStart struct {
 	Token          string   `json:"token"`
 	FileChunks     []string `json:"fileChunks"`
 	VoiceChannelID string   `json:"voiceChannelId"`
+	Away           bool     `json:"away"`
 }
 
 type O struct {
@@ -98,6 +90,7 @@ type OReady_User struct {
 	AuthKeyUpdated int64  `json:"authKeyUpdated"`
 	ColorTheme     string `json:"colorTheme"`
 	TypingEvents   bool   `json:"typingEvents"`
+	WantStatus     string `json:"wantStatus"`
 }
 
 type OReady_Friend struct {
@@ -128,6 +121,7 @@ type OReady_ChannelUser struct {
 	PublicKey string `json:"publicKey"`
 	InVoice   bool   `json:"inVoice"`
 	Hidden    bool   `json:"hidden"`
+	Status    string `json:"status"`
 }
 
 type OReady_ChannelLastMessage struct {
@@ -196,6 +190,7 @@ type OFriendCreate struct {
 	AvatarID  string `json:"avatarId"`
 	Accepted  bool   `json:"accepted"`
 	CanAccept bool   `json:"canAccept"`
+	Status    string `json:"status"`
 }
 
 type OFriendAccept struct {
@@ -225,6 +220,7 @@ type OChannelCreate_User struct {
 	PublicKey string `json:"publicKey"`
 	InVoice   bool   `json:"inVoice"`
 	Hidden    bool   `json:"hidden"`
+	Status    string `json:"status"`
 }
 
 type OChannelCreate_LastMessage struct {
@@ -260,6 +256,7 @@ type OChannelUserCreate struct {
 	PublicKey string `json:"publicKey"`
 	InVoice   bool   `json:"inVoice"`
 	Hidden    bool   `json:"hidden"`
+	Status    string `json:"status"`
 }
 
 type OForeignUserSetAvatarID struct {
@@ -351,4 +348,17 @@ type OVoiceRTC struct {
 
 type IVoiceStart struct {
 	ChannelID string `json:"channelId"`
+}
+
+type OSetWantStatus struct {
+	WantStatus string `json:"wantStatus"`
+}
+
+type OForeignUserSetStatus struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+type ISetAway struct {
+	Away bool `json:"away"`
 }

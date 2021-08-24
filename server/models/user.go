@@ -16,4 +16,5 @@ type User struct {
 	TotpSecret          []byte    `bson:"totpSecret"`
 	ColorTheme          string    `bson:"colorTheme"`
 	TypingEvents        bool      `bson:"typingEvents"`
+	WantStatus          string    `bson:"wantStatus"`
 }

@@ -22,7 +22,9 @@ func CreateFriend(c *gin.Context) {
 		return
 	}
 
-	if strings.ToLower(body.Username) == "deleted" {
+	body.Username = strings.ToLower(body.Username)
+
+	if body.Username == "deleted" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Can't add deleted users",
 		})
@@ -31,7 +33,7 @@ func CreateFriend(c *gin.Context) {
 	}
 
 	cUser := c.MustGet("user").(models.User)
-	if cUser.Username == strings.ToLower(body.Username) {
+	if cUser.Username == body.Username {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Are you really that lonely?",
 		})
@@ -41,7 +43,7 @@ func CreateFriend(c *gin.Context) {
 
 	var user models.User
 	if util.UserCollection.FindOne(util.Context, bson.M{
-		"username": strings.ToLower(body.Username),
+		"username": body.Username,
 	}).Decode(&user) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Username not found",

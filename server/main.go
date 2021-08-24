@@ -95,6 +95,7 @@ func main() {
 	authorized.POST("/api/me/authKey", routes.SetAuthKey)
 	authorized.POST("/api/me/colorTheme", routes.SetColorTheme)
 	authorized.POST("/api/me/typingEvents", routes.SetTypingEvents)
+	authorized.POST("/api/me/wantStatus", routes.SetWantStatus)
 	authorized.POST("/api/totp/enable", routes.TotpEnable)
 	authorized.POST("/api/totp/disable", routes.TotpDisable)
 	authorized.DELETE("/api/sessions/:sessionId", routes.DeleteSession)

@@ -140,6 +140,7 @@ func GroupAdd(c *gin.Context) {
 				PublicKey: util.EncodeBinary(user.PublicKey),
 				InVoice:   false,
 				Hidden:    false,
+				Status:    util.GetStatus(user),
 			},
 		})
 
@@ -176,6 +177,7 @@ func GroupAdd(c *gin.Context) {
 			Name:      user.Name,
 			Hidden:    userInfo.Hidden,
 			InVoice:   voiceSocket != nil && bytes.Equal(channel.ID, voiceSocket.VoiceChannelID),
+			Status:    util.GetStatus(user),
 		})
 	}
 

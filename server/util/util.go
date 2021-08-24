@@ -62,9 +62,10 @@ type Socket struct {
 	ConnMutex      sync.Mutex
 	Session        models.Session
 	FileChunks     [][]byte
+	VoiceChannelID []byte
 	Open           bool
 	Ready          bool
-	VoiceChannelID []byte
+	Away           bool
 }
 
 type LimitConfig struct {
@@ -125,6 +126,21 @@ func (s *Socket) Close() {
 	}
 
 	Sockets = newSockets
+
+	if s.Ready {
+		var user models.User
+		UserCollection.FindOne(Context, bson.M{
+			"_id": s.Session.UserID,
+		}).Decode(&user)
+
+		BroadcastToRelated(user.ID, events.O{
+			Type: events.OForeignUserSetStatusType,
+			Data: events.OForeignUserSetStatus{
+				ID:     EncodeBinary(user.ID),
+				Status: GetStatus(user),
+			},
+		})
+	}
 }
 
 func HandleBindErrors(c *gin.Context, err error) bool {
@@ -715,13 +731,14 @@ func CheckLimit(c *gin.Context, conf *LimitConfig) (bool, func()) {
 	}
 
 	var limit *models.Limit
-
-	if LimitCollection.FindOne(Context, bson.M{
+	LimitCollection.FindOne(Context, bson.M{
 		"scope": scope,
 		"count": bson.M{
 			"$gte": conf.Max,
 		},
-	}).Decode(limit); limit != nil {
+	}).Decode(&limit)
+
+	if limit != nil {
 		c.JSON(http.StatusTooManyRequests, gin.H{
 			"error":   "Sending requests too fast",
 			"expires": limit.Expires,
@@ -731,13 +748,7 @@ func CheckLimit(c *gin.Context, conf *LimitConfig) (bool, func()) {
 	}
 
 	return true, func() {
-		if limit == nil {
-			LimitCollection.InsertOne(Context, &models.Limit{
-				Scope:   scope,
-				Count:   1,
-				Expires: time.Now().Add(conf.Period),
-			})
-		} else {
+		if limit != nil {
 			LimitCollection.UpdateOne(Context, bson.M{
 				"scope": scope,
 			}, bson.M{
@@ -745,6 +756,45 @@ func CheckLimit(c *gin.Context, conf *LimitConfig) (bool, func()) {
 					"count": 1,
 				},
 			})
+		} else {
+			LimitCollection.InsertOne(Context, &models.Limit{
+				Scope:   scope,
+				Count:   1,
+				Expires: time.Now().Add(conf.Period),
+			})
 		}
 	}
+}
+
+func GetStatus(user models.User) string {
+	socketsFound := false
+	socketsAway := true
+
+	for _, s := range Sockets {
+		if bytes.Equal(s.Session.UserID, user.ID) {
+			socketsFound = true
+
+			if !s.Away {
+				socketsAway = false
+			}
+		}
+	}
+
+	if user.WantStatus == "invisible" || !socketsFound {
+		return "offline"
+	}
+
+	if socketsFound {
+		if user.WantStatus == "online" && !socketsAway {
+			return "online"
+		}
+
+		if (user.WantStatus == "online" && socketsAway) || user.WantStatus == "away" {
+			return "away"
+		}
+
+		return user.WantStatus
+	}
+
+	return "online"
 }

@@ -108,6 +108,7 @@ func CreateChannel(c *gin.Context) {
 				PublicKey: util.EncodeBinary(user2.PublicKey),
 				InVoice:   false,
 				Hidden:    false,
+				Status:    util.GetStatus(user2),
 			})
 		}
 

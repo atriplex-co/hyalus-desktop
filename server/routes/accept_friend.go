@@ -56,8 +56,9 @@ func AcceptFriend(c *gin.Context) {
 		},
 	})
 
-	var channel models.Channel
 	channelCreated := false
+	var channel models.Channel
+
 	if util.ChannelCollection.FindOne(util.Context, bson.M{
 		"$and": bson.A{
 			bson.M{
@@ -135,6 +136,7 @@ func AcceptFriend(c *gin.Context) {
 						PublicKey: util.EncodeBinary(friendUser.PublicKey),
 						InVoice:   false,
 						Hidden:    false,
+						Status:    util.GetStatus(friendUser),
 					},
 				},
 				LastMessage: events.OChannelCreate_LastMessage{
@@ -162,6 +164,7 @@ func AcceptFriend(c *gin.Context) {
 						PublicKey: util.EncodeBinary(cUser.PublicKey),
 						InVoice:   false,
 						Hidden:    false,
+						Status:    util.GetStatus(cUser),
 					},
 				},
 				LastMessage: events.OChannelCreate_LastMessage{

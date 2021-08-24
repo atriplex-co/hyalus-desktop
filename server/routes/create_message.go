@@ -33,18 +33,18 @@ func CreateMessage(c *gin.Context) {
 		return
 	}
 
-	supportedTypes := []string{
+	valid := false
+	for _, validType := range []string{
 		"text",
 		"file",
-	}
-	supportedTypeFound := false
-	for _, supportedType := range supportedTypes {
-		if body.Type == supportedType {
-			supportedTypeFound = true
+	} {
+		if body.Type == validType {
+			valid = true
 			break
 		}
 	}
-	if !supportedTypeFound {
+
+	if !valid {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid message type",
 		})

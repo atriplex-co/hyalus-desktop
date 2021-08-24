@@ -26,8 +26,8 @@ func DeleteChannel(c *gin.Context) {
 
 	cUser := c.MustGet("user").(models.User)
 	id := util.DecodeBinary(uri.ChannelID)
-	var channel models.Channel
 
+	var channel models.Channel
 	if util.ChannelCollection.FindOneAndUpdate(util.Context, bson.M{
 		"_id": id,
 		"type": bson.M{

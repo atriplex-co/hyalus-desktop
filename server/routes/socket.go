@@ -102,6 +102,7 @@ func SocketUpgrade(c *gin.Context) {
 
 				socket.Session = cSession
 				socket.Ready = true
+				socket.Away = event.Away
 
 				var cUser models.User
 
@@ -196,6 +197,7 @@ func SocketUpgrade(c *gin.Context) {
 							PublicKey: util.EncodeBinary(user.PublicKey),
 							InVoice:   voiceSocket != nil && bytes.Equal(channel.ID, voiceSocket.VoiceChannelID),
 							Hidden:    userInfo.Hidden,
+							Status:    util.GetStatus(user),
 						})
 					}
 
@@ -268,6 +270,7 @@ func SocketUpgrade(c *gin.Context) {
 							AuthKeyUpdated: cUser.AuthKeyUpdated.UnixNano() / 1e6,
 							ColorTheme:     cUser.ColorTheme,
 							TypingEvents:   cUser.TypingEvents,
+							WantStatus:     cUser.WantStatus,
 						},
 						Friends:  formattedFriends,
 						Channels: formattedChannels,
@@ -278,6 +281,14 @@ func SocketUpgrade(c *gin.Context) {
 				if len(voiceChannelId) != 0 {
 					socket.VoiceStart(voiceChannelId)
 				}
+
+				util.BroadcastToRelated(cUser.ID, events.O{
+					Type: events.OForeignUserSetStatusType,
+					Data: events.OForeignUserSetStatus{
+						ID:     util.EncodeBinary(cUser.ID),
+						Status: util.GetStatus(cUser),
+					},
+				})
 			}
 
 			if !socket.Ready {
@@ -409,6 +420,26 @@ func SocketUpgrade(c *gin.Context) {
 					Data: events.OVoiceRTC{
 						UserID:  util.EncodeBinary(socket.Session.UserID),
 						Payload: event.Payload,
+					},
+				})
+			}
+
+			if msg.Type == events.ISetAwayType {
+				var event events.ISetAway
+				json.Unmarshal(msg.Data, &event)
+
+				socket.Away = event.Away
+
+				var user models.User
+				util.UserCollection.FindOne(util.Context, bson.M{
+					"_id": socket.Session.UserID,
+				}).Decode(&user)
+
+				util.BroadcastToRelated(user.ID, events.O{
+					Type: events.OForeignUserSetStatusType,
+					Data: events.OForeignUserSetStatus{
+						ID:     util.EncodeBinary(user.ID),
+						Status: util.GetStatus(user),
 					},
 				})
 			}
