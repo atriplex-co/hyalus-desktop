@@ -100,6 +100,7 @@ type OReady_Friend struct {
 	AvatarID  string `json:"avatarId"`
 	Accepted  bool   `json:"accepted"`
 	CanAccept bool   `json:"canAccept"`
+	Status    string `json:"status"`
 }
 
 type OReady_Channel struct {
@@ -190,11 +191,11 @@ type OFriendCreate struct {
 	AvatarID  string `json:"avatarId"`
 	Accepted  bool   `json:"accepted"`
 	CanAccept bool   `json:"canAccept"`
-	Status    string `json:"status"`
 }
 
 type OFriendAccept struct {
-	ID string `json:"id"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 type OFriendDelete struct {

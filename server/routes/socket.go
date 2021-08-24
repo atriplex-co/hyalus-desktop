@@ -160,6 +160,12 @@ func SocketUpgrade(c *gin.Context) {
 						"_id": friendUserID,
 					}).Decode(&friendUser)
 
+					status := ""
+
+					if friend.Accepted {
+						status = util.GetStatus(friendUser)
+					}
+
 					formattedFriends = append(formattedFriends, events.OReady_Friend{
 						ID:        util.EncodeBinary(friendUser.ID),
 						Username:  friendUser.Username,
@@ -167,6 +173,7 @@ func SocketUpgrade(c *gin.Context) {
 						AvatarID:  util.EncodeBinary(friendUser.AvatarID),
 						Accepted:  friend.Accepted,
 						CanAccept: canAccept,
+						Status:    status,
 					})
 				}
 

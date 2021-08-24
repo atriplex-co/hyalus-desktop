@@ -42,17 +42,24 @@ func AcceptFriend(c *gin.Context) {
 		return
 	}
 
+	var friendUser models.User
+	util.UserCollection.FindOne(util.Context, bson.M{
+		"_id": friendID,
+	}).Decode(&friendUser)
+
 	util.BroadcastToUser(cUser.ID, events.O{
 		Type: events.OFriendAcceptType,
 		Data: events.OFriendAccept{
-			ID: util.EncodeBinary(friendID),
+			ID:     util.EncodeBinary(friendID),
+			Status: util.GetStatus(friendUser),
 		},
 	})
 
 	util.BroadcastToUser(friendID, events.O{
 		Type: events.OFriendAcceptType,
 		Data: events.OFriendAccept{
-			ID: util.EncodeBinary(cUser.ID),
+			ID:     util.EncodeBinary(cUser.ID),
+			Status: util.GetStatus(cUser),
 		},
 	})
 
