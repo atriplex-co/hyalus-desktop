@@ -1,5 +1,5 @@
 <template>
-  <div class="flex text-sm border-b border-gray-700 z-10 bg-gray-800 h-8">
+  <div class="flex text-sm border-b border-gray-700 z-10 bg-gray-900 h-8">
     <div class="flex items-center flex-1 px-2 space-x-2 select-none draggable">
       <AppIcon class="w-4 h-4" />
       <p class="text-gray-200">{{ title }}</p>
