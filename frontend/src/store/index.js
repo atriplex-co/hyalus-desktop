@@ -2049,9 +2049,23 @@ const store = new Vuex.Store({
                 mandatory: {
                   chromeMediaSource: "desktop",
                   chromeMediaSourceId: desktopOpts.sourceId,
-                  autoGainControl: false,
-                  noiseSuppression: false,
-                  echoCancellation: true,
+                },
+              },
+            });
+
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                mandatory: {
+                  chromeMediaSource: "desktop",
+                  chromeMediaSourceId: "screen:0:0",
+                  maxHeight: 720,
+                  maxFrameRate: 60,
+                },
+              },
+              audio: {
+                mandatory: {
+                  chromeMediaSource: "desktop",
+                  chromeMediaSourceId: "screen:0:0",
                 },
               },
             });
