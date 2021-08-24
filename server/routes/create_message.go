@@ -19,7 +19,7 @@ type CreateMessageUri struct {
 
 type CreateMessageBody struct {
 	Type string `json:"type" binding:"required"`
-	Body string `json:"body" binding:"required,base64url"`
+	Body string `json:"body" binding:"required,base64urlmax=5120"`
 	Keys []struct {
 		UserID string `json:"userId" binding:"required,base64urlexact=16"`
 		Key    string `json:"key" binding:"required,base64url=48"`
