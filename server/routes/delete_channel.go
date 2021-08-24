@@ -86,7 +86,7 @@ func DeleteChannel(c *gin.Context) {
 		ChannelID: channel.ID,
 		UserID:    cUser.ID,
 		Type:      "groupLeave",
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   time.Now(),
 	}
 
 	util.MessageCollection.InsertOne(util.Context, &groupLeaveMessage)
@@ -98,7 +98,7 @@ func DeleteChannel(c *gin.Context) {
 			ChannelID: util.EncodeBinary(groupLeaveMessage.ChannelID),
 			UserID:    util.EncodeBinary(groupLeaveMessage.UserID),
 			Type:      groupLeaveMessage.Type,
-			Created:   groupLeaveMessage.Created,
+			Created:   groupLeaveMessage.Created.UnixNano() / 1e6,
 		},
 	})
 

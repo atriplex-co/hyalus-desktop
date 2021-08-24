@@ -90,7 +90,7 @@ func SetGroupAvatar(c *gin.Context) {
 		ChannelID: channelID,
 		UserID:    cUser.ID,
 		Type:      "groupAvatar",
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   time.Now(),
 	}
 
 	util.MessageCollection.InsertOne(util.Context, &message)
@@ -103,7 +103,7 @@ func SetGroupAvatar(c *gin.Context) {
 			UserID:    util.EncodeBinary(message.UserID),
 			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
-			Created:   message.Created,
+			Created:   message.Created.UnixNano() / 1e6,
 		},
 	})
 }

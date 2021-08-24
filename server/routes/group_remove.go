@@ -105,7 +105,7 @@ func GroupRemove(c *gin.Context) {
 		UserID:    cUser.ID,
 		Type:      "groupRemove",
 		Body:      userID,
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   time.Now(),
 	}
 
 	util.MessageCollection.InsertOne(util.Context, &message)
@@ -118,7 +118,7 @@ func GroupRemove(c *gin.Context) {
 			UserID:    util.EncodeBinary(message.UserID),
 			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
-			Created:   message.Created,
+			Created:   message.Created.UnixNano() / 1e6,
 		},
 	})
 }

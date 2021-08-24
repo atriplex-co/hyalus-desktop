@@ -74,7 +74,7 @@ func CreateFriend(c *gin.Context) {
 		User1ID:  cUser.ID,
 		User2ID:  user.ID,
 		Accepted: false,
-		Created:  time.Now().UnixNano() / 1e6,
+		Created:  time.Now(),
 	}
 
 	util.FriendCollection.InsertOne(util.Context, &friend)

@@ -21,6 +21,7 @@ func AcceptFriend(c *gin.Context) {
 		return
 	}
 
+	now := time.Now()
 	cUser := c.MustGet("user").(models.User)
 	friendID := util.DecodeBinary(uri.FriendID)
 
@@ -82,17 +83,17 @@ func AcceptFriend(c *gin.Context) {
 		channel = models.Channel{
 			ID:      util.GenerateID(),
 			Type:    "private",
-			Created: time.Now().UnixNano() / 1e6,
+			Created: now,
 			Users: []models.ChannelUser{
 				{
 					ID:     cUser.ID,
-					Added:  time.Now().UnixNano() / 1e6,
+					Added:  now,
 					Owner:  false,
 					Hidden: false,
 				},
 				{
 					ID:     friendID,
-					Added:  time.Now().UnixNano() / 1e6,
+					Added:  now,
 					Owner:  false,
 					Hidden: false,
 				},
@@ -107,7 +108,7 @@ func AcceptFriend(c *gin.Context) {
 		ChannelID: channel.ID,
 		UserID:    cUser.ID,
 		Type:      "friendAccept",
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   now,
 	}
 
 	util.MessageCollection.InsertOne(util.Context, &message)
@@ -123,7 +124,7 @@ func AcceptFriend(c *gin.Context) {
 			Data: events.OChannelCreate{
 				ID:      util.EncodeBinary(channel.ID),
 				Type:    channel.Type,
-				Created: channel.Created,
+				Created: channel.Created.UnixNano() / 1e6,
 				Owner:   true,
 				Users: []events.OChannelCreate_User{
 					{
@@ -140,7 +141,7 @@ func AcceptFriend(c *gin.Context) {
 					ID:      util.EncodeBinary(message.ID),
 					UserID:  util.EncodeBinary(cUser.ID),
 					Type:    message.Type,
-					Created: message.Created,
+					Created: message.Created.UnixNano() / 1e6,
 				},
 			},
 		})
@@ -150,7 +151,7 @@ func AcceptFriend(c *gin.Context) {
 			Data: events.OChannelCreate{
 				ID:      util.EncodeBinary(channel.ID),
 				Type:    channel.Type,
-				Created: channel.Created,
+				Created: channel.Created.UnixNano() / 1e6,
 				Owner:   false,
 				Users: []events.OChannelCreate_User{
 					{
@@ -167,7 +168,7 @@ func AcceptFriend(c *gin.Context) {
 					ID:      util.EncodeBinary(message.ID),
 					UserID:  util.EncodeBinary(cUser.ID),
 					Type:    message.Type,
-					Created: message.Created,
+					Created: message.Created.UnixNano() / 1e6,
 				},
 			},
 		})
@@ -182,7 +183,7 @@ func AcceptFriend(c *gin.Context) {
 			ChannelID: util.EncodeBinary(channel.ID),
 			UserID:    util.EncodeBinary(cUser.ID),
 			Type:      message.Type,
-			Created:   message.Created,
+			Created:   message.Created.UnixNano() / 1e6,
 		},
 	})
 }

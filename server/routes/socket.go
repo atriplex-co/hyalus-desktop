@@ -221,7 +221,7 @@ func SocketUpgrade(c *gin.Context) {
 						AvatarID: util.EncodeBinary(channel.AvatarID),
 						Name:     channel.Name,
 						Type:     channel.Type,
-						Created:  channel.Created,
+						Created:  channel.Created.UnixNano() / 1e6,
 						Owner:    ownUserInfo.Owner,
 						Users:    formattedChannelUsers,
 						LastMessage: events.OReady_ChannelLastMessage{
@@ -230,7 +230,7 @@ func SocketUpgrade(c *gin.Context) {
 							Body:    util.EncodeBinary(lastMessage.Body),
 							Key:     util.EncodeBinary(lastMessageKey),
 							Type:    lastMessage.Type,
-							Created: lastMessage.Created,
+							Created: lastMessage.Created.UnixNano() / 1e6,
 						},
 					})
 				}
@@ -243,8 +243,8 @@ func SocketUpgrade(c *gin.Context) {
 						ID:        util.EncodeBinary(session.ID),
 						Agent:     session.Agent,
 						IP:        session.IP,
-						Created:   session.Created,
-						LastStart: session.LastStart,
+						Created:   session.Created.UnixNano() / 1e6,
+						LastStart: session.LastStart.UnixNano() / 1e6,
 						Self:      bytes.Equal(session.ID, socket.Session.ID),
 					})
 				}
@@ -264,8 +264,8 @@ func SocketUpgrade(c *gin.Context) {
 							AvatarID:       util.EncodeBinary(cUser.AvatarID),
 							Username:       cUser.Username,
 							TotpEnabled:    len(cUser.TotpSecret) > 0,
-							Created:        cUser.Created,
-							AuthKeyUpdated: cUser.AuthKeyUpdated,
+							Created:        cUser.Created.UnixNano() / 1e6,
+							AuthKeyUpdated: cUser.AuthKeyUpdated.UnixNano() / 1e6,
 							ColorTheme:     cUser.ColorTheme,
 							TypingEvents:   cUser.TypingEvents,
 						},

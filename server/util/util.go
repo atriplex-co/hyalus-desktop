@@ -67,6 +67,16 @@ type Socket struct {
 	VoiceChannelID []byte
 }
 
+type LimitConfig struct {
+	UseHandler bool
+	UseParams  bool
+	UseIP      bool
+	UseSession bool
+	UseUser    bool
+	Max        int64
+	Period     time.Duration
+}
+
 func NewSocket(conn *websocket.Conn) *Socket {
 	Sockets = append(Sockets, &Socket{
 		ID:    GenerateID(),
@@ -677,4 +687,64 @@ func DecodeBinary(s string) []byte {
 	}
 
 	return b
+}
+
+func CheckLimit(c *gin.Context, conf *LimitConfig) (bool, func()) {
+	scope := ""
+
+	if conf.UseHandler {
+		scope += fmt.Sprintf(":handler=%s", c.HandlerName())
+	}
+
+	if conf.UseParams {
+		for _, p := range c.Params {
+			scope += fmt.Sprintf(":%s=%s", p.Key, p.Value)
+		}
+	}
+
+	if conf.UseIP {
+		scope += fmt.Sprintf(":ip=%s", c.ClientIP())
+	}
+
+	if conf.UseSession {
+		scope += fmt.Sprintf(":session=%s", EncodeBinary(c.MustGet("session").(models.Session).ID))
+	}
+
+	if conf.UseUser {
+		scope += fmt.Sprintf(":user=%s", EncodeBinary(c.MustGet("user").(models.User).ID))
+	}
+
+	var limit *models.Limit
+
+	if LimitCollection.FindOne(Context, bson.M{
+		"scope": scope,
+		"count": bson.M{
+			"$gte": conf.Max,
+		},
+	}).Decode(limit); limit != nil {
+		c.JSON(http.StatusTooManyRequests, gin.H{
+			"error":   "Sending requests too fast",
+			"expires": limit.Expires,
+		})
+
+		return false, nil
+	}
+
+	return true, func() {
+		if limit == nil {
+			LimitCollection.InsertOne(Context, &models.Limit{
+				Scope:   scope,
+				Count:   1,
+				Expires: time.Now().Add(conf.Period),
+			})
+		} else {
+			LimitCollection.UpdateOne(Context, bson.M{
+				"scope": scope,
+			}, bson.M{
+				"$inc": bson.M{
+					"count": 1,
+				},
+			})
+		}
+	}
 }

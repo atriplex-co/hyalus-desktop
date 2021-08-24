@@ -1,12 +1,14 @@
 package models
 
+import "time"
+
 type Message struct {
 	ID        []byte       `bson:"_id"`
 	ChannelID []byte       `bson:"channelId"`
 	UserID    []byte       `bson:"userId"`
 	Type      string       `bson:"type"`
 	Body      []byte       `bson:"body"`
-	Created   int64        `bson:"created"`
+	Created   time.Time    `bson:"created"`
 	Keys      []MessageKey `bson:"keys"`
 }
 

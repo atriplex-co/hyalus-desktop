@@ -23,7 +23,7 @@ func CreateChannel(c *gin.Context) {
 		return
 	}
 
-	now := time.Now().UnixNano() / 1e6
+	now := time.Now()
 	cUser := c.MustGet("user").(models.User)
 
 	channel := models.Channel{
@@ -118,7 +118,7 @@ func CreateChannel(c *gin.Context) {
 				Name:     channel.Name,
 				AvatarID: "",
 				Type:     channel.Type,
-				Created:  channel.Created,
+				Created:  channel.Created.UnixNano() / 1e6,
 				Owner:    bytes.Equal(user.ID, cUser.ID),
 				Users:    eventUsers,
 				LastMessage: events.OChannelCreate_LastMessage{
@@ -127,13 +127,13 @@ func CreateChannel(c *gin.Context) {
 					Body:    "",
 					Key:     "",
 					Type:    groupCreateMessage.Type,
-					Created: groupCreateMessage.Created,
+					Created: groupCreateMessage.Created.UnixNano() / 1e6,
 				},
 			},
 		})
 	}
 
-	for i, user := range users {
+	for _, user := range users {
 		if bytes.Equal(user.ID, cUser.ID) {
 			continue
 		}
@@ -144,7 +144,7 @@ func CreateChannel(c *gin.Context) {
 			UserID:    cUser.ID,
 			Type:      "groupAdd",
 			Body:      user.ID,
-			Created:   now + int64(i),
+			Created:   now,
 		}
 
 		util.MessageCollection.InsertOne(util.Context, &groupAddMessage)
@@ -158,7 +158,7 @@ func CreateChannel(c *gin.Context) {
 				Body:      util.EncodeBinary(groupAddMessage.Body),
 				Key:       "",
 				Type:      groupAddMessage.Type,
-				Created:   groupAddMessage.Created,
+				Created:   groupAddMessage.Created.UnixNano() / 1e6,
 			},
 		})
 	}

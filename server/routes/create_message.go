@@ -143,7 +143,7 @@ func CreateMessage(c *gin.Context) {
 		UserID:    cUser.ID,
 		Type:      body.Type,
 		Body:      messageBody,
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   time.Now(),
 		Keys:      keys,
 	}
 
@@ -159,7 +159,7 @@ func CreateMessage(c *gin.Context) {
 				Body:      util.EncodeBinary(messageBody),
 				Key:       util.EncodeBinary(key.Key),
 				Type:      message.Type,
-				Created:   message.Created,
+				Created:   message.Created.UnixNano() / 1e6,
 			},
 		})
 	}

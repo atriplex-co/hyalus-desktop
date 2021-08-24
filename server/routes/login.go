@@ -24,6 +24,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	now := time.Now()
 	authKey := util.DecodeBinary(body.AuthKey)
 
 	var user models.User
@@ -62,8 +63,8 @@ func Login(c *gin.Context) {
 		Token:     util.GenerateToken(),
 		Agent:     c.Request.UserAgent(),
 		IP:        c.ClientIP(),
-		Created:   time.Now().UnixNano() / 1e6,
-		LastStart: time.Now().UnixNano() / 1e6,
+		Created:   now,
+		LastStart: now,
 	}
 
 	util.SessionCollection.InsertOne(util.Context, &session)
@@ -74,7 +75,7 @@ func Login(c *gin.Context) {
 			ID:      util.EncodeBinary(session.ID),
 			Agent:   session.Agent,
 			IP:      session.IP,
-			Created: session.Created,
+			Created: session.Created.UnixNano() / 1e6,
 		},
 	})
 

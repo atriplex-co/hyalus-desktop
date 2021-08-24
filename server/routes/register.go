@@ -41,6 +41,7 @@ func Register(c *gin.Context) {
 	authKey := util.DecodeBinary(body.AuthKey)
 	publicKey := util.DecodeBinary(body.PublicKey)
 	encryptedPrivateKey := util.DecodeBinary(body.EncryptedPrivateKey)
+	now := time.Now()
 
 	user := models.User{
 		ID:                  util.GenerateID(),
@@ -49,10 +50,10 @@ func Register(c *gin.Context) {
 		AvatarID:            nil,
 		Salt:                salt,
 		AuthKey:             authKey,
-		AuthKeyUpdated:      time.Now().UnixNano() / 1e6,
+		AuthKeyUpdated:      now,
 		PublicKey:           publicKey,
 		EncryptedPrivateKey: encryptedPrivateKey,
-		Created:             time.Now().UnixNano() / 1e6,
+		Created:             now,
 		TotpSecret:          nil,
 		ColorTheme:          "green",
 		TypingEvents:        true,
@@ -64,8 +65,8 @@ func Register(c *gin.Context) {
 		Token:     util.GenerateToken(),
 		Agent:     c.Request.UserAgent(),
 		IP:        c.ClientIP(),
-		Created:   time.Now().UnixNano() / 1e6,
-		LastStart: time.Now().UnixNano() / 1e6,
+		Created:   now,
+		LastStart: now,
 	}
 
 	util.UserCollection.InsertOne(util.Context, &user)

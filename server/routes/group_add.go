@@ -27,7 +27,7 @@ func GroupAdd(c *gin.Context) {
 		return
 	}
 
-	now := time.Now().UnixNano() / 1e6
+	now := time.Now()
 	cUser := c.MustGet("user").(models.User)
 	channelID := util.DecodeBinary(uri.ChannelID)
 	userID := util.DecodeBinary(body.UserID)
@@ -186,7 +186,7 @@ func GroupAdd(c *gin.Context) {
 			AvatarID: util.EncodeBinary(channel.AvatarID),
 			Name:     channel.Name,
 			Type:     channel.Type,
-			Created:  channel.Created,
+			Created:  channel.Created.UnixNano() / 1e6,
 			Owner:    false,
 			Users:    eventUsers,
 			LastMessage: events.OChannelCreate_LastMessage{
@@ -194,7 +194,7 @@ func GroupAdd(c *gin.Context) {
 				UserID:  util.EncodeBinary(message.UserID),
 				Body:    util.EncodeBinary(message.Body),
 				Type:    message.Type,
-				Created: message.Created,
+				Created: message.Created.UnixNano() / 1e6,
 			},
 		},
 	})
@@ -207,7 +207,7 @@ func GroupAdd(c *gin.Context) {
 			UserID:    util.EncodeBinary(message.UserID),
 			Body:      util.EncodeBinary(message.Body),
 			Type:      message.Type,
-			Created:   message.Created,
+			Created:   message.Created.UnixNano() / 1e6,
 		},
 	})
 }

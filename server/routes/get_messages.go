@@ -2,9 +2,9 @@ package routes
 
 import (
 	"bytes"
-	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hyalusapp/hyalus/server/models"
@@ -51,21 +51,22 @@ func GetMessages(c *gin.Context) {
 		}
 	}
 
-	before, _ := strconv.Atoi(c.Query("before"))
-	after, _ := strconv.Atoi(c.Query("after"))
-
+	beforeN, _ := strconv.Atoi(c.Query("before"))
+	afterN, _ := strconv.Atoi(c.Query("after"))
+	before := time.Unix(0, int64(beforeN*1e6))
+	after := time.Unix(0, int64(afterN*1e6))
 	query := bson.M{}
 	sort := bson.M{
 		"created": -1,
 	}
 
-	if int64(before) != 0 && int64(before) > ownUserInfo.Added {
-		query["$lte"] = int64(before)
+	if beforeN != 0 && ownUserInfo.Added.After(before) {
+		query["$lte"] = before
 	}
 
-	if after != 0 {
+	if afterN != 0 && after.After(ownUserInfo.Added) {
 		sort["created"] = 1
-		query["$gte"] = int64(math.Max(float64(ownUserInfo.Added), float64(after)))
+		query["$gte"] = after
 	} else {
 		query["$gte"] = ownUserInfo.Added
 	}
