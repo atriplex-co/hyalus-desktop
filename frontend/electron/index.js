@@ -8,10 +8,6 @@ const {
   shell,
 } = require("electron");
 const path = require("path");
-const url = require("url");
-const os = require("os");
-const crypto = require("crypto");
-const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { version } = require("../package.json");
 
@@ -24,23 +20,6 @@ nativeTheme.themeSource = "dark";
 let mainWindow;
 let quitting;
 let started;
-
-const generatePreload = () => {
-  const file = path.join(
-    os.tmpdir(),
-    `${crypto.randomBytes(16).toString("hex")}.js`
-  );
-
-  fs.writeFileSync(
-    file,
-    fs
-      .readFileSync(path.join(__dirname, "preload.js"))
-      .toString()
-      .replace("__isPackaged", app.isPackaged)
-  );
-
-  return file;
-};
 
 const start = () => {
   if (started) {
@@ -57,22 +36,25 @@ const start = () => {
     height: 800,
     minWidth: 600,
     minHeight: 400,
+    autoHideMenuBar: true,
     frame: false,
     webPreferences: {
-      preload: generatePreload(),
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
   if (app.isPackaged) {
-    const entryPath = path.join(__dirname, "../dist/index.html");
-    const entryUrl = `${url.pathToFileURL(entryPath)}#/app`;
-
-    mainWindow.loadURL(entryUrl);
+    mainWindow.loadURL("https://hyalus.app/app");
   } else {
     mainWindow.loadURL("http://localhost:3000/app");
   }
 
-  mainWindow.removeMenu();
+  mainWindow.on("close", (e) => {
+    if (!quitting) {
+      e.preventDefault();
+      mainWindow.hide();
+    }
+  });
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
@@ -97,13 +79,20 @@ const start = () => {
     }
   });
 
-  mainWindow.on("close", (e) => {
-    if (!quitting) {
-      e.preventDefault();
-      mainWindow.hide();
-    }
+  mainWindow.webContents.on("did-fail-load", () => {
+    mainWindow.loadURL(path.join(__dirname, "offline.html"));
   });
 
+  mainWindow.removeMenu();
+};
+
+const restart = () => {
+  app.releaseSingleInstanceLock();
+  app.relaunch();
+  app.quit();
+};
+
+app.on("ready", () => {
   const tray = new Tray(path.join(__dirname, "icon.png"));
 
   tray.setToolTip(`Hyalus ${version}`);
@@ -132,15 +121,7 @@ const start = () => {
   tray.on("click", () => {
     mainWindow.show();
   });
-};
 
-const restart = () => {
-  app.releaseSingleInstanceLock();
-  app.relaunch();
-  app.quit();
-};
-
-app.on("ready", () => {
   if (!app.isPackaged) {
     return start();
   }
@@ -192,4 +173,10 @@ ipcMain.on("minimize", () => {
   mainWindow.minimize();
 });
 
-ipcMain.on("restart", restart);
+ipcMain.on("restart", () => {
+  restart();
+});
+
+ipcMain.on("quit", () => {
+  app.quit();
+});

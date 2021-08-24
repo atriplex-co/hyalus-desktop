@@ -1,6 +1,6 @@
 {
   "name": "hyalus",
-  "version": "0.0.51",
+  "version": "0.0.52",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Hyalus",
@@ -9,11 +9,10 @@
   "main": "electron/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "yarn clean && vite build",
+    "build": "vite build",
     "electron:start": "electron .",
-    "electron:build": "yarn build && electron-builder -wml",
+    "electron:build": "electron-builder -wml",
     "electron:publish": "yarn electron:build -p always",
-    "clean": "rm -rf dist*",
     "lint": "eslint --fix --ext .js,.vue src",
     "postinstall": "patch-package"
   },

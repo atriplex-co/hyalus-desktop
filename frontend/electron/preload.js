@@ -1,11 +1,11 @@
 const { contextBridge, desktopCapturer, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("HyalusDesktop", {
-  isPackaged: __isPackaged,
   close: () => ipcRenderer.send("close"),
   maximize: () => ipcRenderer.send("maximize"),
   minimize: () => ipcRenderer.send("minimize"),
   restart: () => ipcRenderer.send("restart"),
+  quit: () => ipcRenderer.send("quit"),
   async getSources() {
     const sources = await desktopCapturer.getSources({
       types: ["screen", "window"],

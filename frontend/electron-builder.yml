@@ -15,7 +15,6 @@ linux:
   artifactName: "HyalusDesktop-linux.AppImage"
 files:
   - "electron"
-  - "dist"
 directories:
   output: "dist_electron"
   buildResources: "electron"

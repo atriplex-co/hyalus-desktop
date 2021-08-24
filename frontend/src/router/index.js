@@ -1,8 +1,4 @@
-import {
-  createRouter,
-  createWebHashHistory,
-  createWebHistory,
-} from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import store from "../store";
 
 const requireAuth = (to, from, next) => {
@@ -30,7 +26,7 @@ const requireVoice = (to, from, next) => {
 };
 
 const router = createRouter({
-  history: window.HyalusDesktop ? createWebHashHistory() : createWebHistory(),
+  history: createWebHistory(),
   routes: [
     {
       name: "home",
