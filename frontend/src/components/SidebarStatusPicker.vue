@@ -11,7 +11,6 @@
       text-sm
       shadow-md
     "
-    @click="emit('close')"
   >
     <div
       class="flex items-center py-2 px-3 space-x-3 hover:bg-gray-700 transition"
@@ -49,7 +48,17 @@ import { defineEmits } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
+
 const emit = defineEmits(["close"]);
 
-const submit = (wantStatus) => store.dispatch("setWantStatus", wantStatus);
+const submit = async (wantStatus) => {
+  await store.dispatch("setWantStatus", wantStatus);
+};
+
+const close = () => {
+  emit("close");
+  removeEventListener("click", close);
+};
+
+setTimeout(() => addEventListener("click", close));
 </script>
