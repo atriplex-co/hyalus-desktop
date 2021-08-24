@@ -160,7 +160,7 @@ func SocketUpgrade(c *gin.Context) {
 						"_id": friendUserID,
 					}).Decode(&friendUser)
 
-					status := ""
+					status := "offline"
 
 					if friend.Accepted {
 						status = util.GetStatus(friendUser)

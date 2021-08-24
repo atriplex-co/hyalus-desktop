@@ -239,10 +239,11 @@ const store = new Vuex.Store({
     setSessions(state, val) {
       state.sessions = val;
     },
-    handleFriendAccept(state, { id }) {
+    handleFriendAccept(state, { id, status }) {
       const friend = state.friends.find((f) => f.id === id);
       friend.accepted = true;
       friend.canAccept = false;
+      friend.status = status;
     },
     handleChannelCreate(state, val) {
       state.channels.push({

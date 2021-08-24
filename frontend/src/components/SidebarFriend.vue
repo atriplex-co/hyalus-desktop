@@ -1,7 +1,11 @@
 <template>
   <div class="flex items-center justify-between p-2">
     <div class="flex items-center space-x-3">
-      <UserAvatar :id="friend.avatarId" class="w-8 h-8 rounded-full" />
+      <UserAvatar
+        :id="friend.avatarId"
+        :status="friend.status"
+        class="w-8 h-8 rounded-full"
+      />
       <div>
         <p class="font-bold text-sm">{{ friend.name }}</p>
         <p class="text-gray-300 text-sm">@{{ friend.username }}</p>
