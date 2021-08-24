@@ -28,7 +28,7 @@ func SocketUpgrade(c *gin.Context) {
 	go func() {
 		alive := true
 
-		socket.Conn.SetPongHandler(func(appData string) error {
+		socket.Conn.SetPongHandler(func(_ string) error {
 			alive = true
 			return nil
 		})

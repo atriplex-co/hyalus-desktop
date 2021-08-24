@@ -27,6 +27,7 @@ func GroupAdd(c *gin.Context) {
 		return
 	}
 
+	now := time.Now().UnixNano() / 1e6
 	cUser := c.MustGet("user").(models.User)
 	channelID := util.DecodeBinary(uri.ChannelID)
 	userID := util.DecodeBinary(body.UserID)
@@ -92,7 +93,7 @@ func GroupAdd(c *gin.Context) {
 		UserID:    cUser.ID,
 		Type:      "groupAdd",
 		Body:      userID,
-		Created:   time.Now().UnixNano() / 1e6,
+		Created:   now,
 	}
 
 	util.MessageCollection.InsertOne(util.Context, &message)
@@ -117,6 +118,7 @@ func GroupAdd(c *gin.Context) {
 		}, bson.M{
 			"$set": bson.M{
 				"users.$.hidden": false,
+				"users.$.added":  now,
 			},
 		})
 	}
@@ -147,7 +149,7 @@ func GroupAdd(c *gin.Context) {
 					"id":     userID,
 					"hidden": false,
 					"owner":  false,
-					"added":  time.Now().UnixNano() / 1e6,
+					"added":  now,
 				},
 			},
 		})
