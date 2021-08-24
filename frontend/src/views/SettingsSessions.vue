@@ -15,7 +15,7 @@
 
 <script setup>
 import Session from "../components/Session.vue";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
@@ -25,4 +25,8 @@ const sessions = computed(() =>
     a.self ? -1 : b.self ? 1 : a.lastStart > b.lastStart ? -1 : 1
   )
 );
+
+onMounted(() => {
+  document.title = "Hyalus \u2022 Sessions";
+});
 </script>
