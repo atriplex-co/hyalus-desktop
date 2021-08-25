@@ -48,7 +48,7 @@
             leave-to-class="opacity-0"
             mode="out-in"
           >
-            <component :is="Component" :key="$route" />
+            <component :is="Component" :key="$route.path" />
           </transition>
         </router-view>
       </div>

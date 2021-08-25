@@ -1,83 +1,118 @@
 <template>
-  <div v-if="voice" class="flex-1 flex flex-col min-h-0 p-2">
-    <div ref="tileContainer" class="flex-1 relative">
-      <VoiceTile
-        v-for="tile in tiles"
-        :key="tile.id"
-        class="absolute"
-        :tile="tile"
+  <div class="flex-1 flex">
+    <div v-if="voice" class="flex-1 flex flex-col p-2">
+      <div ref="tileContainer" class="flex-1 relative">
+        <VoiceTile
+          v-for="tile in tiles"
+          :key="tile.id"
+          class="absolute"
+          :tile="tile"
+        />
+      </div>
+      <div class="flex items-center justify-center space-x-4 p-2">
+        <div @click="toggleStream('audio')">
+          <div
+            class="
+              w-12
+              h-12
+              p-3
+              rounded-full
+              cursor-pointer
+              transition
+              border-2
+            "
+            :class="{
+              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+                audioTrack,
+              'text-gray-400 border-gray-600 hover:text-gray-300': !audioTrack,
+            }"
+          >
+            <MicIcon v-if="audioTrack" />
+            <MicOffIcon v-else />
+          </div>
+        </div>
+        <div @click="toggleStream('video')">
+          <div
+            class="
+              w-12
+              h-12
+              p-3
+              rounded-full
+              cursor-pointer
+              transition
+              border-2
+            "
+            :class="{
+              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+                videoTrack,
+              'text-gray-400 border-gray-600 hover:text-gray-300': !videoTrack,
+            }"
+          >
+            <VideoIcon v-if="videoTrack" />
+            <VideoOffIcon v-else />
+          </div>
+        </div>
+        <div @click="stop">
+          <CallEndIcon
+            class="
+              w-12
+              h-12
+              p-3
+              text-white
+              bg-primary-500
+              hover:bg-primary-600
+              rounded-full
+              cursor-pointer
+              transition
+            "
+          />
+        </div>
+        <div @click="toggleStream('desktop')">
+          <DisplayIcon
+            class="
+              w-12
+              h-12
+              p-3
+              rounded-full
+              cursor-pointer
+              transition
+              border-2
+            "
+            :class="{
+              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+                desktopVideoTrack,
+              'text-gray-400 border-gray-600 hover:text-gray-300':
+                !desktopVideoTrack,
+            }"
+          />
+        </div>
+        <div @click="toggleDeaf">
+          <div
+            class="
+              w-12
+              h-12
+              p-3
+              rounded-full
+              cursor-pointer
+              transition
+              border-2
+            "
+            :class="{
+              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+                deaf,
+              'text-gray-400 border-gray-600 hover:text-gray-300': !deaf,
+            }"
+          >
+            <AudioOffIcon v-if="deaf" />
+            <AudioIcon v-else />
+          </div>
+        </div>
+      </div>
+      <DesktopCaptureModal
+        v-if="desktopCaptureModal"
+        @close="desktopCaptureModal = false"
       />
     </div>
-    <div class="flex items-center justify-center space-x-4 p-2">
-      <div @click="toggleStream('audio')">
-        <div
-          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-          :class="{
-            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-              audioTrack,
-            'text-gray-400 border-gray-600 hover:text-gray-300': !audioTrack,
-          }"
-        >
-          <MicIcon v-if="audioTrack" />
-          <MicOffIcon v-else />
-        </div>
-      </div>
-      <div @click="toggleStream('video')">
-        <div
-          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-          :class="{
-            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-              videoTrack,
-            'text-gray-400 border-gray-600 hover:text-gray-300': !videoTrack,
-          }"
-        >
-          <VideoIcon v-if="videoTrack" />
-          <VideoOffIcon v-else />
-        </div>
-      </div>
-      <div @click="stop">
-        <CallEndIcon
-          class="
-            w-12
-            h-12
-            p-3
-            text-white
-            bg-primary-500
-            hover:bg-primary-600
-            rounded-full
-            cursor-pointer
-            transition
-          "
-        />
-      </div>
-      <div @click="toggleStream('desktop')">
-        <DisplayIcon
-          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-          :class="{
-            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-              desktopVideoTrack,
-            'text-gray-400 border-gray-600 hover:text-gray-300':
-              !desktopVideoTrack,
-          }"
-        />
-      </div>
-      <div @click="toggleDeaf">
-        <div
-          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-          :class="{
-            'text-white bg-gray-600 hover:bg-gray-600 border-transparent': deaf,
-            'text-gray-400 border-gray-600 hover:text-gray-300': !deaf,
-          }"
-        >
-          <AudioOffIcon v-if="deaf" />
-          <AudioIcon v-else />
-        </div>
-      </div>
-    </div>
-    <DesktopCaptureModal
-      v-if="desktopCaptureModal"
-      @close="desktopCaptureModal = false"
-    />
   </div>
 </template>
 
