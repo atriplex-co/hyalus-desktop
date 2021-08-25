@@ -162,7 +162,6 @@ const toggleDeaf = async () => {
 };
 
 const stop = async () => {
-  lastChannelId = voice.value.channelId;
   await store.dispatch("voiceStop");
   await update();
 };

@@ -435,7 +435,7 @@ onMounted(async () => {
   await update();
 
   if (channel.value) {
-    await getChannelMessages()(1);
+    await getChannelMessages()(true);
   }
 
   if (messageBox.value) {

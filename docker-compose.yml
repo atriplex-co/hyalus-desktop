@@ -12,7 +12,5 @@ services:
       - db
     environment:
       - DB=mongodb://db
-    ports:
-      - 127.0.0.1:3000:3000
 volumes:
   db:
