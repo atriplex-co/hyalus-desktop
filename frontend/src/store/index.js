@@ -1995,7 +1995,7 @@ const store = new Vuex.Store({
 
             pendingIn = bufIn.slice(i);
 
-            if (results.reduce((a, b) => a + b) / results.length > 0.25) {
+            if (results.reduce((a, b) => a + b) / results.length > 0.5) {
               if (closeTimeout) {
                 clearTimeout(closeTimeout);
               }
