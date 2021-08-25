@@ -19,6 +19,6 @@ RUN apk add ffmpeg
 WORKDIR /app
 COPY --from=0 /app/server ./
 COPY --from=1 /app/dist ./dist
-ENV PORT=3000
+ENV PORT=80
 ENV GIN_MODE=release
 CMD ["./server"]
