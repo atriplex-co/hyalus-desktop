@@ -64,7 +64,9 @@ type Socket struct {
 	FileChunks     [][]byte
 	VoiceChannelID []byte
 	Open           bool
+	Authenticated  bool
 	Ready          bool
+	ReadyQueue     []events.O
 	Away           bool
 }
 
@@ -101,11 +103,25 @@ func (s *Socket) Write(t int, d []byte) {
 }
 
 func (s *Socket) WriteJSON(e events.O) {
+	if !s.Ready && e.Type != events.OReadyType {
+		s.ReadyQueue = append(s.ReadyQueue, e)
+		return
+	}
+
 	d, _ := json.Marshal(e)
 	s.Write(websocket.TextMessage, d)
 
 	if e.Type == events.OResetType {
 		s.Conn.Close()
+		return
+	}
+
+	if e.Type == events.OReadyType {
+		s.Ready = true
+
+		for _, e2 := range s.ReadyQueue {
+			s.WriteJSON(e2)
+		}
 	}
 }
 

@@ -85,6 +85,7 @@ func SocketUpgrade(c *gin.Context) {
 					socket.WriteJSON(events.O{
 						Type: events.OResetType,
 					})
+
 					break
 				}
 
@@ -101,8 +102,12 @@ func SocketUpgrade(c *gin.Context) {
 				}
 
 				socket.Session = cSession
-				socket.Ready = true
+				socket.Authenticated = true
 				socket.Away = event.Away
+
+				if len(voiceChannelId) != 0 {
+					socket.VoiceStart(voiceChannelId)
+				}
 
 				var cUser models.User
 
@@ -263,6 +268,14 @@ func SocketUpgrade(c *gin.Context) {
 					socket.FileChunks = append(socket.FileChunks, hash)
 				}
 
+				util.BroadcastToRelated(cUser.ID, events.O{
+					Type: events.OForeignUserSetStatusType,
+					Data: events.OForeignUserSetStatus{
+						ID:     util.EncodeBinary(cUser.ID),
+						Status: util.GetStatus(cUser),
+					},
+				})
+
 				socket.WriteJSON(events.O{
 					Type: events.OReadyType,
 					Data: events.OReady{
@@ -282,18 +295,6 @@ func SocketUpgrade(c *gin.Context) {
 						Friends:  formattedFriends,
 						Channels: formattedChannels,
 						Sessions: formattedSessions,
-					},
-				})
-
-				if len(voiceChannelId) != 0 {
-					socket.VoiceStart(voiceChannelId)
-				}
-
-				util.BroadcastToRelated(cUser.ID, events.O{
-					Type: events.OForeignUserSetStatusType,
-					Data: events.OForeignUserSetStatus{
-						ID:     util.EncodeBinary(cUser.ID),
-						Status: util.GetStatus(cUser),
 					},
 				})
 			}

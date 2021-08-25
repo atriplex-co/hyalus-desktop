@@ -194,14 +194,14 @@ const store = new Vuex.Store({
           peers: [],
           tracks: [],
           deaf: false,
-          time: new Date(),
+          start: new Date(),
         };
       } else {
         state.voice = null;
       }
     },
     resetVoiceTime(state) {
-      state.voice.time = new Date();
+      state.voice.start = new Date();
     },
     setReady(state, val) {
       state.ready = val;
@@ -850,6 +850,7 @@ const store = new Vuex.Store({
           };
 
           if (getters.voice) {
+            await dispatch("voiceRestart");
             payload.voiceChannelId = getters.voice.channelId;
           }
 
@@ -890,42 +891,37 @@ const store = new Vuex.Store({
             commit("setSessions", []);
             commit("setUser", msg.d.user);
 
-            msg.d.friends.map((friend) => {
+            for (const friend of msg.d.friends) {
               commit("handleFriendCreate", friend);
-            });
+            }
 
-            msg.d.channels.map((channel) => {
+            for (const channel of msg.d.channels) {
               commit("handleChannelCreate", channel);
 
-              channel.users.map((user) => {
+              for (const user of channel.users) {
                 commit("handleChannelUserCreate", {
                   channelId: channel.id,
                   ...user,
                 });
-              });
+              }
 
               commit("handleMessageCreate", {
                 channelId: channel.id,
                 ...channel.lastMessage,
               });
-            });
+            }
 
-            msg.d.sessions.map((session) => {
+            for (const session of msg.d.sessions) {
               commit("handleSessionCreate", session);
-            });
-
-            commit("setReady", true);
-
-            if (getters.voice) {
-              await dispatch("voiceRestart");
             }
 
             await dispatch("writeLocalConfig", [
               "colorTheme",
               msg.d.user.colorTheme,
             ]);
-
             await dispatch("updateFavicon");
+
+            commit("setReady", true);
           }
 
           if (msg.t === "setUsername") {
@@ -1414,7 +1410,10 @@ const store = new Vuex.Store({
     async groupRemove(_, { channelId, userId }) {
       await axios.delete(`/api/channels/${channelId}/users/${userId}`);
     },
-    async voiceStart({ getters, commit, dispatch }, { channelId, tracks }) {
+    async voiceStart(
+      { getters, commit, dispatch },
+      { channelId, tracks = [] }
+    ) {
       if (getters.voice && getters.voice.channelId !== channelId) {
         await dispatch("voiceStop");
       }
@@ -2386,10 +2385,6 @@ const store = new Vuex.Store({
       { getters, dispatch },
       { userId, sound = false }
     ) {
-      if (new Date() - getters.voice.resetTime < 1000 * 10) {
-        sound = false;
-      }
-
       await dispatch("handleVoiceUserLeave", {
         userId,
       });
@@ -2398,15 +2393,11 @@ const store = new Vuex.Store({
         userId,
       });
 
-      if (sound) {
+      if (sound && new Date() - getters.voice.start > 1000 * 10) {
         new Audio(sndStateUp).play();
       }
     },
     async handleVoiceUserLeave({ getters, commit }, { userId, sound = false }) {
-      if (new Date() - getters.voice.resetTime < 1000 * 10) {
-        sound = false;
-      }
-
       const peer = getters.voice.peers.find((p) => p.userId === userId);
 
       if (!peer) {
@@ -2419,7 +2410,7 @@ const store = new Vuex.Store({
         userId,
       });
 
-      if (sound) {
+      if (sound && new Date() - getters.voice.start > 1000 * 10) {
         new Audio(sndStateDown).play();
       }
     },

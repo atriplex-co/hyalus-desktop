@@ -19,7 +19,7 @@
       <UserAvatar
         v-if="!srcObject && tile.user.avatarId"
         :id="tile.user.avatarId"
-        class="h-full w-full"
+        class="h-full w-full rounded-2xl"
       />
     </div>
     <div
@@ -123,7 +123,7 @@ import UserAvatar from "./UserAvatar.vue";
 import FullscreenIcon from "../icons/Fullscreen.vue";
 import DisplayIcon from "../icons/Display.vue";
 import MicOffIcon from "../icons/MicOff.vue";
-import { ref, defineProps, onMounted, onBeforeUnmount } from "vue";
+import { ref, defineProps, onMounted, onBeforeUnmount, watch } from "vue";
 
 const props = defineProps({
   tile: {
@@ -171,6 +171,8 @@ const updateIsFullscreen = () => {
 };
 
 onMounted(updateSrcObject);
+watch(() => props.tile.track, updateSrcObject);
+
 onBeforeUnmount(() => {
   srcObject.value = null; // https://webrtchacks.com/srcobject-intervention
 });
