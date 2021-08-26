@@ -9,8 +9,6 @@ const promisify = (req) =>
   });
 
 const getStore = async () => {
-  await navigator.storage.persist();
-
   if (!db) {
     const req = indexedDB.open("default");
 
