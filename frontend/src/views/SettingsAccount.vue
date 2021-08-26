@@ -92,6 +92,10 @@
         <p class="font-bold">2FA</p>
         <Toggle v-model="totpEnabled" />
       </div>
+      <div class="flex items-center justify-between h-16 px-6">
+        <p class="font-bold">Typing Indicators</p>
+        <Toggle v-model="typingEvents" />
+      </div>
     </div>
     <SetNameModal v-if="setNameModal" @close="setNameModal = false" />
     <SetUsernameModal
@@ -145,12 +149,21 @@ const totpEnabled = computed({
   get() {
     return store.getters.user.totpEnabled;
   },
-  set() {
-    if (!store.getters.user.totpEnabled) {
+  set(val) {
+    if (val) {
       totpEnableModal.value = true;
     } else {
       totpDisableModal.value = true;
     }
+  },
+});
+
+const typingEvents = computed({
+  get() {
+    return store.getters.localConfig.typingEvents;
+  },
+  async set(val) {
+    await store.dispatch("writeLocalConfig", ["typingEvents", val]);
   },
 });
 

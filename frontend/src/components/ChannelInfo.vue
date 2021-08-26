@@ -11,6 +11,7 @@
       text-sm
       border-l border-gray-600
       space-y-4
+      z-20
     "
   >
     <div

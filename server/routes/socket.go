@@ -451,6 +451,33 @@ func SocketUpgrade(c *gin.Context) {
 					},
 				})
 			}
+
+			if msg.Type == events.ITypingType {
+				var event events.ITyping
+				json.Unmarshal(msg.Data, &event)
+
+				channelID := util.DecodeBinary(event.ChannelID)
+
+				if err := util.ChannelCollection.FindOne(util.Context, bson.M{
+					"_id": channelID,
+					"users": bson.M{
+						"$elemMatch": bson.M{
+							"id":     socket.Session.UserID,
+							"hidden": false,
+						},
+					},
+				}).Decode(&models.Channel{}); err != nil {
+					continue
+				}
+
+				util.BroadcastToChannelOther(channelID, socket.Session.UserID, events.O{
+					Type: events.OChannelUserTypingType,
+					Data: events.OChannelUserTyping{
+						ID:        util.EncodeBinary(socket.Session.UserID),
+						ChannelID: util.EncodeBinary(channelID),
+					},
+				})
+			}
 		}
 
 		socket.Close()

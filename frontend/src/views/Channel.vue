@@ -118,9 +118,9 @@
                 px-4
                 py-2
                 text-sm
-                bg-gray-800
+                bg-gray-700
                 rounded-md
-                border border-gray-750
+                border border-gray-600
                 flex
                 items-center
                 space-x-4
@@ -243,10 +243,13 @@ const groupNameModal = ref("");
 const showInfo = ref(false);
 const messageBox = ref(null);
 const messageList = ref(null);
+const typingStatus = ref("");
 let lastScrollAutomatic = true;
 let lastScrollTop = 0;
 let lastScrollBottom = true;
 let messageListObserver;
+let lastTyping = 0;
+let updateInterval;
 
 const channel = computed(() =>
   store.getters.channelById(route.params.channelId)
@@ -282,30 +285,6 @@ const writable = computed(() => {
   return true;
 });
 
-const typingStatus = computed(() => {
-  // const typingUsers = channel.value.users
-  //   .filter((u) => u.lastTyping > Date.now() - 1000 * 5)
-  //   .map((u) => u.name);
-
-  // if (typingUsers.length === 1) {
-  //   return `${typingUsers[0]} is typing...`;
-  // }
-
-  // if (typingUsers.length === 2) {
-  //   return `${typingUsers[0]}, and ${typingUsers[1]} are typing...`;
-  // }
-
-  // if (typingUsers.length === 3) {
-  //   return `${typingUsers[0]}, ${typingUsers[1]}, and ${typingUsers[2]} are typing...`;
-  // }
-
-  // if (typingUsers.length > 3) {
-  //   return "Many users are typing...";
-  // }
-
-  return "";
-});
-
 const getChannelMessages = (method) => async (e) => {
   if (e) {
     await store.dispatch("getChannelMessages", {
@@ -331,15 +310,18 @@ const sendMessage = async () => {
   }
 };
 
-const messageBoxInput = () => {
+const messageBoxInput = async () => {
   messageBox.value.focus();
   messageBox.value.style.height = "auto";
   messageBox.value.style.height = `${messageBox.value.scrollHeight}px`;
 
-  // if (store.getters.sendTyping && Date.now() - 1000 > this.lastTyping) {
-  //   store.dispatch("sendMessageTyping", this.channel.id);
-  //   lastTyping.value = Date.now();
-  // }
+  if (
+    store.getters.localConfig.typingEvents &&
+    Date.now() - 2000 > lastTyping
+  ) {
+    lastTyping = Date.now();
+    await store.dispatch("sendTypingEvent", channel.value.id);
+  }
 };
 
 const messageBoxKeydown = (e) => {
@@ -430,6 +412,30 @@ const update = async () => {
       lastScrollTop = messageList.value.scrollTop;
     }
   }
+
+  const typingUsers = channel.value.users
+    .filter((u) => u.lastTyping > Date.now() - 1000 * 3)
+    .map((u) => u.name);
+
+  if (!typingUsers.length) {
+    typingStatus.value = "";
+  }
+
+  if (typingUsers.length === 1) {
+    typingStatus.value = `${typingUsers[0]} is typing...`;
+  }
+
+  if (typingUsers.length === 2) {
+    typingStatus.value = `${typingUsers[0]}, and ${typingUsers[1]} are typing...`;
+  }
+
+  if (typingUsers.length === 3) {
+    typingStatus.value = `${typingUsers[0]}, ${typingUsers[1]}, and ${typingUsers[2]} are typing...`;
+  }
+
+  if (typingUsers.length > 3) {
+    typingStatus.value = "Many users are typing...";
+  }
 };
 
 const messageListScroll = ({ target }) => {
@@ -450,11 +456,15 @@ onMounted(async () => {
   if (messageBox.value) {
     messageBox.value.focus();
   }
+
+  updateInterval = setInterval(update, 100);
 });
 
 onUnmounted(() => {
   if (messageListObserver) {
     messageListObserver.disconnect();
   }
+
+  clearInterval(updateInterval);
 });
 </script>

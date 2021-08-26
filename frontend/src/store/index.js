@@ -324,6 +324,7 @@ const store = new Vuex.Store({
       channel.users.push({
         ...val,
         publicKey: sodium.from_base64(val.publicKey),
+        lastTyping: 0, //things need to be *REACTIVE!* so we set garbage here.
       });
     },
     handleMessageCreate(state, val) {
@@ -614,6 +615,14 @@ const store = new Vuex.Store({
     },
     handleSetWantStatus(state, { wantStatus }) {
       state.user.wantStatus = wantStatus;
+    },
+    handleChannelUserTyping(state, { channelId, id }) {
+      const channel = state.channels.find((c) => c.id === channelId);
+      if (!channel) return;
+      const user = channel.users.find((u) => u.id === id);
+      if (!user) return;
+
+      user.lastTyping = new Date();
     },
   },
   actions: {
@@ -1094,6 +1103,10 @@ const store = new Vuex.Store({
           if (msg.t === "voiceReset") {
             await dispatch("voiceStop");
           }
+
+          if (msg.t === "channelUserTyping") {
+            commit("handleChannelUserTyping", msg.d);
+          }
         };
 
         ws.onclose = async () => {
@@ -1356,7 +1369,7 @@ const store = new Vuex.Store({
         keys: userKeys,
       });
     },
-    async sendMessageTyping({ getters }, channelId) {
+    async sendTypingEvent({ getters }, channelId) {
       getters.ws.send({
         t: "typing",
         d: {

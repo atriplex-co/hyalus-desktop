@@ -28,6 +28,7 @@ const (
 	OChannelUserCreateType      = "channelUserCreate"
 	OChannelUserSetHiddenType   = "channelUserSetHidden"
 	OChannelUserSetInVoiceType  = "channelUserSetInVoice"
+	OChannelUserTypingType      = "channelUserTyping"
 	OMessageCreateType          = "messageCreate"
 	OMessageDeleteType          = "messageDelete"
 	OForeignUserSetUsernameType = "foreignUserSetUsername"
@@ -362,4 +363,13 @@ type OForeignUserSetStatus struct {
 
 type ISetAway struct {
 	Away bool `json:"away"`
+}
+
+type ITyping struct {
+	ChannelID string `json:"channelId"`
+}
+
+type OChannelUserTyping struct {
+	ID        string `json:"id"`
+	ChannelID string `json:"channelId"`
 }
