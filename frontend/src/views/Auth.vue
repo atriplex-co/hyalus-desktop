@@ -269,7 +269,7 @@
 <script setup>
 import ErrorIcon from "../icons/Error.vue";
 import AppIcon from "../icons/App.vue";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
@@ -328,4 +328,13 @@ const submit = async () => {
     }
   }
 };
+
+const updateTitle = () => {
+  document.title = `Hyalus \u2022 ${stage.value
+    .slice(0, 1)
+    .toUpperCase()}${stage.value.slice(1)}`;
+};
+
+onMounted(updateTitle);
+watch(() => stage.value, updateTitle);
 </script>
