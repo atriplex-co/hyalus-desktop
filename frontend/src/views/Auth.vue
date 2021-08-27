@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="flex-1 bg-gray-900 felx">
     <video
       src="../assets/video/ink.mp4"
-      class="w-screen h-screen object-cover"
+      class="flex-1 h-full object-cover"
       autoplay
       muted
       loop
@@ -55,6 +55,7 @@
         justify-center
         h-full
         backdrop-blur
+        bg-gray-400 bg-opacity-10
       "
     >
       <div

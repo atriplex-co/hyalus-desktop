@@ -1153,10 +1153,10 @@ const store = new Vuex.Store({
       el.type = "file";
       el.click();
     },
-    async setAuthKey({ getters, commit }, { oldPassword, password }) {
+    async setAuthKey({ getters, commit }, { password, newPassword }) {
       const oldSymKey = sodium.crypto_pwhash(
         32,
-        oldPassword,
+        password,
         getters.userKeys.salt,
         sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
         sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -1176,7 +1176,7 @@ const store = new Vuex.Store({
 
       const symKey = sodium.crypto_pwhash(
         32,
-        password,
+        newPassword,
         salt,
         sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
         sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -1206,10 +1206,10 @@ const store = new Vuex.Store({
       ]);
 
       await axios.post("/api/me/authKey", {
+        oldAuthKey: sodium.to_base64(oldAuthKey),
         salt: sodium.to_base64(salt),
         authKey: sodium.to_base64(authKey),
-        oldAuthKey: sodium.to_base64(oldAuthKey),
-        privateKey: sodium.to_base64(encryptedPrivateKey),
+        encryptedPrivateKey: sodium.to_base64(encryptedPrivateKey),
       });
 
       const userKeys = {

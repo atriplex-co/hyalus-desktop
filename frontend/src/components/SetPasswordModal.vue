@@ -44,21 +44,21 @@ const store = useStore();
 
 const emit = defineEmits(["close"]);
 
-const oldPassword = ref("");
 const password = ref("");
-const passwordConfirm = ref("");
+const newPassword = ref("");
+const newPasswordConfirm = ref("");
 const error = ref("");
 
 const submit = async () => {
-  if (password.value !== passwordConfirm.value) {
+  if (newPassword.value !== newPasswordConfirm.value) {
     error.value = "Passwords must match";
     return;
   }
 
   try {
     await store.dispatch("setAuthKey", {
-      oldPassword: oldPassword.value,
       password: password.value,
+      newPassword: newPassword.value,
     });
   } catch (e) {
     console.log(e);

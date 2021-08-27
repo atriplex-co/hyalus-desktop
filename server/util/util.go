@@ -103,7 +103,9 @@ func (s *Socket) Write(t int, d []byte) {
 }
 
 func (s *Socket) WriteJSON(e events.O) {
-	if !s.Ready && e.Type != events.OReadyType {
+	if !s.Ready &&
+		e.Type != events.OReadyType &&
+		e.Type != events.OResetType {
 		s.ReadyQueue = append(s.ReadyQueue, e)
 		return
 	}
