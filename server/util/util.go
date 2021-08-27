@@ -114,6 +114,12 @@ func (s *Socket) WriteJSON(e events.O) {
 	s.Write(websocket.TextMessage, d)
 
 	if e.Type == events.OResetType {
+		if s.VoiceChannelID != nil {
+			s.WriteJSON(events.O{
+				Type: events.OVoiceResetType,
+			})
+		}
+
 		s.Conn.Close()
 		return
 	}
