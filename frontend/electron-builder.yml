@@ -1,7 +1,8 @@
 appId: "app.hyalus"
-productName: "hyalus"
+productName: "Hyalus"
 extraMetadata:
   name: "Hyalus"
+  description: "Talk on an open platform"
 win:
   target: "nsis"
   artifactName: "HyalusDesktop-win32.exe"
@@ -10,9 +11,14 @@ mac:
   category: "public.app-category.social-networking"
   artifactName: "HyalusDesktop-osx.zip"
 linux:
-  target: "AppImage"
+  target:
+    - "AppImage"
+    - "snap"
   category: "Internet"
+appImage:
   artifactName: "HyalusDesktop-linux.AppImage"
+snap:
+  artifactName: "HyalusDesktop-linux.snap"
 files:
   - "electron"
 directories:
