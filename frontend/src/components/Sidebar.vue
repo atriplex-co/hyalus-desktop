@@ -39,6 +39,7 @@
             'text-primary-400': active === 'call',
           }"
           to="/call"
+          @click="active = 'call'"
         >
           <PhoneIcon class="w-6 h-6" />
         </router-link>
