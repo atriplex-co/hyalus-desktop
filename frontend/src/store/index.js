@@ -859,7 +859,6 @@ const store = new Vuex.Store({
           };
 
           if (getters.voice) {
-            await dispatch("voiceRestart");
             payload.voiceChannelId = getters.voice.channelId;
           }
 
@@ -1110,6 +1109,10 @@ const store = new Vuex.Store({
         };
 
         ws.onclose = async () => {
+          if (getters.voice) {
+            await dispatch("voiceRestart");
+          }
+
           if (!ws.noReconnect) {
             setTimeout(() => {
               dispatch("start");
