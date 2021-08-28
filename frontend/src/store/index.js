@@ -2122,23 +2122,6 @@ const store = new Vuex.Store({
                 },
               },
             });
-
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                mandatory: {
-                  chromeMediaSource: "desktop",
-                  chromeMediaSourceId: "screen:0:0",
-                  maxHeight: 720,
-                  maxFrameRate: 60,
-                },
-              },
-              audio: {
-                mandatory: {
-                  chromeMediaSource: "desktop",
-                  chromeMediaSourceId: "screen:0:0",
-                },
-              },
-            });
           } catch (e) {
             if (desktopOpts.audio) {
               console.warn("Failed to capture desktop audio");
