@@ -344,14 +344,30 @@ const setName = () => {
 };
 
 const voiceStart = async (e) => {
-  if (store.getters.voice?.channelId !== channel.value.id) {
+  let started = false;
+
+  if (
+    store.getters.voice &&
+    store.getters.voice.channelId !== channel.value.id
+  ) {
+    await store.dispatch("voiceStop");
+  }
+
+  if (!store.getters.voice) {
     await store.dispatch("voiceStart", {
       channelId: channel.value.id,
-      tracks: (!e.shiftKey && ["audio"]) || [],
     });
+
+    started = true;
   }
 
   await router.push(`/call`);
+
+  if (started && !e.shiftKey) {
+    await store.dispatch("startLocalTrack", {
+      type: "audio",
+    });
+  }
 };
 
 const uploadFile = (file) =>

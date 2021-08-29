@@ -197,7 +197,10 @@ const toggleDeaf = async () => {
 };
 
 const stop = async () => {
-  await store.dispatch("voiceStop");
+  await store.dispatch("voiceStop", {
+    sound: true,
+  });
+
   await update();
 };
 

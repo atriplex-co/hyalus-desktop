@@ -1100,7 +1100,9 @@ const store = new Vuex.Store({
           }
 
           if (msg.t === "voiceReset") {
-            await dispatch("voiceStop");
+            await dispatch("voiceStop", {
+              sound: true,
+            });
           }
 
           if (msg.t === "channelUserTyping") {
@@ -1426,10 +1428,7 @@ const store = new Vuex.Store({
     async groupRemove(_, { channelId, userId }) {
       await axios.delete(`/api/channels/${channelId}/users/${userId}`);
     },
-    async voiceStart(
-      { getters, commit, dispatch },
-      { channelId, tracks = [] }
-    ) {
+    async voiceStart({ getters, commit, dispatch }, { channelId }) {
       if (getters.voice && getters.voice.channelId !== channelId) {
         await dispatch("voiceStop");
       }
@@ -1443,15 +1442,9 @@ const store = new Vuex.Store({
 
       commit("setVoice", channelId);
 
-      for (const type of tracks) {
-        await dispatch("startLocalTrack", {
-          type,
-        });
-      }
-
       new Audio(sndStateUp).play();
     },
-    async voiceStop({ getters, commit }) {
+    async voiceStop({ getters, commit }, { sound = false } = {}) {
       if (!getters.voice) {
         return;
       }
@@ -1470,7 +1463,9 @@ const store = new Vuex.Store({
 
       commit("setVoice");
 
-      new Audio(sndStateDown).play();
+      if (sound) {
+        new Audio(sndStateDown).play();
+      }
     },
     async voiceRestart({ getters, commit, dispatch }) {
       commit("resetVoiceTime");
