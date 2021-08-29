@@ -10,7 +10,7 @@
     @fullscreenchange="updateIsFullscreen"
   >
     <div
-      class="w-full h-full overflow-hidden border border-gray-600"
+      class="w-full h-full overflow-hidden rounded-md border border-gray-600"
       :class="{
         'bg-gray-600': srcObject,
         'bg-primary-500': !srcObject && !tile.user.avatarId,
@@ -19,7 +19,7 @@
       <UserAvatar
         v-if="!srcObject && tile.user.avatarId"
         :id="tile.user.avatarId"
-        class="h-full w-full rounded-2xl"
+        class="h-full w-full"
       />
     </div>
     <div
