@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-2 w-full">
-    <p class="text-sm text-gray-300">{{ label }}</p>
+    <p>{{ label }}</p>
     <input
       class="
         w-full

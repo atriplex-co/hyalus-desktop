@@ -35,7 +35,12 @@
                 </p>
               </div>
               <form
-                class="space-y-4 flex flex-col items-start"
+                class="
+                  space-y-4
+                  flex flex-col
+                  items-start
+                  text-sm text-gray-300
+                "
                 @submit.prevent="$emit('submit')"
               >
                 <slot name="main" />

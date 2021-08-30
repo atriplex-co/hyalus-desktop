@@ -136,6 +136,7 @@ const notify = async (opts) => {
 
 let away = false;
 let awayTimeout;
+let lastIndexContent;
 
 const store = new Vuex.Store({
   state: {
@@ -153,6 +154,7 @@ const store = new Vuex.Store({
     invite: null,
     sidebarHidden: false,
     updateRequired: false,
+    updateAvailable: false,
     userInvite: "",
   },
   getters: {
@@ -171,6 +173,7 @@ const store = new Vuex.Store({
     lastEvent: (state) => state.lastEvent,
     updateRequired: (state) => state.updateRequired,
     userInvite: (state) => state.userInvite,
+    updateAvailable: (state) => state.updateAvailable,
   },
   mutations: {
     setUser(state, val) {
@@ -621,6 +624,9 @@ const store = new Vuex.Store({
 
       user.lastTyping = new Date();
     },
+    setUpdateAvailable(state) {
+      state.updateAvailable = true;
+    },
   },
   actions: {
     async register({ dispatch }, data) {
@@ -792,6 +798,16 @@ const store = new Vuex.Store({
         addEventListener("click", resetAwayTimeout);
         addEventListener("scroll", resetAwayTimeout);
         addEventListener("keypress", resetAwayTimeout);
+      }
+
+      const indexContent = await (await fetch("/")).text();
+
+      if (!lastIndexContent) {
+        lastIndexContent = indexContent;
+      }
+
+      if (lastIndexContent !== indexContent) {
+        commit("setUpdateAvailable");
       }
 
       //localConfig setup

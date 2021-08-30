@@ -100,6 +100,23 @@
         >
           <FriendsIcon class="w-6 h-6" />
         </div>
+        <div
+          v-if="updateAvailable"
+          class="
+            h-16
+            flex
+            items-center
+            justify-center
+            text-gray-400
+            hover:bg-gray-800
+            cursor-pointer
+            transition
+            hover:text-primary-400
+          "
+          @click="updateReloadModal = true"
+        >
+          <RefreshIcon class="w-6 h-6" />
+        </div>
       </div>
       <div
         class="
@@ -127,6 +144,10 @@
     />
     <SidebarSettings v-if="active === 'settings'" />
     <SidebarFriendList v-if="active === 'friends'" />
+    <UpdateReloadModal
+      v-if="updateReloadModal"
+      @close="updateReloadModal = false"
+    />
   </div>
 </template>
 
@@ -137,10 +158,12 @@ import GroupIcon from "../icons/Group.vue";
 import FriendsIcon from "../icons/Friends.vue";
 import SettingsIcon from "../icons/Settings.vue";
 import PhoneIcon from "../icons/Phone.vue";
+import RefreshIcon from "../icons/Refresh.vue";
 import SidebarChannelList from "./SidebarChannelList.vue";
 import SidebarSettings from "./SidebarSettings.vue";
 import SidebarFriendList from "./SidebarFriendList.vue";
 import SidebarStatusPicker from "./SidebarStatusPicker.vue";
+import UpdateReloadModal from "./UpdateReloadModal.vue";
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
@@ -149,8 +172,10 @@ const store = useStore();
 const route = useRoute();
 const active = ref("private");
 const menu = ref("");
+const updateReloadModal = ref(false);
 const user = computed(() => store.getters.user);
 const voice = computed(() => store.getters.voice);
+const updateAvailable = computed(() => store.getters.updateAvailable);
 
 const updateRoute = () => {
   if (route.name === "channel") {
