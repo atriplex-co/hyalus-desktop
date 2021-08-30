@@ -317,10 +317,7 @@ const messageBoxInput = async () => {
   messageBox.value.style.height = "auto";
   messageBox.value.style.height = `${messageBox.value.scrollHeight}px`;
 
-  if (
-    store.getters.localConfig.typingEvents &&
-    Date.now() - 2000 > lastTyping
-  ) {
+  if (store.getters.user.typingEvents && Date.now() - 2000 > lastTyping) {
     lastTyping = Date.now();
     await store.dispatch("sendTypingEvent", channel.value.id);
   }
