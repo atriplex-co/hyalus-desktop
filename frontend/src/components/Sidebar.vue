@@ -164,13 +164,13 @@ import SidebarSettings from "./SidebarSettings.vue";
 import SidebarFriendList from "./SidebarFriendList.vue";
 import SidebarStatusPicker from "./SidebarStatusPicker.vue";
 import UpdateReloadModal from "./UpdateReloadModal.vue";
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 
 const store = useStore();
 const route = useRoute();
-const active = ref("private");
+const active = ref("");
 const menu = ref("");
 const updateReloadModal = ref(false);
 const user = computed(() => store.getters.user);
@@ -195,5 +195,6 @@ const updateRoute = () => {
   active.value = route.name;
 };
 
+onMounted(updateRoute);
 watch(route, updateRoute);
 </script>
