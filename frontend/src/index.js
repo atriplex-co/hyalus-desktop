@@ -4,7 +4,10 @@ import store from "./store";
 import router from "./router";
 import { ObserveVisibility } from "vue-observe-visibility";
 
-window.store = store;
+if (location.hostname === "localhost") {
+  window.store = store;
+  window.router = router;
+}
 
 (async () => {
   if (navigator.serviceWorker && !window.HyalusDesktop) {
