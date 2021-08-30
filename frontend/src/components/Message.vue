@@ -2,7 +2,7 @@
   <div
     v-observe-visibility="getPreview"
     :class="{
-      'pt-2': firstInChunk && !showDate,
+      'pt-2': firstInChunk && !showDate && !embedded,
     }"
   >
     <p
@@ -71,32 +71,32 @@
     </div>
     <div
       v-if="!message.eventText"
-      class="mx-2 flex items-center space-x-4 group"
+      class="group text-white flex items-end space-x-2"
+      :class="{
+        'mx-2': !embedded,
+      }"
     >
-      <div class="flex items-end space-x-2">
-        <UserAvatar
-          v-if="lastInChunk"
-          :id="user.avatarId"
-          class="w-8 h-8 rounded-full"
-        />
-        <div v-else class="p-4"></div>
-        <div class="space-y-1 flex flex-col items-start">
-          <p
-            v-if="firstInChunk && channel.type === 'group'"
-            class="text-xs text-gray-400 mt-1"
-          >
-            {{ user.name }}
-          </p>
+      <UserAvatar
+        v-if="lastInChunk || embedded"
+        :id="user.avatarId"
+        class="w-8 h-8 rounded-full flex-shrink-0"
+      />
+      <div v-else class="p-4"></div>
+      <div class="flex-1 space-y-1 flex flex-col items-start max-w-full">
+        <p
+          v-if="firstInChunk && channel.type === 'group'"
+          class="text-xs text-gray-400 mt-1"
+        >
+          {{ user.name }}
+        </p>
+        <div class="flex items-center space-x-4 flex-1 max-w-full">
           <div
             class="
+              flex-1
               rounded-md
               text-sm
               flex flex-col
               break-words
-              max-w-xs
-              md:max-w-sm
-              lg:max-w-lg
-              xl:max-w-2xl
               overflow-hidden
             "
             :class="{
@@ -166,36 +166,40 @@
               </div>
             </div>
           </div>
+          <div
+            class="
+              flex-shrink-0 flex
+              items-center
+              text-gray-400
+              space-x-3
+              transition
+            "
+            :class="{
+              'opacity-0 group-hover:opacity-100 pr-12': !embedded,
+              'pr-2': embedded,
+            }"
+          >
+            <div v-if="!embedded" class="flex items-center space-x-3">
+              <div
+                v-if="sentByMe"
+                class="w-4 h-4 hover:text-gray-200 cursor-pointer"
+                @click="del"
+              >
+                <TrashIcon />
+              </div>
+              <a
+                v-if="previewUrl"
+                class="w-4 h-4 hover:text-gray-200 cursor-pointer"
+                :href="previewUrl"
+                :download="message.file.name"
+                @click="fileDownload('local')"
+              >
+                <DownloadIcon />
+              </a>
+            </div>
+            <p class="text-xs">{{ time }}</p>
+          </div>
         </div>
-      </div>
-      <div
-        class="
-          flex
-          items-center
-          text-gray-400
-          space-x-3
-          opacity-0
-          group-hover:opacity-100
-          transition
-        "
-      >
-        <div
-          v-if="sentByMe"
-          class="w-4 h-4 hover:text-gray-200 cursor-pointer"
-          @click="del"
-        >
-          <TrashIcon />
-        </div>
-        <a
-          v-if="previewUrl"
-          class="w-4 h-4 hover:text-gray-200 cursor-pointer"
-          :href="previewUrl"
-          :download="message.file.name"
-          @click="fileDownload('local')"
-        >
-          <DownloadIcon />
-        </a>
-        <p class="text-xs">{{ time }}</p>
       </div>
     </div>
     <ImageView
@@ -203,12 +207,18 @@
       :src="previewUrl"
       @close="imageView = false"
     />
+    <MessageDeleteModal
+      v-if="deleteModal"
+      :message="message"
+      @close="deleteModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import UserAvatar from "./UserAvatar.vue";
 import ImageView from "./ImageView.vue";
+import MessageDeleteModal from "./MessageDeleteModal.vue";
 import TrashIcon from "../icons/Trash.vue";
 import FriendsIcon from "../icons/Friends.vue";
 import GroupIcon from "../icons/Group.vue";
@@ -224,17 +234,25 @@ import { ref, computed, defineProps, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 
 const chunkThreshold = 1000 * 60 * 5;
+
 const store = useStore();
+
 const props = defineProps({
   message: {
     type: Object,
     default: null,
   },
+  embedded: {
+    type: String,
+    default: "",
+  },
 });
 const date = ref("");
 const previewUrl = ref("");
 const imageView = ref(false);
+const deleteModal = ref(false);
 const downloadStage = ref("");
+
 let updateDateInterval;
 
 const channel = computed(() =>
@@ -251,7 +269,7 @@ const user = computed(() => {
   return channel.value.users.find((u) => u.id === props.message.userId);
 });
 
-const time = computed(() => moment(props.message.created).format("LT • l"));
+const time = computed(() => moment(props.message.created).format("LT"));
 
 const precedingMessage = computed(
   () =>
@@ -290,13 +308,6 @@ const showDate = computed(
       props.message.created.toDateString()
 );
 
-const del = async () => {
-  await store.dispatch("deleteMessage", {
-    channelId: channel.value.id,
-    messageId: props.message.id,
-  });
-};
-
 const fileDownload = async (target) => {
   if (downloadStage.value) {
     return;
@@ -330,6 +341,17 @@ const delPreview = () => {
 
 const updateDate = () => {
   date.value = moment(props.message.created).calendar();
+};
+
+const del = async (e) => {
+  if (e.shiftKey) {
+    await store.dispatch("deleteMessage", {
+      messageId: props.message.id,
+      channelId: props.message.channelId,
+    });
+  } else {
+    deleteModal.value = true;
+  }
 };
 
 updateDate();

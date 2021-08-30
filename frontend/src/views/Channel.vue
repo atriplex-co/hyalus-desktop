@@ -1,224 +1,216 @@
 <template>
-  <div class="flex-1 flex">
-    <div
-      v-if="channel"
-      class="flex flex-col flex-1 min-h-0 overflow-auto"
-      @paste="processFiles($event.clipboardData)"
-      @drop.prevent="processFiles($event.dataTransfer)"
-      @dragover.prevent
-      @dragstart.prevent
-      @dragsend.prevent
-    >
-      <div class="shadow-xl z-10">
-        <div class="flex justify-between h-16 border-b border-gray-700 mt-px">
-          <div class="flex items-center">
-            <div
-              class="w-16 h-16 flex items-center justify-center"
-              :class="{ 'cursor-pointer': channel.owner }"
-              @click="setAvatar"
-            >
-              <EmptyAvatar
-                v-if="!channel.avatarId && channel.type === 'group'"
-                :name="channel.name"
-                class="w-10 h-10"
-              />
-              <UserAvatar
-                v-else
-                :id="channel.avatarId"
-                :status="
-                  channel.type === 'private' ? channel.users[0].status : ''
-                "
-                class="w-10 h-10 rounded-full"
-              />
-            </div>
-            <div>
-              <p
-                class="font-bold text-lg truncate"
-                :class="{ 'cursor-pointer': channel.owner }"
-                @click="setName"
-              >
-                {{ channel.name }}
-              </p>
-              <p class="text-gray-400 text-sm -mt-1">{{ description }}</p>
-            </div>
+  <div
+    v-if="channel"
+    class="flex-1 flex flex-col w-full h-full overflow-auto"
+    @paste="processFiles($event.clipboardData)"
+    @drop.prevent="processFiles($event.dataTransfer)"
+    @dragover.prevent
+    @dragstart.prevent
+    @dragsend.prevent
+  >
+    <div class="shadow-xl z-10">
+      <div class="flex justify-between h-16 border-b border-gray-700 mt-px">
+        <div class="flex items-center">
+          <div
+            class="w-16 h-16 flex items-center justify-center"
+            :class="{ 'cursor-pointer': channel.owner }"
+            @click="setAvatar"
+          >
+            <EmptyAvatar
+              v-if="!channel.avatarId && channel.type === 'group'"
+              :name="channel.name"
+              class="w-10 h-10"
+            />
+            <UserAvatar
+              v-else
+              :id="channel.avatarId"
+              :status="
+                channel.type === 'private' ? channel.users[0].status : ''
+              "
+              class="w-10 h-10 rounded-full"
+            />
           </div>
-          <div class="flex items-center space-x-2 text-gray-300 px-2">
-            <div v-if="voiceUsers.length" class="flex mr-2 -space-x-2">
-              <UserAvatar
-                v-for="user in voiceUsersShown"
-                :id="user.avatarId"
-                :key="user.id"
-                class="border border-gray-900 rounded-full w-7 h-7"
-              />
-              <div
-                v-if="voiceUsers.length !== voiceUsersShown.length"
-                class="
-                  flex
-                  items-center
-                  justify-center
-                  text-xs
-                  font-bold
-                  text-white
-                  border border-gray-900
-                  rounded-full
-                  bg-primary-500
-                  w-7
-                  h-7
-                "
-              >
-                <p>+{{ voiceUsers.length - voiceUsersShown.length }}</p>
-              </div>
-            </div>
-            <div
-              class="
-                w-8
-                h-8
-                p-2
-                transition
-                bg-gray-600
-                rounded-full
-                cursor-pointer
-                hover:bg-gray-500
-              "
-              @click="voiceStart"
+          <div>
+            <p
+              class="font-bold text-lg truncate"
+              :class="{ 'cursor-pointer': channel.owner }"
+              @click="setName"
             >
-              <PhoneIcon />
-            </div>
-            <div
-              class="
-                w-8
-                h-8
-                p-2
-                transition
-                bg-gray-600
-                rounded-full
-                cursor-pointer
-                hover:bg-gray-500
-              "
-              @click="showInfo = !showInfo"
-            >
-              <DotsIcon />
-            </div>
+              {{ channel.name }}
+            </p>
+            <p class="text-gray-400 text-sm -mt-1">{{ description }}</p>
           </div>
         </div>
-        <p
-          v-if="!writable"
-          class="px-4 py-2 text-sm bg-gray-900 border-b border-gray-700"
-        >
-          You can't send messages in this channel.
-        </p>
-      </div>
-      <div class="flex flex-1 min-h-0 relative">
-        <div v-if="typingStatus" class="absolute p-2 z-10 w-full">
-          <div
-            :class="{
-              'pr-80': showInfo,
-            }"
-          >
+        <div class="flex items-center space-x-2 text-gray-300 px-2">
+          <div v-if="voiceUsers.length" class="flex mr-2 -space-x-2">
+            <UserAvatar
+              v-for="user in voiceUsersShown"
+              :id="user.avatarId"
+              :key="user.id"
+              class="border border-gray-900 rounded-full w-7 h-7"
+            />
             <div
+              v-if="voiceUsers.length !== voiceUsersShown.length"
               class="
-                px-4
-                py-2
-                text-sm
-                bg-gray-700
-                rounded-md
-                border border-gray-600
                 flex
                 items-center
-                space-x-4
-                shadow-lg
-                w-full
+                justify-center
+                text-xs
+                font-bold
+                text-white
+                border border-gray-900
+                rounded-full
+                bg-primary-500
+                w-7
+                h-7
               "
             >
-              <PencilIcon class="w-4 h-4 text-gray-400" />
-              <p>{{ typingStatus }}</p>
+              <p>+{{ voiceUsers.length - voiceUsersShown.length }}</p>
             </div>
           </div>
+          <div
+            class="
+              w-8
+              h-8
+              p-2
+              transition
+              bg-gray-600
+              rounded-full
+              cursor-pointer
+              hover:bg-gray-500
+            "
+            @click="voiceStart"
+          >
+            <PhoneIcon />
+          </div>
+          <div
+            class="
+              w-8
+              h-8
+              p-2
+              transition
+              bg-gray-600
+              rounded-full
+              cursor-pointer
+              hover:bg-gray-500
+            "
+            @click="showInfo = !showInfo"
+          >
+            <DotsIcon />
+          </div>
         </div>
+      </div>
+      <p
+        v-if="!writable"
+        class="px-4 py-2 text-sm bg-gray-900 border-b border-gray-700"
+      >
+        You can't send messages in this channel.
+      </p>
+    </div>
+    <div class="flex flex-1 w-full min-h-0 relative">
+      <div v-if="typingStatus" class="absolute p-2 z-10 w-full">
         <div
-          ref="messageList"
-          class="flex flex-col flex-1 space-y-1 overflow-auto"
-          @scroll="messageListScroll"
+          :class="{
+            'pr-80': showInfo,
+          }"
         >
           <div
-            v-observe-visibility="getChannelMessages('before')"
-            class="pt-2"
-          />
-          <Message
-            v-for="message in channel.messages"
-            :key="message.id"
-            :message="message"
-          />
-          <div
-            v-observe-visibility="getChannelMessages('after')"
-            class="pb-2"
-          />
+            class="
+              px-4
+              py-2
+              text-sm
+              bg-gray-700
+              rounded-md
+              border border-gray-600
+              flex
+              items-center
+              space-x-4
+              shadow-lg
+              w-full
+            "
+          >
+            <PencilIcon class="w-4 h-4 text-gray-400" />
+            <p>{{ typingStatus }}</p>
+          </div>
         </div>
-        <ChannelInfo
-          v-if="showInfo"
-          class="absolute top-0 right-0"
-          :channel="channel"
-          @close="showInfo = false"
-        />
       </div>
       <div
-        v-if="writable"
-        class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
+        ref="messageList"
+        class="flex flex-col flex-1 space-y-1 overflow-auto overflow-x-hidden"
+        @scroll="messageListScroll"
       >
-        <textarea
-          ref="messageBox"
-          v-model="messageBoxText"
-          rows="1"
-          placeholder="Send a message"
-          class="
-            flex-1
-            bg-transparent
-            border-transparent
-            outline-none
-            resize-none
-            max-h-32
-            focus:border-transparent
-          "
-          @input="messageBoxInput"
-          @keydown="messageBoxKeydown"
+        <div v-observe-visibility="getChannelMessages('before')" class="pt-2" />
+        <Message
+          v-for="message in channel.messages"
+          :key="message.id"
+          :message="message"
         />
-        <div class="flex space-x-2 text-gray-300">
-          <div @click="attachFile">
-            <PaperclipIcon
-              class="
-                w-8
-                h-8
-                p-2
-                transition
-                bg-gray-600
-                rounded-full
-                cursor-pointer
-                hover:bg-gray-500
-              "
-            />
-          </div>
-          <div @click="sendMessage">
-            <AirplaneIcon
-              class="
-                w-8
-                h-8
-                p-2
-                transition
-                bg-gray-600
-                rounded-full
-                cursor-pointer
-                hover:bg-gray-500
-              "
-            />
-          </div>
-        </div>
+        <div v-observe-visibility="getChannelMessages('after')" class="pb-2" />
       </div>
-      <GroupNameModal
-        v-if="groupNameModal"
+      <ChannelInfo
+        v-if="showInfo"
+        class="absolute top-0 right-0"
         :channel="channel"
-        @close="groupNameModal = false"
+        @close="showInfo = false"
       />
     </div>
+    <div
+      v-if="writable"
+      class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
+    >
+      <textarea
+        ref="messageBox"
+        v-model="messageBoxText"
+        rows="1"
+        placeholder="Send a message"
+        class="
+          flex-1
+          bg-transparent
+          border-transparent
+          outline-none
+          resize-none
+          max-h-32
+          focus:border-transparent
+        "
+        @input="messageBoxInput"
+        @keydown="messageBoxKeydown"
+      />
+      <div class="flex space-x-2 text-gray-300">
+        <div @click="attachFile">
+          <PaperclipIcon
+            class="
+              w-8
+              h-8
+              p-2
+              transition
+              bg-gray-600
+              rounded-full
+              cursor-pointer
+              hover:bg-gray-500
+            "
+          />
+        </div>
+        <div @click="sendMessage">
+          <AirplaneIcon
+            class="
+              w-8
+              h-8
+              p-2
+              transition
+              bg-gray-600
+              rounded-full
+              cursor-pointer
+              hover:bg-gray-500
+            "
+          />
+        </div>
+      </div>
+    </div>
+    <GroupNameModal
+      v-if="groupNameModal"
+      :channel="channel"
+      @close="groupNameModal = false"
+    />
   </div>
 </template>
 

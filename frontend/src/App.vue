@@ -48,7 +48,11 @@
             leave-to-class="opacity-0"
             mode="out-in"
           >
-            <component :is="Component" :key="$route.path" />
+            <component
+              :is="Component"
+              :key="$route.path"
+              class="flex-1 w-full h-full"
+            />
           </transition>
         </router-view>
       </div>

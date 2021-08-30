@@ -160,16 +160,18 @@
           cursor-pointer
           text-gray-300
         "
-        @click="logout"
+        @click="logoutModal = true"
       >
         <LogoutIcon class="w-5 h-5" />
         <p>Log Out</p>
       </div>
     </div>
+    <LogoutModal v-if="logoutModal" @close="logoutModal = false" />
   </div>
 </template>
 
 <script setup>
+import LogoutModal from "./LogoutModal.vue";
 import UserIcon from "../icons/User.vue";
 import BellIcon from "../icons/Bell.vue";
 import VideoIcon from "../icons/Video.vue";
@@ -179,17 +181,12 @@ import KeyboardIcon from "../icons/Keyboard.vue";
 import EyeIcon from "../icons/Eye.vue";
 import DesktopIcon from "../icons/Desktop.vue";
 import { ref } from "vue";
-import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 
-const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const active = ref("account");
-
-const logout = async () => {
-  await store.dispatch("logout");
-};
+const logoutModal = ref(false);
 
 if (route.name.startsWith("settings")) {
   active.value = route.name.replace("settings", "").toLowerCase();
