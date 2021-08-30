@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -62,18 +61,12 @@ func main() {
 	util.Server.Use(gin.Recovery())
 
 	util.Server.NoRoute(func(c *gin.Context) {
-		parts := strings.Split(c.Request.URL.Path, "/")
-		part := parts[len(parts)-1]
-		wd, _ := os.Getwd()
-		path := filepath.Join(wd, "dist/index.html")
+		path := c.Request.URL.Path
 
-		if s, err := os.Stat(filepath.Join(wd, "dist", part)); err == nil && !s.IsDir() {
-			path = filepath.Join(wd, "dist", part)
-		}
-
-		if s, err := os.Stat(filepath.Join(wd, "dist/assets", part)); err == nil && !s.IsDir() {
-			path = filepath.Join(wd, "dist/assets", part)
+		if strings.HasPrefix(path, "/assets") {
 			c.Header("cache-control", "public, max-age=31536000")
+		} else {
+			c.Header("cache-control", "no-store")
 		}
 
 		c.File(path)
