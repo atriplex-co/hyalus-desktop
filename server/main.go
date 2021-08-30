@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -61,6 +62,7 @@ func main() {
 	util.Server.Use(gin.Recovery())
 
 	util.Server.NoRoute(func(c *gin.Context) {
+		wd, _ := os.Getwd()
 		path := c.Request.URL.Path
 
 		if strings.HasPrefix(path, "/assets") {
@@ -69,7 +71,7 @@ func main() {
 			c.Header("cache-control", "no-store")
 		}
 
-		c.File(path)
+		c.File(filepath.Join(wd, "dist", path))
 	})
 
 	util.Server.GET("/api/ws", routes.SocketUpgrade)
