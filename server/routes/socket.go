@@ -366,8 +366,9 @@ func SocketUpgrade(c *gin.Context) {
 					hasSockets[0].WriteJSON(events.O{
 						Type: events.OFileChunkRequestType,
 						Data: events.OFileChunkRequest{
-							Hash:     event.Hash,
-							SocketID: util.EncodeBinary(socket.ID),
+							Hash:      event.Hash,
+							SocketID:  util.EncodeBinary(socket.ID),
+							RequestID: event.RequestID,
 						},
 					})
 				}
@@ -377,28 +378,22 @@ func SocketUpgrade(c *gin.Context) {
 				var event events.IFileChunkRTC
 				json.Unmarshal(msg.Data, &event)
 
-				socketID := util.DecodeBinary(event.SocketID)
-				target := -1
+				socketId := util.DecodeBinary(event.SocketID)
 
-				for i, s := range util.Sockets {
-					if bytes.Equal(s.ID, socketID) {
-						target = i
+				for _, s := range util.Sockets {
+					if bytes.Equal(s.ID, socketId) {
+						s.WriteJSON(events.O{
+							Type: events.OFileChunkRTCType,
+							Data: events.OFileChunkRTC{
+								SocketID:  util.EncodeBinary(socket.ID),
+								RequestID: event.RequestID,
+								Payload:   event.Payload,
+							},
+						})
+
+						break
 					}
 				}
-
-				if target == -1 {
-					continue
-				}
-
-				util.Sockets[target].WriteJSON(events.O{
-					Type: events.OFileChunkRTCType,
-					Data: events.OFileChunkRTC{
-						SocketID:    util.EncodeBinary(socket.ID),
-						Hash:        event.Hash,
-						Payload:     event.Payload,
-						PayloadType: event.PayloadType,
-					},
-				})
 			}
 
 			if msg.Type == events.IVoiceStartType {

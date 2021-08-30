@@ -542,9 +542,6 @@ const store = new Vuex.Store({
     setLastEvent(state, val) {
       state.lastEvent = val;
     },
-    addWsFilterCallback(state, val) {
-      state.ws.filterCallbacks.push(val);
-    },
     setVoicePeer(state, { peer }) {
       state.voice.peers.push(peer);
     },
@@ -833,7 +830,7 @@ const store = new Vuex.Store({
           `${location.origin.replace("http", "ws")}/api/ws`
         );
 
-        ws.filterCallbacks = [];
+        ws.callbacks = [];
 
         ws._send = ws.send;
         ws.send = (data) => {
@@ -872,11 +869,9 @@ const store = new Vuex.Store({
           const msg = JSON.parse(data);
           console.debug("socket/rx: %o", msg);
 
-          for (const opts of ws.filterCallbacks) {
+          for (const opts of ws.callbacks) {
             if (opts.filter(msg)) {
               opts.resolve(msg);
-              ws.filterCallbacks = ws.filterCallbacks.filter((i) => i !== opts);
-
               return;
             }
           }
@@ -1477,10 +1472,11 @@ const store = new Vuex.Store({
       }
     },
     async updateFavicon({ getters }) {
-      const { default: icon } = await import(
-        `../assets/images/icon-standalone-${getters.localConfig.colorTheme}.png`
-      );
-      document.querySelector("link[rel='icon']").href = icon;
+      document.querySelector("link[rel='icon']").href = (
+        await import(
+          `../assets/images/icon-standalone-${getters.localConfig.colorTheme}.png`
+        )
+      ).default;
     },
     async groupLeave(_, channelId) {
       await axios.delete(`/api/channels/${channelId}`);
@@ -1684,38 +1680,69 @@ const store = new Vuex.Store({
       let attempts = 0;
 
       while (!chunk && attempts++ < 3) {
+        const peer = new RTCPeerConnection({ iceServers });
+        const parts = [];
+        const requestId = sodium.to_base64(sodium.randombytes_buf(16));
+        let socketId;
+
+        dispatch("addWsCallback", {
+          filter: (msg) =>
+            msg.t === "fileChunkRtc" && msg.d.requestId === requestId,
+          timeout: 1000 * 15,
+          async resolve(msg) {
+            if (!msg) {
+              return;
+            }
+
+            if (!socketId) {
+              socketId = msg.d.socketId;
+            }
+
+            const payload = JSON.parse(msg.d.payload);
+
+            if (payload.offer) {
+              await peer.setRemoteDescription({
+                type: "offer",
+                sdp: payload.offer,
+              });
+
+              await peer.setLocalDescription(await peer.createAnswer());
+
+              getters.ws.send({
+                t: "fileChunkRtc",
+                d: {
+                  socketId,
+                  requestId,
+                  payload: JSON.stringify({
+                    answer: peer.localDescription.sdp,
+                  }),
+                },
+              });
+            }
+
+            if (payload.candidate) {
+              await peer.addIceCandidate(payload.candidate);
+            }
+          },
+        });
+
         getters.ws.send({
           t: "fileChunkGet",
           d: {
             hash,
+            requestId,
           },
         });
 
-        const offer = await dispatch("getWsMessage", {
-          timeout: 1000 * 15,
-          filter: (msg) =>
-            msg.t === "fileChunkRtc" &&
-            msg.d.hash === hash &&
-            msg.d.payloadType === "offer",
-        });
-
-        if (!offer) {
-          break;
-        }
-
         await new Promise((resolve) => {
-          let peer = new RTCPeerConnection({ iceServers });
-          let parts = [];
-
           peer.addEventListener("icecandidate", ({ candidate }) => {
             if (candidate) {
               getters.ws.send({
                 t: "fileChunkRtc",
                 d: {
-                  hash,
-                  socketId: offer.d.socketId,
-                  payload: JSON.stringify(candidate),
-                  payloadType: "ice",
+                  socketId,
+                  requestId,
+                  payload: JSON.stringify({ candidate }),
                 },
               });
             }
@@ -1748,46 +1775,6 @@ const store = new Vuex.Store({
               resolve();
             }
           });
-
-          (async () => {
-            await peer.setRemoteDescription({
-              type: "offer",
-              sdp: offer.d.payload,
-            });
-
-            await peer.setLocalDescription(await peer.createAnswer());
-
-            getters.ws.send({
-              t: "fileChunkRtc",
-              d: {
-                hash,
-                socketId: offer.d.socketId,
-                payload: peer.localDescription.sdp,
-                payloadType: "answer",
-              },
-            });
-
-            for (;;) {
-              const ice = await dispatch("getWsMessage", {
-                timeout: 1000 * 15,
-                filter: (msg) =>
-                  msg.t === "fileChunkRtc" &&
-                  msg.d.hash === hash &&
-                  msg.d.socketId === offer.d.socketId &&
-                  msg.d.payloadType === "ice",
-              });
-
-              if (ice) {
-                try {
-                  await peer.addIceCandidate(JSON.parse(ice.d.payload));
-                } catch {
-                  //
-                }
-              } else {
-                break;
-              }
-            }
-          })();
         });
 
         if (chunk) {
@@ -1808,19 +1795,20 @@ const store = new Vuex.Store({
 
       return chunk;
     },
-    getWsMessage({ commit }, opts) {
-      return new Promise((resolve) => {
-        if (opts.timeout) {
-          setTimeout(resolve, opts.timeout);
-        }
+    async addWsCallback({ getters }, { filter, resolve, timeout = false }) {
+      const opts = getters.ws.callbacks.push({ filter, resolve });
 
-        commit("addWsFilterCallback", {
-          filter: opts.filter,
-          resolve,
-        });
-      });
+      if (timeout) {
+        setTimeout(() => {
+          resolve();
+          getters.ws.callbacks = getters.ws.callbacks.filter((o) => o !== opts);
+        }, timeout);
+      }
     },
-    async handleFileChunkRequest({ getters, dispatch }, { hash, socketId }) {
+    async handleFileChunkRequest(
+      { getters, dispatch },
+      { hash, socketId, requestId }
+    ) {
       let peer = new RTCPeerConnection({ iceServers });
 
       peer.addEventListener("icecandidate", ({ candidate }) => {
@@ -1828,10 +1816,9 @@ const store = new Vuex.Store({
           getters.ws.send({
             t: "fileChunkRtc",
             d: {
-              hash,
               socketId,
-              payload: JSON.stringify(candidate),
-              payloadType: "ice",
+              requestId,
+              payload: JSON.stringify({ candidate }),
             },
           });
         }
@@ -1853,7 +1840,6 @@ const store = new Vuex.Store({
           channel.send("");
           channel.send(new Uint8Array(1024 * 1024 * 256)); //forces RTCDataChannel to flush it's buffer.
           peer.close();
-          peer = null;
         }
 
         if (j < 0) {
@@ -1866,54 +1852,44 @@ const store = new Vuex.Store({
       channel.addEventListener("open", send);
       channel.addEventListener("bufferedamountlow", send);
 
+      dispatch("addWsCallback", {
+        filter: (msg) =>
+          msg.t === "fileChunkRtc" && msg.d.requestId === requestId,
+        timeout: 1000 * 10,
+        async resolve(msg) {
+          if (!msg) {
+            return;
+          }
+
+          const payload = JSON.parse(msg.d.payload);
+
+          if (payload.answer) {
+            await peer.setRemoteDescription(
+              new RTCSessionDescription({
+                type: "answer",
+                sdp: payload.answer,
+              })
+            );
+          }
+
+          if (payload.candidate) {
+            await peer.addIceCandidate(payload.candidate);
+          }
+        },
+      });
+
       await peer.setLocalDescription(await peer.createOffer());
 
       getters.ws.send({
         t: "fileChunkRtc",
         d: {
-          hash,
           socketId,
-          payload: peer.localDescription.sdp,
-          payloadType: "offer",
+          requestId,
+          payload: JSON.stringify({
+            offer: peer.localDescription.sdp,
+          }),
         },
       });
-
-      const answer = await dispatch("getWsMessage", {
-        timeout: 1000 * 15,
-        filter: (msg) =>
-          msg.t === "fileChunkRtc" &&
-          msg.d.hash === hash &&
-          msg.d.socketId === socketId &&
-          msg.d.payloadType === "answer",
-      });
-
-      if (!answer) {
-        return;
-      }
-
-      await peer.setRemoteDescription(
-        new RTCSessionDescription({
-          type: "answer",
-          sdp: answer.d.payload,
-        })
-      );
-
-      while (peer) {
-        const ice = await dispatch("getWsMessage", {
-          timeout: 1000 * 15,
-          filter: (msg) =>
-            msg.t === "fileChunkRtc" &&
-            msg.d.hash === hash &&
-            msg.d.socketId === socketId &&
-            msg.d.payloadType === "ice",
-        });
-
-        if (ice) {
-          await peer.addIceCandidate(
-            new RTCIceCandidate(JSON.parse(ice.d.payload))
-          );
-        }
-      }
     },
     async startLocalTrack(
       { getters, commit, dispatch },

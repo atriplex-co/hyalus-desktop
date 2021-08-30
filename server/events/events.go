@@ -310,27 +310,23 @@ type IFileChunkLost struct {
 }
 
 type IFileChunkGet struct {
-	Hash string `json:"hash"`
+	Hash      string `json:"hash"`
+	RequestID string `json:"requestId"`
 }
 
 type OFileChunkRequest struct {
-	Hash     string `json:"hash"`
-	SocketID string `json:"socketId"`
+	Hash      string `json:"hash"`
+	SocketID  string `json:"socketId"`
+	RequestID string `json:"requestId"`
 }
 
 type IFileChunkRTC struct {
-	Hash        string `json:"hash"`
-	SocketID    string `json:"socketId"`
-	Payload     string `json:"payload"`
-	PayloadType string `json:"payloadType"`
+	SocketID  string `json:"socketId"`
+	RequestID string `json:"requestId"`
+	Payload   string `json:"payload"`
 }
 
-type OFileChunkRTC struct {
-	Hash        string `json:"hash"`
-	SocketID    string `json:"socketId"`
-	Payload     string `json:"payload"`
-	PayloadType string `json:"payloadType"`
-}
+type OFileChunkRTC IFileChunkRTC
 
 type OChannelUserSetInVoice struct {
 	ID        string `json:"id"`
@@ -343,10 +339,7 @@ type IVoiceRTC struct {
 	Payload string `json:"payload"`
 }
 
-type OVoiceRTC struct {
-	UserID  string `json:"userId"`
-	Payload string `json:"payload"`
-}
+type OVoiceRTC IVoiceRTC
 
 type IVoiceStart struct {
 	ChannelID string `json:"channelId"`

@@ -25,7 +25,9 @@
               <UserAvatar
                 v-else
                 :id="channel.avatarId"
-                :status="channel.type === 'private' && channel.users[0].status"
+                :status="
+                  channel.type === 'private' ? channel.users[0].status : ''
+                "
                 class="w-10 h-10 rounded-full"
               />
             </div>
