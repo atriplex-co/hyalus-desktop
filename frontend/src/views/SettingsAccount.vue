@@ -160,10 +160,10 @@ const totpEnabled = computed({
 
 const typingEvents = computed({
   get() {
-    return store.getters.localConfig.typingEvents;
+    return store.getters.user.typingEvents;
   },
   async set(val) {
-    await store.dispatch("writeLocalConfig", ["typingEvents", val]);
+    await store.dispatch("setTypingEvents", val);
   },
 });
 

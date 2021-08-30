@@ -9,7 +9,7 @@ import (
 )
 
 type SetTypingEventsBody struct {
-	TypingEvents bool `json:"typingEvents" binding:"required"`
+	TypingEvents bool `json:"typingEvents"`
 }
 
 func SetTypingEvents(c *gin.Context) {
