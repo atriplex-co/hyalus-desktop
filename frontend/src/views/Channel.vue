@@ -393,10 +393,7 @@ const attachFile = async () => {
 
 const update = async () => {
   if (!channel.value) {
-    if (route.name === "channel") {
-      await router.push("/app");
-    }
-
+    await router.push("/app");
     return;
   }
 
