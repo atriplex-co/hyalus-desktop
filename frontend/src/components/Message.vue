@@ -6,7 +6,7 @@
     }"
   >
     <p
-      v-if="showDate"
+      v-if="showDate && !embedded"
       class="
         text-center text-sm text-gray-300
         py-4
@@ -84,7 +84,7 @@
       <div v-else class="p-4"></div>
       <div class="flex-1 space-y-1 flex flex-col items-start max-w-full">
         <p
-          v-if="firstInChunk && channel.type === 'group'"
+          v-if="firstInChunk && channel.type === 'group' && !embedded"
           class="text-xs text-gray-400 mt-1"
         >
           {{ user.name }}
