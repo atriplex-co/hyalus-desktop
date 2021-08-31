@@ -68,14 +68,12 @@ const props = defineProps({
 });
 
 const created = moment(props.session.created).calendar();
-
 const lastStart = moment(props.session.lastStart).fromNow();
-
 const ip = props.session.ip.replace("::ffff:", "");
-
 const agentParsed = UAParser(props.session.agent);
 
 let agentFormatted = "";
+let agentType = "web";
 
 if (agentParsed.browser) {
   agentFormatted += agentParsed.browser.name;
@@ -83,6 +81,13 @@ if (agentParsed.browser) {
   if (agentParsed.browser.version) {
     agentFormatted += ` ${agentParsed.browser.version}`;
   }
+}
+
+if (
+  agentParsed?.device?.type === "mobile" ||
+  agentParsed?.device?.type === "tablet"
+) {
+  agentType = "mobile";
 }
 
 const parts = props.session.agent.split("Electron/");
@@ -101,15 +106,6 @@ if (agentParsed.os) {
   if (agentParsed.os.version) {
     agentFormatted += ` ${agentParsed.os.version}`;
   }
-}
-
-let agentType = "web";
-
-if (
-  agentParsed?.device?.type === "mobile" ||
-  agentParsed?.device?.type === "tablet"
-) {
-  agentType = "mobile";
 }
 
 const del = async () => {
