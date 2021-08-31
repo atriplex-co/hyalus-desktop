@@ -57,6 +57,7 @@ func Register(c *gin.Context) {
 		TotpSecret:          nil,
 		ColorTheme:          "green",
 		TypingEvents:        true,
+		WantStatus:          "online",
 	}
 
 	session := &models.Session{
