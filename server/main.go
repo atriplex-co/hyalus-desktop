@@ -63,15 +63,19 @@ func main() {
 
 	util.Server.NoRoute(func(c *gin.Context) {
 		wd, _ := os.Getwd()
-		path := c.Request.URL.Path
+		path := filepath.Join(wd, "dist", c.Request.URL.Path)
 
-		if strings.HasPrefix(path, "/assets") {
+		if _, err := os.Stat(path); err != nil {
+			path = filepath.Join(wd, "dist/index.html")
+		}
+
+		if strings.Contains(path, "/assets") {
 			c.Header("cache-control", "public, max-age=31536000")
 		} else {
 			c.Header("cache-control", "no-store")
 		}
 
-		c.File(filepath.Join(wd, "dist", path))
+		c.File(path)
 	})
 
 	util.Server.GET("/api/ws", routes.SocketUpgrade)
