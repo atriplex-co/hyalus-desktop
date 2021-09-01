@@ -1704,7 +1704,7 @@ const store = new Vuex.Store({
         dispatch("addWsCallback", {
           filter: (msg) =>
             msg.t === "fileChunkRtc" && msg.d.requestId === requestId,
-          timeout: 1000 * 15,
+          timeout: 1000 * 10,
           async resolve(msg) {
             if (!msg) {
               return;
@@ -1842,31 +1842,22 @@ const store = new Vuex.Store({
 
       const channel = peer.createDataChannel("");
 
-      let i = 0;
-      const chunk = await idb.get(`file:${hash}`);
-      const msgSize = 1024 * 16;
-      //for whatever reason, 256k (peer.sctp.maxMessageSize) doesn't work sometimes.
+      //for whatever reason, peer.sctp.maxMessageSize (usually 256k) doesn't work sometimes.
       //so, we have to do this shit- oh & yes this is literally what the webrtc demos do too btw! :)
+      channel.addEventListener("open", async () => {
+        const chunk = await idb.get(`file:${hash}`);
+        const msgSize = 1024 * 16;
 
-      const send = async () => {
-        const j = i - Math.ceil(chunk.length / msgSize);
-
-        //this just pisses me off.
-        if (!j) {
-          channel.send("");
-          channel.send(new Uint8Array(1024 * 1024 * 256)); //forces RTCDataChannel to flush it's buffer.
-          peer.close();
-        }
-
-        if (j < 0) {
+        for (let i = 0; i < Math.ceil(chunk.length / msgSize); i++) {
           channel.send(chunk.slice(i * msgSize, i * msgSize + msgSize).buffer);
         }
 
-        ++i;
-      };
+        channel.send(""); //basically EOF.
 
-      channel.addEventListener("open", send);
-      channel.addEventListener("bufferedamountlow", send);
+        setTimeout(() => {
+          peer.close();
+        }, 1000 * 10);
+      });
 
       dispatch("addWsCallback", {
         filter: (msg) =>
