@@ -40,6 +40,7 @@
         flex
         items-center
         justify-center
+        text-white
       "
       :class="{
         'm-px': status,

@@ -1917,15 +1917,9 @@ const store = new Vuex.Store({
             deviceId: {
               ideal: getters.localConfig.audioInput,
             },
-            autoGainControl: {
-              ideal: getters.localConfig.voiceRtcGain,
-            },
-            echoCancellation: {
-              ideal: getters.localConfig.voiceRtcEcho,
-            },
-            noiseSuppression: {
-              ideal: getters.localConfig.voiceRtcNoise,
-            },
+            echoCancellation: getters.localConfig.voiceRtcEcho,
+            noiseSuppression: getters.localConfig.voiceRtcNoise,
+            autoGainControl: getters.localConfig.voiceRtcGain,
           },
         });
 
@@ -1958,10 +1952,8 @@ const store = new Vuex.Store({
           let closeTimeout;
 
           rnnoiseProc.addEventListener("audioprocess", async (e) => {
-            const bufIn = new Float32Array([
-              ...pendingIn,
-              ...e.inputBuffer.getChannelData(0),
-            ]);
+            const buf = e.inputBuffer.getChannelData(0);
+            const bufIn = new Float32Array([...pendingIn, ...buf]);
             let results = [];
             let i = 0;
 
@@ -1995,9 +1987,10 @@ const store = new Vuex.Store({
               }
             }
 
-            pendingIn = bufIn.slice(i);
-
-            if (results.reduce((a, b) => a + b) / results.length > 0.5) {
+            if (
+              results.reduce((a, b) => a + b) / results.length > 0.5 &&
+              buf.reduce((a, b) => a + Math.abs(b)) / buf.length > 0.005
+            ) {
               if (closeTimeout) {
                 clearTimeout(closeTimeout);
               }
@@ -2042,7 +2035,7 @@ const store = new Vuex.Store({
       }
 
       if (type === "video") {
-        const [height, fps] = getters.localConfig.videoMode.split("p");
+        const [height, frameRate] = getters.localConfig.videoMode.split("p");
 
         track = (
           await navigator.mediaDevices.getUserMedia({
@@ -2050,45 +2043,28 @@ const store = new Vuex.Store({
               deviceId: {
                 ideal: getters.localConfig.videoInput,
               },
-              height: {
-                ideal: +height,
-              },
-              frameRate: {
-                ideal: +fps,
-              },
+              height: +height,
+              frameRate: +frameRate,
             },
           })
         ).getTracks()[0];
-
-        if (height < 800) {
-          track.contentHint = "detail";
-        }
       }
 
       if (type === "desktop") {
-        const [height, fps] = getters.localConfig.videoMode.split("p");
+        const [height, frameRate] = getters.localConfig.videoMode.split("p");
         let stream;
 
         if (!desktopOpts) {
           stream = await navigator.mediaDevices.getDisplayMedia({
             video: {
-              height: {
-                ideal: +height,
-              },
-              frameRate: {
-                ideal: +fps,
-              },
+              height: +height,
+              frameRate: +frameRate,
             },
             audio: {
-              echoCancellation: {
-                ideal: true,
-              },
-              noiseSuppression: {
-                ideal: false,
-              },
-              autoGainControl: {
-                ideal: false,
-              },
+              noiseSuppression: false,
+              autoGainControl: false,
+              echoCancellation: true,
+              echoCancellationType: "software",
             },
           });
         } else {
@@ -2099,7 +2075,7 @@ const store = new Vuex.Store({
                   chromeMediaSource: "desktop",
                   chromeMediaSourceId: desktopOpts.sourceId,
                   maxHeight: +height,
-                  maxFrameRate: +fps,
+                  maxFrameRate: +frameRate,
                 },
               },
               audio: desktopOpts.audio && {
