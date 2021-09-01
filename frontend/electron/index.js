@@ -8,6 +8,7 @@ const {
   shell,
 } = require("electron");
 const path = require("path");
+const os = require("os");
 const { autoUpdater } = require("electron-updater");
 const { version } = require("../package.json");
 
@@ -37,7 +38,13 @@ const start = () => {
     minWidth: 600,
     minHeight: 400,
     autoHideMenuBar: true,
-    frame: false,
+    ...(["win32", "darwin"].indexOf(os.platform())
+      ? {
+          titleBarStyle: "hidden",
+        }
+      : {
+          frame: false,
+        }),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -56,7 +63,7 @@ const start = () => {
     }
   });
 
-  mainWindow.once("ready-to-show", () => {
+  mainWindow.on("ready-to-show", () => {
     mainWindow.show();
   });
 
