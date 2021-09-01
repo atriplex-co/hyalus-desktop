@@ -8,17 +8,12 @@ win:
   artifactName: "HyalusDesktop-win32.exe"
 mac:
   target: "zip"
-  category: "public.app-category.social-networking"
   artifactName: "HyalusDesktop-osx.zip"
+  category: "public.app-category.social-networking"
 linux:
-  target:
-    - "AppImage"
-    - "snap"
-  category: "Internet"
-appImage:
+  target: "AppImage"
   artifactName: "HyalusDesktop-linux.AppImage"
-snap:
-  artifactName: "HyalusDesktop-linux.snap"
+  category: "Internet"
 files:
   - "electron"
 directories:
