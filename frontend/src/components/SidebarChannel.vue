@@ -57,6 +57,10 @@ const lastMessageTime = ref("");
 const lastMessage = computed(() => {
   const message = props.channel.messages[props.channel.messages.length - 1];
 
+  if (!message) {
+    return "No messages yet";
+  }
+
   let name;
   let text;
 
@@ -101,6 +105,10 @@ const status = computed(() => {
 });
 
 const updateLastMessageTime = () => {
+  if (!props.channel.messages.length) {
+    return "";
+  }
+
   const duration = moment.duration(
     new Date() - props.channel.lastMessage.created
   );
