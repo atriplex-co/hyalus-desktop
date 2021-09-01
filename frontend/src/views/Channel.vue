@@ -139,13 +139,13 @@
         class="flex flex-col flex-1 space-y-1 overflow-auto overflow-x-hidden"
         @scroll="messageListScroll"
       >
-        <div v-observe-visibility="getChannelMessages('before')" class="pt-2" />
+        <div ref="beforeMessageList" class="pt-2"></div>
         <Message
           v-for="message in channel.messages"
           :key="message.id"
           :message="message"
         />
-        <div v-observe-visibility="getChannelMessages('after')" class="pb-2" />
+        <div ref="afterMessageList" class="pb-2"></div>
       </div>
       <ChannelInfo
         v-if="showInfo"
@@ -237,11 +237,12 @@ const groupNameModal = ref("");
 const showInfo = ref(false);
 const messageBox = ref(null);
 const messageList = ref(null);
+const beforeMessageList = ref(null);
+const afterMessageList = ref(null);
 const typingStatus = ref("");
 let lastScrollAutomatic = true;
 let lastScrollTop = 0;
 let lastScrollBottom = true;
-let messageListObserver;
 let lastTyping = 0;
 let updateInterval;
 
@@ -279,13 +280,11 @@ const writable = computed(() => {
   return true;
 });
 
-const getChannelMessages = (method) => async (e) => {
-  if (e) {
-    await store.dispatch("getChannelMessages", {
-      channelId: channel.value.id,
-      method,
-    });
-  }
+const getChannelMessages = async (method) => {
+  await store.dispatch("getChannelMessages", {
+    channelId: channel.value.id,
+    method,
+  });
 };
 
 const sendMessage = async () => {
@@ -403,18 +402,9 @@ const update = async () => {
 
   document.title = `Hyalus \u2022 ${channel.value.name}`;
 
-  if (messageList.value) {
-    if (!messageListObserver) {
-      messageListObserver = new MutationObserver(update);
-      messageListObserver.observe(messageList.value, {
-        childList: true,
-      });
-    }
-
-    if (lastScrollBottom) {
-      messageList.value.scrollTop = messageList.value.scrollHeight;
-      lastScrollTop = messageList.value.scrollTop;
-    }
+  if (messageList.value && lastScrollBottom) {
+    messageList.value.scrollTop = messageList.value.scrollHeight;
+    lastScrollTop = messageList.value.scrollTop;
   }
 
   const typingUsers = channel.value.users
@@ -454,7 +444,7 @@ onMounted(async () => {
   await update();
 
   if (channel.value) {
-    await getChannelMessages()(true);
+    await getChannelMessages();
   }
 
   if (messageBox.value) {
@@ -462,13 +452,21 @@ onMounted(async () => {
   }
 
   updateInterval = setInterval(update, 100);
+
+  new MutationObserver(update).observe(messageList.value, {
+    childList: true,
+  });
+
+  new IntersectionObserver(() => getChannelMessages("before")).observe(
+    beforeMessageList.value
+  );
+
+  new IntersectionObserver(() => getChannelMessages("after")).observe(
+    afterMessageList.value
+  );
 });
 
 onUnmounted(() => {
-  if (messageListObserver) {
-    messageListObserver.disconnect();
-  }
-
   clearInterval(updateInterval);
 });
 </script>

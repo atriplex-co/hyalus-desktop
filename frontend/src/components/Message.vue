@@ -1,6 +1,6 @@
 <template>
   <div
-    v-observe-visibility="getPreview"
+    ref="root"
     :class="{
       'pt-2': firstInChunk && !showDate && !embedded,
     }"
@@ -230,7 +230,7 @@ import LoadingIcon from "../icons/Loading.vue";
 import PencilIcon from "../icons/Pencil.vue";
 import PhotographIcon from "../icons/Photograph.vue";
 import moment from "moment";
-import { ref, computed, defineProps, onBeforeUnmount } from "vue";
+import { ref, computed, defineProps, onBeforeUnmount, onMounted } from "vue";
 import { useStore } from "vuex";
 
 const chunkThreshold = 1000 * 60 * 5;
@@ -251,6 +251,7 @@ const date = ref("");
 const previewUrl = ref("");
 const imageView = ref(false);
 const deleteModal = ref(false);
+const root = ref(null);
 const downloadStage = ref("");
 
 let updateDateInterval;
@@ -328,12 +329,6 @@ const fileDownload = async (target) => {
   downloadStage.value = "";
 };
 
-const getPreview = async (e) => {
-  if (e && props.message.file?.preview && previewUrl.value === "") {
-    await fileDownload("url");
-  }
-};
-
 const delPreview = () => {
   URL.revokeObjectURL(previewUrl.value);
   previewUrl.value = 0;
@@ -356,6 +351,14 @@ const del = async (e) => {
 
 updateDate();
 updateDateInterval = setInterval(updateDate, 1000 * 60);
+
+onMounted(() => {
+  new IntersectionObserver(async () => {
+    if (props.message.file?.preview && previewUrl.value === "") {
+      await fileDownload("url");
+    }
+  }).observe(root.value);
+});
 
 onBeforeUnmount(() => {
   clearInterval(updateDateInterval);

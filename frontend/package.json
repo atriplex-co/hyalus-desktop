@@ -26,7 +26,7 @@
     "autoprefixer": "^10.3.3",
     "axios": "^0.21.1",
     "base32-encode": "^2.0.0",
-    "electron": "^13.2.3",
+    "electron": "^14.0.0",
     "electron-builder": "^22.11.7",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
@@ -46,9 +46,8 @@
     "tailwindcss": "^2.2.9",
     "tailwindcss-theme-swapper": "^0.4.1",
     "ua-parser-js": "^0.7.28",
-    "vite": "^2.5.1",
+    "vite": "^2.5.2",
     "vue": "^3.2.6",
-    "vue-observe-visibility": "^1.0.0",
     "vue-router": "^4.0.11",
     "vuex": "^4.0.2"
   }
