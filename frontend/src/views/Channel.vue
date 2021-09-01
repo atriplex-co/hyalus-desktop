@@ -281,6 +281,10 @@ const writable = computed(() => {
 });
 
 const getChannelMessages = async (method) => {
+  if (!channel.value) {
+    return;
+  }
+
   await store.dispatch("getChannelMessages", {
     channelId: channel.value.id,
     method,
