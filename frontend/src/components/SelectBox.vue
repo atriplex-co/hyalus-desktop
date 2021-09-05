@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col select-none" @click="open = !open">
+  <div ref="root" class="flex flex-col select-none" @click="open = !open">
     <div
       class="
         flex
@@ -18,7 +18,7 @@
       <div class="flex items-center space-x-2">
         <slot name="selected" />
       </div>
-      <ArrowDownIcon class="w-4 h-4" />
+      <ArrowDownIcon class="w-4 h-4 text-gray-400" />
     </div>
     <div class="relative z-10">
       <div
@@ -45,7 +45,34 @@
 
 <script setup>
 import ArrowDownIcon from "../icons/ArrowDown.vue";
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 
 const open = ref(false);
+const root = ref(null);
+
+const close = ({ target }) => {
+  let isFromRoot = false;
+
+  for (;;) {
+    if (!target.parentElement) {
+      break;
+    }
+
+    if (target.parentElement === root.value) {
+      isFromRoot = true;
+    }
+
+    target = target.parentElement;
+  }
+
+  if (!isFromRoot) {
+    open.value = false;
+  }
+};
+
+addEventListener("click", close);
+
+onBeforeUnmount(() => {
+  removeEventListener("click", close);
+});
 </script>
