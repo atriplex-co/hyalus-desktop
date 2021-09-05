@@ -89,7 +89,7 @@
         >
           {{ user.name }}
         </p>
-        <div class="flex items-center space-x-4 flex-1 max-w-full">
+        <div class="flex items-center space-x-3 flex-1 max-w-full">
           <div
             class="
               flex-1
@@ -171,15 +171,15 @@
               flex-shrink-0 flex
               items-center
               text-gray-400
-              space-x-3
               transition
+              space-x-2
             "
             :class="{
               'opacity-0 group-hover:opacity-100 pr-12': !embedded,
               'pr-2': embedded,
             }"
           >
-            <div v-if="!embedded" class="flex items-center space-x-3">
+            <template v-if="!embedded">
               <div
                 v-if="sentByMe"
                 class="w-4 h-4 hover:text-gray-200 cursor-pointer"
@@ -196,7 +196,7 @@
               >
                 <DownloadIcon />
               </a>
-            </div>
+            </template>
             <p class="text-xs">{{ time }}</p>
           </div>
         </div>
