@@ -135,17 +135,17 @@
         </div>
       </div>
       <div
+        id="messageList"
         ref="messageList"
         class="flex flex-col flex-1 space-y-1 overflow-auto overflow-x-hidden"
-        @scroll="messageListScroll"
       >
-        <div ref="beforeMessageList" class="pt-2"></div>
+        <div ref="messageListBefore" class="pt-2"></div>
         <Message
           v-for="message in channel.messages"
           :key="message.id"
           :message="message"
         />
-        <div ref="afterMessageList" class="pb-2"></div>
+        <div id="messageListAfter" ref="messageListAfter" class="pb-2"></div>
       </div>
       <ChannelInfo
         v-if="showInfo"
@@ -237,12 +237,9 @@ const groupNameModal = ref("");
 const showInfo = ref(false);
 const messageBox = ref(null);
 const messageList = ref(null);
-const beforeMessageList = ref(null);
-const afterMessageList = ref(null);
+const messageListBefore = ref(null);
+const messageListAfter = ref(null);
 const typingStatus = ref("");
-let lastScrollAutomatic = true;
-let lastScrollTop = 0;
-let lastScrollBottom = true;
 let lastTyping = 0;
 let updateInterval;
 
@@ -292,8 +289,6 @@ const getChannelMessages = async (method) => {
 };
 
 const sendMessage = async () => {
-  lastScrollBottom = true;
-
   const body = messageBoxText.value.trim();
   messageBoxText.value = "";
   setTimeout(messageBoxInput, 1);
@@ -396,64 +391,36 @@ const attachFile = async () => {
 
 const update = async () => {
   if (!channel.value) {
-    await router.push("/app");
-    return;
-  }
-
-  if (!messageList.value) {
-    return;
+    return await router.push("/app");
   }
 
   document.title = `Hyalus \u2022 ${channel.value.name}`;
-
-  if (messageList.value && lastScrollBottom) {
-    messageList.value.scrollTop = messageList.value.scrollHeight;
-    lastScrollTop = messageList.value.scrollTop;
-  }
 
   const typingUsers = channel.value.users
     .filter((u) => u.lastTyping > Date.now() - 1000 * 3)
     .map((u) => u.name);
 
-  if (!typingUsers.length) {
-    typingStatus.value = "";
-  }
-
-  if (typingUsers.length === 1) {
-    typingStatus.value = `${typingUsers[0]} is typing...`;
-  }
-
-  if (typingUsers.length === 2) {
-    typingStatus.value = `${typingUsers[0]}, and ${typingUsers[1]} are typing...`;
-  }
-
-  if (typingUsers.length === 3) {
-    typingStatus.value = `${typingUsers[0]}, ${typingUsers[1]}, and ${typingUsers[2]} are typing...`;
-  }
-
-  if (typingUsers.length > 3) {
-    typingStatus.value = "Many users are typing...";
-  }
-};
-
-const messageListScroll = ({ target }) => {
-  lastScrollAutomatic = lastScrollTop === target.scrollTop;
-
-  lastScrollBottom =
-    lastScrollAutomatic ||
-    target.scrollTop === target.scrollHeight - target.clientHeight;
+  typingStatus.value =
+    typingUsers.length < 4
+      ? [
+          "",
+          `${typingUsers[0]} is typing...`,
+          `${typingUsers[0]}, and ${typingUsers[1]} are typing...`,
+          `${typingUsers[0]}, ${typingUsers[1]}, and ${typingUsers[2]} are typing...`,
+        ][typingUsers.length]
+      : "Many users are typing...";
 };
 
 onMounted(async () => {
+  if (!channel.value) {
+    return;
+  }
+
   await update();
+  await getChannelMessages();
 
-  if (channel.value) {
-    await getChannelMessages();
-  }
-
-  if (messageBox.value) {
-    messageBox.value.focus();
-  }
+  messageBox.value.focus();
+  messageList.value.scrollTop = messageList.value.scrollHeight;
 
   updateInterval = setInterval(update, 100);
 
@@ -462,11 +429,11 @@ onMounted(async () => {
   });
 
   new IntersectionObserver(() => getChannelMessages("before")).observe(
-    beforeMessageList.value
+    messageListBefore.value
   );
 
   new IntersectionObserver(() => getChannelMessages("after")).observe(
-    afterMessageList.value
+    messageListAfter.value
   );
 });
 
@@ -474,3 +441,13 @@ onUnmounted(() => {
   clearInterval(updateInterval);
 });
 </script>
+
+<style scoped>
+#messageList * {
+  overflow-anchor: none;
+}
+
+#messageListAfter {
+  overflow-anchor: auto;
+}
+</style>
