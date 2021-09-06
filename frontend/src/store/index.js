@@ -1662,7 +1662,6 @@ const store = new Vuex.Store({
         const el = document.createElement("a");
         el.download = message.file.name;
         el.href = url;
-        el.click();
         URL.revokeObjectURL(el.href); // frees up mem on next GC cycle.
       }
 

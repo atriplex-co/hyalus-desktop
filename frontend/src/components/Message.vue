@@ -192,7 +192,6 @@
                 class="w-4 h-4 hover:text-gray-200 cursor-pointer"
                 :href="previewUrl"
                 :download="message.file.name"
-                @click="fileDownload('local')"
               >
                 <DownloadIcon />
               </a>
