@@ -70,12 +70,12 @@ const lastMessage = computed(() => {
     name = message.user.name;
   }
 
-  if (message.type === "text") {
+  if (message.bodyString) {
     text = message.bodyString;
   }
 
   if (message.file) {
-    text = message.file.name;
+    text = message.file?.name || "Invalid file";
   }
 
   if (message.eventText) {
