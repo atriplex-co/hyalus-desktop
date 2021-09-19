@@ -169,7 +169,7 @@
                     border-gray-700
                     focus:outline-none focus:border-gray-600
                   "
-                  type="passwordConfirm"
+                  type="password"
                   autocomplete="current-password"
                 />
               </div>
