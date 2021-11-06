@@ -800,14 +800,18 @@ const store = new Vuex.Store({
         addEventListener("keypress", resetAwayTimeout);
       }
 
-      const indexContent = await (await fetch("/")).text();
+      try {
+        const indexContent = await (await fetch("/")).text();
 
-      if (!lastIndexContent) {
-        lastIndexContent = indexContent;
-      }
-
-      if (lastIndexContent !== indexContent) {
-        commit("setUpdateAvailable");
+        if (!lastIndexContent) {
+          lastIndexContent = indexContent;
+        }
+  
+        if (lastIndexContent !== indexContent) {
+          commit("setUpdateAvailable");
+        }
+      } catch {
+        //
       }
 
       //localConfig setup
