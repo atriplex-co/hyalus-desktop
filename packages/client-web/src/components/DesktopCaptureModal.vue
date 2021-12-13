@@ -79,10 +79,12 @@ const submit = async () => {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        chromeMediaSource: "desktop",
-        chromeMediaSourceId: selectedSourceId.value,
-        maxHeight,
-        maxFrameRate,
+        mandatory: {
+          chromeMediaSource: "desktop",
+          chromeMediaSourceId: selectedSourceId.value,
+          maxHeight,
+          maxFrameRate,
+        },
       },
       audio: selectedAudio.value,
       // what a pile of shit...
