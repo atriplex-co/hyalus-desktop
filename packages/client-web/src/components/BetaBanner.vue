@@ -29,7 +29,6 @@ import WarningIcon from "../icons/WarningIcon.vue";
 import { store } from "../store";
 
 const isDesktop = !!window.HyalusDesktop;
-console.log(isDesktop);
 
 const hide = async () => {
   await store.writeConfig("betaBanner", false);
