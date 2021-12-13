@@ -44,6 +44,8 @@ export class Socket {
   fileChunks: string[] = [];
   fileChunkRequests: ISocketFileChunkRequest[] = [];
   callChannelId?: Buffer;
+  alive: boolean;
+  pingInterval: number;
 
   constructor(ws: WebSocket) {
     ws.on("message", async (buf: Buffer) => {
@@ -638,16 +640,32 @@ export class Socket {
       }
 
       await this.callReset();
+
+      clearInterval(this.pingInterval as unknown as NodeJS.Timeout);
+    });
+
+    ws.on("pong", () => {
+      this.alive = true;
     });
 
     this.ws = ws;
     this.init = new Date();
     this.away = false;
+    this.alive = true;
 
     setTimeout(() => {
       if (!this.session) {
         this.ws.close();
       }
+    }, 1000 * 30);
+
+    this.pingInterval = +setInterval(() => {
+      if (!this.alive) {
+        ws.close();
+      }
+
+      this.alive = false;
+      ws.ping();
     }, 1000 * 30);
   }
 
