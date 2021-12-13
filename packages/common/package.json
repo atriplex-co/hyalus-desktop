@@ -1,0 +1,12 @@
+{
+  "name": "common",
+  "version": "0.0.1",
+  "license": "AGPL-3.0-only",
+  "main": "src",
+  "scripts": {
+    "test": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.2"
+  }
+}

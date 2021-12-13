@@ -1,0 +1,20 @@
+version: "3"
+services:
+  web:
+    build:
+      dockerfile: "Dockerfile.dev"
+    restart: always
+    ports:
+      - 127.0.0.1:3000:3000
+    volumes:
+      - .:/home/app/app
+      - "~/.cache/yarn:/home/app/.cache/yarn"
+  db:
+    image: mongo:latest
+    restart: always
+    ports:
+      - 127.0.0.1:27017:27017
+    volumes:
+      - db:/data/db
+volumes:
+  db:

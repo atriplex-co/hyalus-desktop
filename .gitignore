@@ -1,6 +1,8 @@
-server/server
-frontend/node_modules
-frontend/yarn-error.log
-frontend/npm-error.log
-frontend/dist
-frontend/dist_electron
+node_modules
+yarn-error.log
+npm-error.log
+.vscode
+.env
+packages/*/dist
+packages/*/node_modules
+packages/*/tsconfig.buildinfo

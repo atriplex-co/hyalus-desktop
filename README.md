@@ -26,14 +26,21 @@ Hyalus is currently in beta, please report bugs & issues.
 
 ## Requirements
 
-- Go 1.16.\*
 - Node.js 14.\*
 - MongoDB
 
 ## Hacking
 
-* Please format/lint your code before making a PR.
-* Setting up a basic development enviornment can be done like this.
+- Please lint & test any modified packages before making a PR.
+
+```sh
+$ yarn lint
+$ yarn test:server
+$ yarn test:web
+$ yarn test:common
+```
+
+- Setting up a basic development enviornment can be done like this.
 
 1. Spin up a MongoDB container.
 
@@ -41,14 +48,9 @@ Hyalus is currently in beta, please report bugs & issues.
 $ docker run -dp 27017:27017 --restart always mongo
 ```
 
-2. Install some packages.
+2. Install & start the development server.
 
 ```sh
-sudo apt install -y tmux entr
-```
-
-3. Start development server.
-
-```sh
-$ ./scripts/dev.sh
+$ yarn
+$ yarn dev
 ```

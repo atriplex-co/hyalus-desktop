@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hyalus &bull; Offline</title>
+  </head>
+  <body>
+    <p>Hyalus is offline</p>
+    <a href="https://hyalus.app/app">Reload</a>
+    <a href="#" id="quit">Quit</a>
+    <script>
+      document.querySelector("#quit").addEventListener("click", () => {
+        HyalusDesktop.quit();
+      });
+    </script>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #121212;
+        color: #fff;
+      }
+
+      p {
+        font-weight: 700;
+      }
+
+      a {
+        margin-right: 0.5rem;
+        color: #aaa;
+      }
+    </style>
+  </body>
+</html>

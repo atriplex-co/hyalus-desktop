@@ -1,0 +1,7 @@
+FROM alpine:latest as deps
+RUN apk add nodejs yarn
+RUN yes | adduser app
+USER app
+WORKDIR /home/app/app
+ENV NODE_ENV=development
+CMD [ "sh", "-c", "yarn && yarn dev" ]

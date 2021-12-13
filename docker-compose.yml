@@ -1,18 +1,14 @@
 version: "3"
 services:
-  db:
-    image: mongo
-    restart: always
-    volumes:
-      - db:/data/db
   web:
     build: "."
     restart: always
-    depends_on:
-      - db
-    environment:
-      - DB=mongodb://db
     ports:
-      - 127.0.0.1:${PORT}:80
+      - ${PORT}:3000
+  db:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - db:/data/db
 volumes:
   db:

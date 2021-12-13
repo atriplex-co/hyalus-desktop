@@ -2,7 +2,7 @@
 
 ## Releases
 
-* Only the latest code is supported.
+- Only the latest code is supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -10,8 +10,8 @@
 
 ## Vvulnerabilites
 
-* Users can report vulnerabilites with the process outlined below. 
-* We ask that you do not publish the issue until we've had the time to patch your vulnerability.
+- Users can report vulnerabilites with the process outlined below.
+- We ask that you do not publish the issue until we've had the time to patch your vulnerability.
 
 1. Encrypt your message with our PGP key.
 
