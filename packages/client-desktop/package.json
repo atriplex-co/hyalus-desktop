@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder -wml",
-    "release": "yarn build -p"
+    "release": "yarn build -p always"
   },
   "build": {
     "appId": "app.hyalus",
