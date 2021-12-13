@@ -1932,7 +1932,7 @@ export const store = {
           echoCancellation:
             !this.state.value.config.voiceRnnoise &&
             this.state.value.config.voiceRtcEcho,
-        } as unknown as MediaTrackConstraints, // TS is stupid here and complains.
+        }, // TS is stupid here and complains.
       });
 
       const ctx = new AudioContext();

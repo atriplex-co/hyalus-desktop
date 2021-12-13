@@ -2,6 +2,7 @@
   <ModalBase
     title="Share desktop"
     submit-text="Share"
+    :show="show"
     @submit="submit"
     @close="$emit('close')"
   >
@@ -19,10 +20,10 @@
             :key="source.id"
             class="flex items-center justify-between py-2 px-3 space-x-2 cursor-pointer"
             :class="{
-              'hover:bg-gray-700 text-gray-300': sourceId !== source.id,
-              'bg-gray-600 text-white': sourceId === source.id,
+              'hover:bg-gray-700 text-gray-300': selectedSourceId !== source.id,
+              'bg-gray-600 text-white': selectedSourceId === source.id,
             }"
-            @click="sourceId = source.id"
+            @click="selectedSourceId = source.id"
           >
             <div class="flex items-center w-full min-w-0 space-x-3">
               <img class="w-12 rounded-sm shadow-sm" :src="source.thumbnail" />
@@ -32,51 +33,108 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <InputBoolean v-model="audio" />
+        <InputBoolean v-model="selectedAudio" />
         <p class="text-sm text-gray-300">Share audio</p>
       </div>
     </template>
   </ModalBase>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
 import DisplayIcon from "../icons/DisplayIcon.vue";
 import InputBoolean from "./InputBoolean.vue";
-import { onUnmounted, ref, defineEmits } from "vue";
-// import { useStore } from "vuex";
+import { ref, defineEmits, Ref, defineProps, watch } from "vue";
+import { store } from "../store";
+import { CallStreamType } from "common/src";
 
-// const store = useStore();
+interface ISource {
+  id: string;
+  name: string;
+  thumbnail: string;
+}
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const emit = defineEmits(["close"]);
 
-const audio = ref(false);
-const sourceId = ref("");
-const sources = ref([]);
+const sources: Ref<ISource[]> = ref([]);
+const selectedSourceId = ref("");
+const selectedAudio = ref(false);
 
 const submit = async () => {
-  // await store.dispatch("startLocalTrack", {
-  //   type: "desktop",
-  //   sound: true,
-  //   desktopOpts: {
-  //     sourceId: sourceId.value || sources.value[0].id,
-  //     audio: audio.value,
-  //   },
-  // });
+  if (!selectedSourceId.value) {
+    return;
+  }
+
+  const [maxHeight, maxFrameRate] =
+    store.state.value.config.videoMode.split("p");
+  let stream: MediaStream;
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        chromeMediaSource: "desktop",
+        chromeMediaSourceId: selectedSourceId.value,
+        maxHeight,
+        maxFrameRate,
+      },
+      audio: selectedAudio.value,
+      // what a pile of shit...
+      // eslint-disable-next-line no-undef
+    } as unknown as MediaStreamConstraints);
+  } catch {
+    if (selectedAudio.value) {
+      selectedAudio.value = false;
+      await submit();
+    }
+
+    return;
+  }
+
+  if (!stream) {
+    return;
+  }
+
+  for (const track of stream.getTracks()) {
+    await store.callAddLocalStream(
+      track.kind === "video"
+        ? CallStreamType.Display
+        : CallStreamType.DisplayAudio,
+      track
+    );
+  }
 
   emit("close");
 };
 
-let updateSourcesInterval;
+let updateSourcesInterval: number;
 
 const updateSources = async () => {
-  sources.value = await window.HyalusDesktop.getSources();
+  if (!window.HyalusDesktop) {
+    return;
+  }
+  sources.value =
+    (await window.HyalusDesktop.getSources()) as unknown as ISource[];
 };
 
-updateSources();
-setInterval(updateSourcesInterval, 1000);
+watch(
+  () => props.show,
+  async () => {
+    if (props.show) {
+      await updateSources();
 
-onUnmounted(() => {
-  clearInterval(updateSourcesInterval);
-});
+      updateSourcesInterval = +setInterval(async () => {
+        await updateSources();
+      }, 1000);
+    } else {
+      clearInterval(updateSourcesInterval);
+    }
+  }
+);
 </script>

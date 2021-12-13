@@ -67,9 +67,9 @@
           </div>
         </div>
       </div>
-      <!-- TODO: fix DesktopCaptureModal -->
       <DesktopCaptureModal
-        v-if="desktopCaptureModal"
+        v-if="isDesktop"
+        :show="desktopCaptureModal"
         @close="desktopCaptureModal = false"
       />
     </div>
@@ -92,6 +92,7 @@ import { useRouter } from "vue-router";
 import { ICallTile, store } from "../store";
 import { CallStreamType, SocketMessageType } from "common";
 
+const isDesktop = !!window.HyalusDesktop;
 const router = useRouter();
 const desktopCaptureModal = ref(false);
 const tileContainer = ref(null) as Ref<HTMLDivElement | null>;
@@ -188,6 +189,7 @@ const toggleStream = async (type: CallStreamType) => {
   } else {
     if (type === CallStreamType.Display && window.HyalusDesktop) {
       desktopCaptureModal.value = true;
+      return;
     }
 
     await store.callAddLocalStream(type);
@@ -210,6 +212,10 @@ const update = async () => {
 };
 
 const updateTileBounds = () => {
+  if (!tileContainer.value) {
+    return;
+  }
+
   const count = tileContainer.value?.children?.length;
 
   if (!count) {
@@ -235,9 +241,17 @@ const updateTileBounds = () => {
   let targetRatioWidth = 16;
   let targetRatioHeight = 9;
   opts.map((opt) => {
+    if (!tileContainer.value) {
+      return;
+    }
+
     let sizes: number[] = [];
     let rowSize = tileContainer.value.offsetHeight / opt.length;
     opt.map((row) => {
+      if (!tileContainer.value) {
+        return;
+      }
+
       let colSize = tileContainer.value.offsetWidth / row;
       let ratio = colSize / rowSize;
       let usableWidth;
@@ -287,6 +301,10 @@ const updateTileBounds = () => {
   }
   let pos = 0;
   Object.entries(bestOpt).map(([_row, cols]) => {
+    if (!tileContainer.value) {
+      return;
+    }
+
     const row = Number(_row);
     let rowWidth = cols * cellWidth + gap * (cols - 1);
     let rowX = startX + Math.floor((usedWidth - rowWidth) / 2);
@@ -312,7 +330,9 @@ const stop = async () => {
 };
 
 onMounted(() => {
-  // lastChannelId = voice.value.channelId;
+  if (!tileContainer.value) {
+    return;
+  }
 
   new ResizeObserver(updateTileBounds).observe(tileContainer.value);
 
