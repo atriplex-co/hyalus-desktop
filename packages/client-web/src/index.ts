@@ -3,6 +3,7 @@ import App from "./App.vue";
 import { router } from "./router";
 import { store } from "./store";
 import ServiceWorker from "./shared/serviceWorker?url";
+import { idbDel } from "./util";
 
 if (location.hostname === "localhost") {
   (
@@ -12,7 +13,12 @@ if (location.hostname === "localhost") {
   ).store = store;
 }
 
-await store.start();
+try {
+  await store.start();
+} catch {
+  await idbDel("config");
+  location.reload();
+}
 
 const app = createApp(App);
 app.use(router);
