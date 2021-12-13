@@ -53,7 +53,7 @@ export class Socket {
         // TODO: r3 outdated clients workaround, remove after 2021.12.19
         // TODO: r3 outdated clients workaround, remove after 2021.12.19
         // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        if (typeof msg === "string") {
+        if (typeof msg.t === "string") {
           this.send({
             t: "callReset",
           } as unknown as ISocketMessage);
