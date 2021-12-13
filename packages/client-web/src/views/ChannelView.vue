@@ -257,8 +257,13 @@ const writable = computed(() => {
   return true;
 });
 
-const getChannelMessages = async (method: "before" | "after") => {
-  if (!channel.value) {
+const getMessages = async (method: "before" | "after") => {
+  // dereference ref->state to prevent change during HTTP request.
+  const channelObj = store.state.value.channels.find(
+    (channel2) => channel2.id === channel.value?.id
+  );
+
+  if (!channelObj) {
     return;
   }
 
@@ -277,12 +282,12 @@ const getChannelMessages = async (method: "before" | "after") => {
       }[];
     }[];
   } = await axios.get(
-    `/api/channels/${channel.value.id}/messages?${
-      method === "before" ? `before=${+channel.value.messages[0].created}` : ""
+    `/api/channels/${channelObj.id}/messages?${
+      method === "before" ? `before=${+channelObj.messages[0].created}` : ""
     }${
       method === "after"
         ? `after=${+(
-            channel.value.messages.at(-1)?.created || channel.value.created
+            channelObj.messages.at(-1)?.created || channelObj.created
           )}`
         : ""
     }`
@@ -295,18 +300,18 @@ const getChannelMessages = async (method: "before" | "after") => {
       type: message.type,
       created: new Date(message.created),
       versions: message.versions,
-      channel: channel.value,
+      channel: channelObj,
     });
 
     if (!versions) {
       return;
     }
 
-    channel.value.messages = channel.value.messages.filter(
+    channelObj.messages = channelObj.messages.filter(
       (message2) => message2.id !== message.id
     );
 
-    channel.value.messages.push({
+    channelObj.messages.push({
       id: message.id,
       userId: message.userId,
       type: message.type,
@@ -315,8 +320,8 @@ const getChannelMessages = async (method: "before" | "after") => {
     });
   }
 
-  channel.value.messages.sort((a, b) => (a.created > b.created ? 1 : -1));
-  channel.value.messages = channel.value.messages.slice(-100); //TODO: message history
+  channelObj.messages.sort((a, b) => (a.created > b.created ? 1 : -1));
+  channelObj.messages = channelObj.messages.slice(-100); //TODO: message history
 
   store.state.value.channels.sort((a, b) =>
     (a.messages.at(-1)?.created || a.created) <
@@ -406,6 +411,10 @@ const messageBoxSubmit = async () => {
 };
 
 const messageBoxInput = async () => {
+  if (!messageBox.value) {
+    return;
+  }
+
   messageBox.value.focus();
   messageBox.value.style.height = "auto";
   messageBox.value.style.height = `${messageBox.value.scrollHeight}px`;
@@ -605,8 +614,21 @@ onMounted(async () => {
   await update();
   updateInterval = +setInterval(update, 100);
 
+  if (
+    !messageBox.value ||
+    !messageList.value ||
+    !messageListBefore.value ||
+    !messageListAfter.value
+  ) {
+    return;
+  }
+
   new MutationObserver(async () => {
     await update();
+
+    if (!messageList.value) {
+      return;
+    }
 
     if (!scrollUpdated) {
       scrollUpdated = true;
@@ -616,11 +638,11 @@ onMounted(async () => {
     childList: true,
   });
 
-  new IntersectionObserver(() => getChannelMessages("before")).observe(
+  new IntersectionObserver(() => getMessages("before")).observe(
     messageListBefore.value
   );
 
-  new IntersectionObserver(() => getChannelMessages("after")).observe(
+  new IntersectionObserver(() => getMessages("after")).observe(
     messageListAfter.value
   );
 
