@@ -25,8 +25,14 @@ import WsRoute from "./routes/ws";
   });
 
   let { PORT, DB } = process.env;
-  PORT ??= "3000";
-  DB ??= "mongodb://db";
+
+  if (!PORT) {
+    PORT = "3000";
+  }
+
+  if (!DB) {
+    DB = "mongodb://db";
+  }
 
   if (process.env.NODE_ENV === "development") {
     PORT = "3001";
