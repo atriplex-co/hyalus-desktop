@@ -1,5 +1,11 @@
 <template>
-  <div class="fixed top-0 left-0 px-3 z-40 w-full">
+  <div
+    class="fixed left-0 px-4 z-40 w-full"
+    :class="{
+      'top-0': !isDesktop,
+      'top-8': isDesktop,
+    }"
+  >
     <div
       class="flex items-center justify-between h-10 px-2 text-sm text-white bg-primary-500 my-2 rounded-sm shadow-md"
     >
@@ -21,6 +27,9 @@
 import CloseIcon from "../icons/CloseIcon.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
 import { store } from "../store";
+
+const isDesktop = !!window.HyalusDesktop;
+console.log(isDesktop);
 
 const hide = async () => {
   await store.writeConfig("betaBanner", false);
