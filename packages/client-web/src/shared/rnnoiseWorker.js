@@ -21,6 +21,10 @@ registerProcessor(
           },
         });
 
+        if (!rnnoise) {
+          return;
+        }
+
         this.config = {
           rnnoise,
           pState: rnnoise._rnnoise_create(),
