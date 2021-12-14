@@ -271,19 +271,17 @@ onMounted(async () => {
       } catch {
         //
       }
-
-      const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
-        (d) =>
-          !d.label.startsWith("Default -") &&
-          !d.label.startsWith("Communications -")
-      );
-
-      usableAudioOutputs.value = devices.filter(
-        (d) => d.kind === "audiooutput"
-      );
-      usableAudioInputs.value = devices.filter((d) => d.kind === "audioinput");
-      usableVideoInputs.value = devices.filter((d) => d.kind === "videoinput");
     }
   }
+
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (d) =>
+      !d.label.startsWith("Default -") &&
+      !d.label.startsWith("Communications -")
+  );
+
+  usableAudioOutputs.value = devices.filter((d) => d.kind === "audiooutput");
+  usableAudioInputs.value = devices.filter((d) => d.kind === "audioinput");
+  usableVideoInputs.value = devices.filter((d) => d.kind === "videoinput");
 });
 </script>
