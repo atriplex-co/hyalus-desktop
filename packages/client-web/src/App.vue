@@ -129,6 +129,10 @@ const fontScale = computed(() => {
 @tailwind components;
 @tailwind utilities;
 
+* {
+  @apply focus:outline-none;
+}
+
 ::-webkit-scrollbar {
   @apply w-2;
 }
