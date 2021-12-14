@@ -10,7 +10,7 @@
     </template>
     <template #main>
       <ModalError v-if="error" :error="error" />
-      <div class="space-y-2 w-full">
+      <div class="space-y-4 w-full">
         <p>Are you sure you want to delete this message?</p>
         <div
           ref="container"
@@ -73,6 +73,10 @@ onUpdated(() => {
 
     new MutationObserver(() => {
       setTimeout(() => {
+        if (!container.value) {
+          return;
+        }
+
         container.value.scrollTop = container.value.scrollHeight;
       });
     }).observe(container.value, {
