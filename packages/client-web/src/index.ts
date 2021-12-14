@@ -20,7 +20,14 @@ if (navigator.serviceWorker && !window.HyalusDesktop) {
   await navigator.serviceWorker.register(ServiceWorker);
 }
 
-window.debugEnabled = location.hostname === "localhost";
+const _debug = console.debug.bind(console);
+console.debug = (...args) => {
+  if (!window.debugEnabled) {
+    return;
+  }
+
+  _debug(...args);
+};
 
 window.debugStart = () => {
   window.debugEnabled = true;
@@ -34,11 +41,6 @@ window.debugStop = () => {
   console.clear();
 };
 
-const _debug = console.debug.bind(console);
-console.debug = (...args) => {
-  if (!window.debugEnabled) {
-    return;
-  }
-
-  _debug(...args);
-};
+if (location.hostname === "localhost") {
+  window.debugStart();
+}
