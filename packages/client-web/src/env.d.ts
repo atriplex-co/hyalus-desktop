@@ -10,6 +10,7 @@ declare module "*.vue" {
 
 declare interface Window {
   debugStart(): void;
+  debugStop(): void;
   debugEnabled?: boolean;
   debugStore?: unknown;
   HyalusDesktop?: {

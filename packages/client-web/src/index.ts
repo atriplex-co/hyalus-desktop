@@ -27,6 +27,13 @@ window.debugStart = () => {
   window.debugStore = store;
 };
 
+window.debugStop = () => {
+  window.debugEnabled = false;
+  delete window.debugStore;
+
+  console.clear();
+};
+
 const _debug = console.debug.bind(console);
 console.debug = (...args) => {
   if (!window.debugEnabled) {
