@@ -997,6 +997,8 @@ export class Socket {
                 (peer) => peer.userId === data.id
               )) {
                 peer.peer.close();
+
+                stream.peers = stream.peers.filter((peer2) => peer2 !== peer);
               }
             }
 
@@ -1004,6 +1006,11 @@ export class Socket {
               (stream) => stream.userId === data.id
             )) {
               stream.peer.close();
+
+              store.state.value.call.remoteStreams =
+                store.state.value.call.remoteStreams.filter(
+                  (stream2) => stream2 !== stream
+                );
             }
           }
         }
@@ -1890,9 +1897,7 @@ export const store = {
       if (
         store.state.value.ready &&
         store.state.value.call &&
-        store.state.value.call.localStreams.find(
-          (localStream2) => localStream2 === localStream
-        ) &&
+        localStream.track.readyState === "live" &&
         store.state.value.channels
           .find((channel) => channel.id === store.state.value.call?.channelId)
           ?.users.find((user) => user.id === userId)?.inCall
@@ -1942,10 +1947,24 @@ export const store = {
       const gain2 = ctx.createGain();
       const analyser = ctx.createAnalyser();
       const analyserData = new Uint8Array(analyser.frequencyBinCount);
-      const proc = ctx.createScriptProcessor(512, 1, 1);
       let closeTimeout: number;
 
-      proc.addEventListener("audioprocess", () => {
+      await ctx.audioWorklet.addModule(RnnoiseWorker);
+      const worklet = new AudioWorkletNode(ctx, "rnnoise-processor", {
+        processorOptions: {
+          wasm: this.state.value.config.voiceRnnoise
+            ? new Uint8Array(
+                (
+                  await axios.get(RnnoiseWasm, {
+                    responseType: "arraybuffer",
+                  })
+                ).data
+              )
+            : undefined,
+        },
+      });
+
+      worklet.port.onmessage = () => {
         analyser.getByteFrequencyData(analyserData);
 
         if (
@@ -1964,35 +1983,14 @@ export const store = {
         }
 
         gain.gain.value = this.state.value.config.audioInputGain / 100;
-      });
-
-      if (this.state.value.config.voiceRnnoise) {
-        await ctx.audioWorklet.addModule(RnnoiseWorker);
-        const worklet = new AudioWorkletNode(ctx, "rnnoise-processor", {
-          processorOptions: {
-            wasm: new Uint8Array(
-              (
-                await axios.get(RnnoiseWasm, {
-                  responseType: "arraybuffer",
-                })
-              ).data
-            ),
-          },
-        });
-
-        gain.connect(worklet);
-        worklet.connect(analyser);
-        worklet.connect(gain2);
-      } else {
-        gain.connect(analyser);
-        gain.connect(gain2);
-      }
+      };
 
       gain2.gain.value = 0;
 
-      src.connect(proc);
-      proc.connect(ctx.destination);
       src.connect(gain);
+      gain.connect(worklet);
+      worklet.connect(analyser);
+      worklet.connect(gain2);
       gain2.connect(dest);
 
       track = dest.stream.getTracks()[0];

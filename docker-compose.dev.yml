@@ -7,8 +7,8 @@ services:
     ports:
       - 127.0.0.1:3000:3000
     volumes:
-      - .:/home/app/app
-      - "~/.cache/yarn:/home/app/.cache/yarn"
+      - ".:/home/app/app"
+      - "~/.cache:/home/app/.cache"
   db:
     image: mongo:latest
     restart: always

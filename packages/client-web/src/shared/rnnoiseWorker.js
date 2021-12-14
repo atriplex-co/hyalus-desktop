@@ -4,24 +4,35 @@ registerProcessor(
     constructor(init) {
       super(init);
 
-      (async () => {
-        const { instance } = await WebAssembly.instantiate(
-          init.processorOptions.wasm
-        );
+      this.config = {
+        last: +new Date(),
+      };
 
-        this.config = {
-          instance,
-          pState: instance.exports.rnnoise_create(),
-          pData: instance.exports.malloc(480 * 4), // don't touch this.
-          inputBuffer: [],
-          outputBuffer: [],
-          heap: new Float32Array(instance.exports.memory.buffer),
-        };
-      })();
+      if (init.processorOptions.wasm) {
+        (async () => {
+          const { instance } = await WebAssembly.instantiate(
+            init.processorOptions.wasm
+          );
+
+          this.config.pState = instance.exports.rnnoise_create();
+          this.config.pData = instance.exports.malloc(480 * 4); // don't touch this.
+          this.config.inputBuffer = [];
+          this.config.outputBuffer = [];
+          this.config.heap = new Float32Array(instance.exports.memory.buffer);
+          this.config.instance = instance;
+        })();
+      }
     }
 
     process([inputs], [outputs]) {
-      if (!this.config) {
+      if (+new Date() - this.config.last > 50) {
+        this.config.last = +new Date();
+        this.port.postMessage(0);
+      }
+
+      if (!this.config.instance) {
+        outputs[0].set(inputs[0]);
+        outputs[1].set(inputs[1]);
         return true;
       }
 

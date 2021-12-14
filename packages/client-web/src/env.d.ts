@@ -8,23 +8,6 @@ declare module "*.vue" {
   export default component;
 }
 
-declare module "@hyalusapp/rnnoise" {
-  export default function (init: RnnoiseModuleInit): RnnoiseModule;
-}
-
-declare interface RnnoiseModuleInit {
-  locateFile(): string;
-  instantiateWasm(
-    imports: WebAssembly.Imports,
-    cb: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void
-  ): void;
-}
-
-declare interface RnnoiseModule extends EmscriptenModule {
-  _rnnoise_create(): number;
-  _rnnoise_process_frame(pState: number, pOut: number, pIn: number): number;
-}
-
 declare interface Window {
   HyalusDesktop?: {
     close(): void;
