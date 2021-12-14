@@ -77,13 +77,13 @@ export interface ICallLocalStream {
 
 export interface ICallLocalStreamPeer {
   userId: string;
-  peer: RTCPeerConnection;
+  pc: RTCPeerConnection;
 }
 
 export interface ICallRemoteStream {
   userId: string;
   type: CallStreamType;
-  peer: RTCPeerConnection;
+  pc: RTCPeerConnection;
   track: MediaStreamTrack;
   audio?: {
     el: unknown; // TS won't let us put IHTMLAudioElement in an interface for whatever fucking reason.
@@ -996,7 +996,7 @@ export class Socket {
               for (const peer of stream.peers.filter(
                 (peer) => peer.userId === data.id
               )) {
-                peer.peer.close();
+                peer.pc.close();
 
                 stream.peers = stream.peers.filter((peer2) => peer2 !== peer);
               }
@@ -1005,7 +1005,7 @@ export class Socket {
             for (const stream of store.state.value.call.remoteStreams.filter(
               (stream) => stream.userId === data.id
             )) {
-              stream.peer.close();
+              stream.pc.close();
 
               store.state.value.call.remoteStreams =
                 store.state.value.call.remoteStreams.filter(
@@ -1398,7 +1398,7 @@ export class Socket {
         });
 
         if (dataDecrypted.mt === CallRTCType.RemoteTrackOffer) {
-          const peer = new RTCPeerConnection({ iceServers });
+          const pc = new RTCPeerConnection({ iceServers });
 
           const sendPayload = (val: unknown) => {
             const jsonRaw = JSON.stringify(val);
@@ -1430,7 +1430,7 @@ export class Socket {
             });
           };
 
-          peer.addEventListener("icecandidate", ({ candidate }) => {
+          pc.addEventListener("icecandidate", ({ candidate }) => {
             if (!candidate) {
               return;
             }
@@ -1442,7 +1442,7 @@ export class Socket {
             });
           });
 
-          peer.addEventListener("track", ({ track }) => {
+          pc.addEventListener("track", ({ track }) => {
             if (!store.state.value.call) {
               return;
             }
@@ -1450,7 +1450,7 @@ export class Socket {
             const stream: ICallRemoteStream = {
               userId: data.userId,
               type: dataDecrypted.st,
-              peer,
+              pc,
               track,
             };
 
@@ -1487,7 +1487,7 @@ export class Socket {
             }
           });
 
-          peer.addEventListener("datachannel", ({ channel: dc }) => {
+          pc.addEventListener("datachannel", ({ channel: dc }) => {
             dc.addEventListener("close", () => {
               console.debug("c_rtc/dc: remoteStream close");
 
@@ -1497,27 +1497,27 @@ export class Socket {
 
               store.state.value.call.remoteStreams =
                 store.state.value.call.remoteStreams.filter(
-                  (stream) => stream.peer !== peer
+                  (stream) => stream.pc !== pc
                 );
             });
           });
 
-          peer.addEventListener("connectionstatechange", () => {
-            console.debug(`c_rtc/peer: ${peer.connectionState}`);
+          pc.addEventListener("connectionstatechange", () => {
+            console.debug(`c_rtc/peer: ${pc.connectionState}`);
           });
 
-          await peer.setRemoteDescription(
+          await pc.setRemoteDescription(
             new RTCSessionDescription({
               type: "offer",
               sdp: dataDecrypted.d,
             })
           );
-          await peer.setLocalDescription(await peer.createAnswer());
+          await pc.setLocalDescription(await pc.createAnswer());
 
           sendPayload({
             mt: CallRTCType.LocalTrackAnswer,
             st: dataDecrypted.st,
-            d: peer.localDescription?.sdp,
+            d: pc.localDescription?.sdp,
           });
         }
 
@@ -1532,7 +1532,7 @@ export class Socket {
             return;
           }
 
-          await stream.peer.addIceCandidate(
+          await stream.pc.addIceCandidate(
             new RTCIceCandidate(JSON.parse(dataDecrypted.d))
           );
         }
@@ -1554,7 +1554,7 @@ export class Socket {
 
           const peer = stream.peers.find(
             (peer) => peer.userId === data.userId
-          )?.peer;
+          )?.pc;
 
           if (!peer) {
             console.warn("SCallRTC missing peer");
@@ -1589,12 +1589,12 @@ export class Socket {
       if (store.state.value.call) {
         for (const stream of store.state.value.call.localStreams) {
           for (const peer of stream.peers) {
-            peer.peer.close();
+            peer.pc.close();
           }
         }
 
         for (const stream of store.state.value.call.remoteStreams) {
-          stream.peer.close();
+          stream.pc.close();
         }
       }
 
@@ -1808,7 +1808,7 @@ export const store = {
     ).default;
   },
   async callSendLocalStream(
-    localStream: ICallLocalStream,
+    stream: ICallLocalStream,
     userId: string
   ): Promise<void> {
     const channel = store.state.value.channels.find(
@@ -1827,7 +1827,7 @@ export const store = {
       return;
     }
 
-    if (localStream.peers.find((peer) => peer.userId === userId)) {
+    if (stream.peers.find((peer) => peer.userId === userId)) {
       console.warn("callSendLocalStream already has localStream peer");
       return;
     }
@@ -1861,58 +1861,55 @@ export const store = {
       });
     };
 
-    const peer = new RTCPeerConnection({ iceServers });
-    const dc = peer.createDataChannel(""); // allows us to detect when the peer gets closed much quicker.
-    const streamPeer =
-      localStream.peers[
-        localStream.peers.push({
-          userId,
-          peer,
-        }) - 1 // don't touch this, prevents vue's "reactive"-ness from breaking things.
-      ];
+    const pc = new RTCPeerConnection({ iceServers });
+    const dc = pc.createDataChannel(""); // allows us to detect when the peer gets closed much quicker.
+    const peer: ICallLocalStreamPeer = {
+      userId,
+      pc,
+    };
 
-    peer.addEventListener("icecandidate", ({ candidate }) => {
+    stream.peers.push(peer);
+
+    pc.addEventListener("icecandidate", ({ candidate }) => {
       if (!candidate) {
         return;
       }
 
       sendPayload({
         mt: CallRTCType.RemoteTrackICECandidate,
-        st: localStream.type,
+        st: stream.type,
         d: JSON.stringify(candidate),
       });
     });
 
-    peer.addEventListener("connectionstatechange", () => {
-      console.debug(`c_rtc/peer: ${peer.connectionState}`);
+    pc.addEventListener("connectionstatechange", () => {
+      console.debug(`c_rtc/peer: ${pc.connectionState}`);
     });
 
     dc.addEventListener("close", async () => {
       console.debug("c_rtc/dc: localStream close");
 
-      localStream.peers = localStream.peers.filter(
-        (streamPeer2) => streamPeer2 !== streamPeer
-      );
+      stream.peers = stream.peers.filter((peer2) => peer2.pc !== peer.pc);
 
       if (
         store.state.value.ready &&
         store.state.value.call &&
-        localStream.track.readyState === "live" &&
+        stream.track.readyState === "live" &&
         store.state.value.channels
           .find((channel) => channel.id === store.state.value.call?.channelId)
           ?.users.find((user) => user.id === userId)?.inCall
       ) {
-        await this.callSendLocalStream(localStream, userId);
+        await this.callSendLocalStream(stream, userId);
       }
     });
 
-    peer.addTrack(localStream.track);
-    await peer.setLocalDescription(await peer.createOffer());
+    pc.addTrack(stream.track);
+    await pc.setLocalDescription(await pc.createOffer());
 
     sendPayload({
       mt: CallRTCType.RemoteTrackOffer,
-      st: localStream.type,
-      d: peer.localDescription?.sdp,
+      st: stream.type,
+      d: pc.localDescription?.sdp,
     });
   },
   async callAddLocalStream(
@@ -2095,7 +2092,7 @@ export const store = {
 
     stream.track.stop();
 
-    for (const { peer } of stream.peers) {
+    for (const { pc: peer } of stream.peers) {
       peer.close();
     }
   },
@@ -2123,13 +2120,13 @@ export const store = {
     for (const stream of store.state.value.call.localStreams) {
       stream.track.stop();
 
-      for (const { peer } of stream.peers) {
+      for (const { pc: peer } of stream.peers) {
         peer.close();
       }
     }
 
     for (const stream of store.state.value.call.remoteStreams) {
-      stream.peer.close();
+      stream.pc.close();
     }
 
     delete store.state.value.call;
