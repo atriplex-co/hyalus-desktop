@@ -5,14 +5,6 @@ import { store } from "./store";
 import ServiceWorker from "./shared/serviceWorker?url";
 import { idbDel } from "./util";
 
-if (location.hostname === "localhost") {
-  (
-    window as unknown as {
-      store: typeof store;
-    }
-  ).store = store;
-}
-
 try {
   await store.start();
 } catch {
@@ -27,3 +19,19 @@ app.mount("#app");
 if (navigator.serviceWorker && !window.HyalusDesktop) {
   await navigator.serviceWorker.register(ServiceWorker);
 }
+
+window.debugEnabled = location.hostname === "localhost";
+
+window.debugStart = () => {
+  window.debugEnabled = true;
+  window.debugStore = store;
+};
+
+const _debug = console.debug.bind(console);
+console.debug = (...args) => {
+  if (!window.debugEnabled) {
+    return;
+  }
+
+  _debug(...args);
+};
