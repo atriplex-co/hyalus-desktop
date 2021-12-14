@@ -26,6 +26,7 @@ export interface IState {
   away: boolean;
   config: IConfig;
   socket?: Socket;
+  updateCheck: string;
   updateAvailable: boolean;
   updateRequired: boolean;
   user?: IUser;
@@ -612,6 +613,21 @@ export class Socket {
         }
 
         await store.writeConfig("colorTheme", data.user.colorTheme);
+
+        const { data: updateCheck } = await axios.get("/", {
+          headers: {
+            accept: "*/*",
+          },
+        });
+
+        if (
+          store.state.value.updateCheck &&
+          store.state.value.updateCheck !== updateCheck
+        ) {
+          store.state.value.updateAvailable = true;
+        }
+
+        store.state.value.updateCheck = updateCheck;
 
         if (Notification.permission === "default") {
           await Notification.requestPermission();
@@ -1654,6 +1670,7 @@ export const store = {
       notifySystem: true,
       betaBanner: true,
     },
+    updateCheck: "",
     updateAvailable: false,
     updateRequired: false,
     sessions: [],
