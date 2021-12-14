@@ -1,5 +1,3 @@
-import Rnnoise from "@hyalusapp/rnnoise";
-
 registerProcessor(
   "rnnoise-processor",
   class extends AudioWorkletProcessor {
@@ -7,30 +5,17 @@ registerProcessor(
       super(init);
 
       (async () => {
-        const rnnoise = await Rnnoise({
-          locateFile() {
-            return "";
-          },
-          async instantiateWasm(imports, cb) {
-            const { module, instance } = await WebAssembly.instantiate(
-              init.processorOptions.wasm,
-              imports
-            );
-
-            cb(instance, module);
-          },
-        });
-
-        if (!rnnoise) {
-          return;
-        }
+        const { instance } = await WebAssembly.instantiate(
+          init.processorOptions.wasm
+        );
 
         this.config = {
-          rnnoise,
-          pState: rnnoise._rnnoise_create(),
-          pData: rnnoise._malloc(480 * 4),
+          instance,
+          pState: instance.exports.rnnoise_create(),
+          pData: instance.exports.malloc(480 * 4), // don't touch this.
           inputBuffer: [],
           outputBuffer: [],
+          heap: new Float32Array(instance.exports.memory.buffer),
         };
       })();
     }
@@ -41,8 +26,8 @@ registerProcessor(
       }
 
       if (!inputs[0]) {
-        this.config.rnnoise._free(this.config.pState);
-        this.config.rnnoise._free(this.config.pData);
+        this.config.instance.exports.free(this.config.pState);
+        this.config.instance.exports.free(this.config.pData);
         return;
       }
 
@@ -52,11 +37,11 @@ registerProcessor(
 
       while (this.config.inputBuffer.length >= 480) {
         for (let i = 0; i < 480; ++i) {
-          this.config.rnnoise.HEAPF32[(this.config.pData >> 2) + i] =
+          this.config.heap[(this.config.pData >> 2) + i] =
             this.config.inputBuffer.shift() * 0x7fff;
         }
 
-        this.config.rnnoise._rnnoise_process_frame(
+        this.config.instance.exports.rnnoise_process_frame(
           this.config.pState,
           this.config.pData,
           this.config.pData
@@ -64,7 +49,7 @@ registerProcessor(
 
         for (let i = 0; i < 480; i++) {
           this.config.outputBuffer.push(
-            this.config.rnnoise.HEAPF32[(this.config.pData >> 2) + i] / 0x7fff
+            this.config.heap[(this.config.pData >> 2) + i] / 0x7fff
           );
         }
       }

@@ -18,7 +18,7 @@ import MarkdownIt from "markdown-it";
 import MarkdownItEmoji from "markdown-it-emoji";
 import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import highlight from "highlight.js";
-import RnnoiseWasm from "@hyalusapp/rnnoise/dist/rnnoise.wasm?url";
+import RnnoiseWasm from "@hyalusapp/rnnoise/rnnoise.wasm?url";
 import RnnoiseWorker from "../shared/rnnoiseWorker?url";
 
 export interface IState {

@@ -8,7 +8,7 @@
     "test": "vue-tsc"
   },
   "devDependencies": {
-    "@hyalusapp/rnnoise": "hyalusapp/rnnoise#e60d2cb",
+    "@hyalusapp/rnnoise": "hyalusapp/rnnoise#e5c3ce698c04e18016a663e738ab465d61f194d6",
     "@types/emscripten": "^1.39.6",
     "@types/libsodium-wrappers": "^0.7.9",
     "@types/markdown-it": "^12.2.3",

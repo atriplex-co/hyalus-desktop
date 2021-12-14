@@ -150,6 +150,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@hyalusapp/rnnoise@hyalusapp/rnnoise#e5c3ce698c04e18016a663e738ab465d61f194d6":
+  version "0.0.2"
+  resolved "https://codeload.github.com/hyalusapp/rnnoise/tar.gz/e5c3ce698c04e18016a663e738ab465d61f194d6"
+
 "@hyalusapp/rnnoise@hyalusapp/rnnoise#e60d2cb":
   version "0.0.2"
   resolved "https://codeload.github.com/hyalusapp/rnnoise/tar.gz/e60d2cb353ffc043fa6ec7d1ef3c22194d69a848"
