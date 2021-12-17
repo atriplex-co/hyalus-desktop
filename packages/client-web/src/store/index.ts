@@ -708,20 +708,24 @@ export class Socket {
 
         await store.writeConfig("colorTheme", data.user.colorTheme);
 
-        const { data: updateCheck } = await axios.get("/", {
-          headers: {
-            accept: "*/*",
-          },
-        });
-
-        if (
-          store.state.value.updateCheck &&
-          store.state.value.updateCheck !== updateCheck
-        ) {
-          store.state.value.updateAvailable = true;
+        try {
+          const { data: updateCheck } = await axios.get("/", {
+            headers: {
+              accept: "*/*",
+            },
+          });
+  
+          if (
+            store.state.value.updateCheck &&
+            store.state.value.updateCheck !== updateCheck
+          ) {
+            store.state.value.updateAvailable = true;
+          }
+  
+          store.state.value.updateCheck = updateCheck;
+        } catch {
+          //
         }
-
-        store.state.value.updateCheck = updateCheck;
 
         const initPermissions = async () => {
           removeEventListener("mousemove", initPermissions);
