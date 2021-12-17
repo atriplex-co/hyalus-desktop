@@ -42,7 +42,7 @@
       <UserAvatar
         v-else
         :id="tile.user.avatarId"
-        class="w-[25%] rounded-full shadow-2xl"
+        class="w-[25%] aspect-square rounded-full shadow-2xl"
       />
       <div
         v-if="controls"
