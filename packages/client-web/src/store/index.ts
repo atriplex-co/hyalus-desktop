@@ -1003,30 +1003,30 @@ export class Socket {
           store.state.value.call &&
           store.state.value.call.channelId === data.channelId
         ) {
+          for (const stream of store.state.value.call.localStreams) {
+            for (const peer of stream.peers.filter(
+              (peer) => peer.userId === data.id
+            )) {
+              peer.pc.close();
+
+              stream.peers = stream.peers.filter((peer2) => peer2 !== peer);
+            }
+          }
+
+          for (const stream of store.state.value.call.remoteStreams.filter(
+            (stream) => stream.userId === data.id
+          )) {
+            stream.pc.close();
+
+            store.state.value.call.remoteStreams =
+              store.state.value.call.remoteStreams.filter(
+                (stream2) => stream2 !== stream
+              );
+          }
+
           if (data.inCall) {
             for (const stream of store.state.value.call.localStreams) {
               await store.callSendLocalStream(stream, data.id);
-            }
-          } else {
-            for (const stream of store.state.value.call.localStreams) {
-              for (const peer of stream.peers.filter(
-                (peer) => peer.userId === data.id
-              )) {
-                peer.pc.close();
-
-                stream.peers = stream.peers.filter((peer2) => peer2 !== peer);
-              }
-            }
-
-            for (const stream of store.state.value.call.remoteStreams.filter(
-              (stream) => stream.userId === data.id
-            )) {
-              stream.pc.close();
-
-              store.state.value.call.remoteStreams =
-                store.state.value.call.remoteStreams.filter(
-                  (stream2) => stream2 !== stream
-                );
             }
           }
         }
