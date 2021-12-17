@@ -1742,10 +1742,23 @@ export class Socket {
         }
 
         if (dataDecrypted.mt === CallRTCType.RemoteTrackICECandidate) {
-          const stream = store.state.value.call.remoteStreams.find(
-            (stream) =>
-              stream.userId === data.userId && stream.type === dataDecrypted.st
-          );
+          let stream: ICallRemoteStream | undefined;
+
+          for (let i = 0; i < 10; ++i) {
+            stream = store.state.value.call.remoteStreams.find(
+              (stream) =>
+                stream.userId === data.userId &&
+                stream.type === dataDecrypted.st
+            );
+
+            if (stream) {
+              break;
+            } else {
+              await new Promise((resolve) => {
+                setTimeout(resolve, 100);
+              });
+            }
+          }
 
           if (!stream) {
             console.warn("SCallRTC+RemoteTrackICECandidate missing stream");
