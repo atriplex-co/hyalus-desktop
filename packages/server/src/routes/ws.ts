@@ -541,7 +541,7 @@ export class Socket {
           );
 
           if (oldUserCallCocket) {
-            oldUserCallCocket.send({
+            await oldUserCallCocket.send({
               t: SocketMessageType.SCallReset,
             });
           }
