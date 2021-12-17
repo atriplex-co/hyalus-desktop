@@ -170,7 +170,7 @@ import AirplaneIcon from "../icons/AirplaneIcon.vue";
 import MessageItem from "../components/MessageItem.vue";
 import GroupNameModal from "../components/GroupNameModal.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
-import ChannelInfo from "../components/ChannelCall.vue";
+import ChannelInfo from "../components/ChannelInfo.vue";
 import { ref, computed, onMounted, onUnmounted, Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { axios, processMessageVersions, store } from "../store";
