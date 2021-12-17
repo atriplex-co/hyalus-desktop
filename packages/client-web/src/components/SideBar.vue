@@ -15,17 +15,6 @@
             <SideBarStatusPicker :show="menu === 'status'" @close="menu = ''" />
           </div>
         </div>
-        <router-link
-          v-if="store.state.value.call"
-          class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400"
-          :class="{
-            'text-primary-400': active === 'call',
-          }"
-          to="/call"
-          @click="active = 'call'"
-        >
-          <PhoneIcon class="w-6 h-6" />
-        </router-link>
         <div
           class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400"
           :class="{
@@ -95,7 +84,6 @@ import ChatIcon from "../icons/ChatIcon.vue";
 import GroupIcon from "../icons/GroupIcon.vue";
 import FriendsIcon from "../icons/FriendsIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
-import PhoneIcon from "../icons/PhoneIcon.vue";
 import RefreshIcon from "../icons/RefreshIcon.vue";
 import SideBarChannelList from "./SideBarChannelList.vue";
 import SideBarSettings from "./SideBarSettings.vue";

@@ -68,6 +68,18 @@
           </div>
         </div>
       </div>
+      <transition
+        enter-active-class="transition transform ease-out duration-100 origin-top"
+        enter-from-class="opacity-0 scale-y-95"
+        enter-to-class="opacity-100 scale-y-100"
+        leave-active-class="transition transform ease-in duration-75 origin-top"
+        leave-from-class="opacity-100 scale-y-100"
+        leave-to-class="opacity-0 scale-y-95"
+      >
+        <div v-if="inCall" class="h-[50vh] w-full flex">
+          <ChannelCall />
+        </div>
+      </transition>
       <p
         v-if="!writable"
         class="px-4 py-2 text-sm bg-gray-900 border-b border-gray-700"
@@ -155,7 +167,7 @@ import AirplaneIcon from "../icons/AirplaneIcon.vue";
 import MessageItem from "../components/MessageItem.vue";
 import GroupNameModal from "../components/GroupNameModal.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
-import ChannelInfo from "../components/ChannelInfo.vue";
+import ChannelInfo from "../components/ChannelCall.vue";
 import { ref, computed, onMounted, onUnmounted, Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { axios, processMessageVersions, store } from "../store";
@@ -167,6 +179,7 @@ import {
 } from "common";
 import sodium from "libsodium-wrappers";
 import { idbSet } from "../util";
+import ChannelCall from "../components/ChannelCall.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -255,6 +268,13 @@ const writable = computed(() => {
   }
 
   return true;
+});
+
+const inCall = computed(() => {
+  return (
+    store.state.value.call &&
+    store.state.value.call.channelId === channel.value?.id
+  );
 });
 
 const getMessages = async (method: "before" | "after") => {
@@ -484,7 +504,6 @@ const callStart = async (e: MouseEvent) => {
   }
 
   await store.callStart(channel.value.id);
-  await router.push("/call");
 
   if (!e.shiftKey) {
     await store.callAddLocalStream({

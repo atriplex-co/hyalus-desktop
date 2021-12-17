@@ -99,22 +99,6 @@ export const router = createRouter({
       beforeEnter: requireAuth,
     },
     {
-      name: "call",
-      path: "/call",
-      component: () => import("../views/CallView.vue"),
-      beforeEnter: (
-        to: RouteLocationNormalized,
-        from: RouteLocationNormalized,
-        next: NavigationGuardNext
-      ) => {
-        if (!store.state.value.call) {
-          return next("/app");
-        }
-
-        next();
-      },
-    },
-    {
       name: "add",
       path: "/add/:username",
       component: () => import("../views/AppView.vue"),

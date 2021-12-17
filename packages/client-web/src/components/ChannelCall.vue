@@ -2,7 +2,7 @@
   <div class="flex-1 flex">
     <div v-if="store.state.value.call" class="flex-1 flex flex-col p-2">
       <div ref="tileContainer" class="flex-1 relative">
-        <VoiceTile
+        <ChannelCallTile
           v-for="tile in tiles"
           :key="getTileId(tile)"
           class="absolute"
@@ -79,25 +79,21 @@
 <script lang="ts" setup>
 import VideoIcon from "../icons/VideoIcon.vue";
 import DisplayIcon from "../icons/DisplayIcon.vue";
-import DesktopCaptureModal from "../components/DesktopCaptureModal.vue";
-import VoiceTile from "../components/VoiceTile.vue";
+import DesktopCaptureModal from "./DesktopCaptureModal.vue";
+import ChannelCallTile from "./ChannelCallTile.vue";
 import CallEndIcon from "../icons/CallEndIcon.vue";
 import MicIcon from "../icons/MicIcon.vue";
 import MicOffIcon from "../icons/MicOffIcon.vue";
 import VideoOffIcon from "../icons/VideoOffIcon.vue";
 import AudioIcon from "../icons/AudioIcon.vue";
 import AudioOffIcon from "../icons/AudioOffIcon.vue";
-import { ref, computed, onMounted, onUnmounted, Ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, onMounted, Ref } from "vue";
 import { ICallTile, store } from "../store";
 import { CallStreamType, SocketMessageType } from "common";
 
 const isDesktop = !!window.HyalusDesktop;
-const router = useRouter();
 const desktopCaptureModal = ref(false);
 const tileContainer = ref(null) as Ref<HTMLDivElement | null>;
-let lastChannelId: string;
-let updateInterval: number;
 
 const getTileId = (tile: ICallTile) => {
   return `${tile.user.id}:${tile.stream?.type}`;
@@ -198,21 +194,6 @@ const toggleStream = async (type: CallStreamType) => {
       type,
     });
   }
-};
-
-const update = async () => {
-  if (!store.state.value.call || !channel.value) {
-    if (lastChannelId) {
-      await router.push(`/channels/${lastChannelId}`);
-    } else {
-      await router.push("/app");
-    }
-
-    return;
-  }
-
-  lastChannelId = channel.value.id;
-  document.title = `Hyalus \u2022 ${channel.value.name}`;
 };
 
 const updateTileBounds = () => {
@@ -344,10 +325,4 @@ onMounted(() => {
     childList: true,
   });
 });
-
-onUnmounted(() => {
-  clearInterval(updateInterval);
-});
-
-updateInterval = +setInterval(update, 100);
 </script>
