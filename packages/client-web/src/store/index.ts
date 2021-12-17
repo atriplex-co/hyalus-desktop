@@ -21,6 +21,8 @@ import highlight from "highlight.js";
 import RnnoiseWasm from "@hyalusapp/rnnoise/rnnoise.wasm?url";
 import RnnoiseWorker from "../shared/rnnoiseWorker?url";
 
+let awayController: AbortController;
+
 export interface IState {
   ready: boolean;
   away: boolean;
@@ -629,8 +631,66 @@ export class Socket {
 
         store.state.value.updateCheck = updateCheck;
 
-        if (Notification.permission === "default") {
-          await Notification.requestPermission();
+        const initPermissions = async () => {
+          removeEventListener("mousemove", initPermissions);
+          removeEventListener("keydown", initPermissions);
+
+          if (window.Notification) {
+            try {
+              await Notification.requestPermission();
+            } catch {
+              //
+            }
+          }
+
+          if (window.IdleDetector) {
+            try {
+              await IdleDetector.requestPermission();
+            } catch {
+              // this will fail on desktop but still work fine.
+            }
+
+            try {
+              const awayDetector = new IdleDetector();
+              awayController = new AbortController();
+
+              awayDetector.addEventListener("change", () => {
+                const away = !(
+                  awayDetector.userState === "active" &&
+                  awayDetector.screenState === "unlocked"
+                );
+
+                if (store.state.value.away === away) {
+                  return;
+                }
+
+                store.state.value.away = away;
+
+                if (store.state.value.ready) {
+                  store.state.value.socket?.send({
+                    t: SocketMessageType.CSetAway,
+                    d: {
+                      away,
+                    },
+                  });
+                }
+              });
+
+              await awayDetector.start({
+                threshold: 1000 * 60 * 10,
+                signal: awayController.signal,
+              });
+            } catch {
+              //
+            }
+          }
+        };
+
+        if (!window.HyalusDesktop) {
+          addEventListener("mousedown", initPermissions);
+          addEventListener("keydown", initPermissions);
+        } else {
+          await initPermissions();
         }
       }
 

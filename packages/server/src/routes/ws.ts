@@ -618,6 +618,24 @@ export class Socket {
             },
           });
         }
+
+        if (msg.t === SocketMessageType.CSetAway) {
+          const data = msg.d as {
+            away: boolean;
+          };
+
+          const { error } = Joi.object({
+            away: Joi.bool().required(),
+          }).validate(data);
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          this.away = data.away;
+
+          await propagateStatusUpdate(this.session.userId);
+        }
       } catch (e: unknown) {
         if (process.env.NODE_ENV !== "production") {
           console.log(e);

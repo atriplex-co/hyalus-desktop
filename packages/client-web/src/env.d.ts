@@ -8,6 +8,15 @@ declare module "*.vue" {
   export default component;
 }
 
+declare class IdleDetector {
+  constructor();
+  static requestPermission(): Promise<string>;
+  start(opts: { threshold: number; signal: AbortSignal }): Promise<void>;
+  addEventListener(event: string, cb: () => void): void;
+  userState: "active" | "idle";
+  screenState: "unlocked" | "locked";
+}
+
 declare interface Window {
   debugStart(): void;
   debugStop(): void;
@@ -25,4 +34,5 @@ declare interface Window {
       thumbnail: string;
     }>[];
   };
+  IdleDetector?: IdleDetector;
 }
