@@ -29,6 +29,7 @@ import SoundNavigateForward from "../assets/sounds/navigation_forward-selection.
 import SoundNavigateForwardMin from "../assets/sounds/navigation_forward-selection-minimal.ogg";
 import ImageIcon from "../assets/images/icon-background.png";
 
+let updateCheck: string;
 let awayController: AbortController;
 
 export interface IState {
@@ -36,7 +37,6 @@ export interface IState {
   away: boolean;
   config: IConfig;
   socket?: Socket;
-  updateCheck: string;
   updateAvailable: boolean;
   updateRequired: boolean;
   user?: IUser;
@@ -581,6 +581,7 @@ export class Socket {
         if (data.proto !== SocketProtocol) {
           store.state.value.updateAvailable = true;
           store.state.value.updateRequired = true;
+          this.ws.close();
           return;
         }
 
@@ -709,20 +710,17 @@ export class Socket {
         await store.writeConfig("colorTheme", data.user.colorTheme);
 
         try {
-          const { data: updateCheck } = await axios.get("/", {
+          const { data } = await axios.get("/", {
             headers: {
               accept: "*/*",
             },
           });
 
-          if (
-            store.state.value.updateCheck &&
-            store.state.value.updateCheck !== updateCheck
-          ) {
+          if (updateCheck && updateCheck !== data) {
             store.state.value.updateAvailable = true;
           }
 
-          store.state.value.updateCheck = updateCheck;
+          updateCheck = data;
         } catch {
           //
         }
@@ -1876,7 +1874,6 @@ export const store = {
       notifySystem: true,
       betaBanner: true,
     },
-    updateCheck: "",
     updateAvailable: false,
     updateRequired: false,
     sessions: [],
