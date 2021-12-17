@@ -42,7 +42,7 @@
       <UserAvatar
         v-else
         :id="tile.user.avatarId"
-        class="w-32 h-32 rounded-full shadow-2xl"
+        class="w-[25%] rounded-full shadow-2xl"
       />
       <div
         v-if="controls"
@@ -106,6 +106,10 @@ const main = ref(null) as Ref<HTMLDivElement | null>;
 let controlsTimeout: number;
 
 const expand = async () => {
+  if (!main.value) {
+    return;
+  }
+
   try {
     await document.exitFullscreen();
   } catch {
