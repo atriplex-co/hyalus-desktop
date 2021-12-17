@@ -27,10 +27,10 @@
 import moment from "moment";
 import UserAvatar from "./UserAvatar.vue";
 import EmptyAvatar from "./EmptyAvatar.vue";
-import { defineProps, ref, onBeforeUnmount, computed, PropType } from "vue";
+import { defineProps, ref, computed, PropType, onUnmounted } from "vue";
 import { IChannel } from "../store";
 import { useRoute } from "vue-router";
-import { ChannelType } from "common";
+import { ChannelType, MessageType } from "common";
 
 const props = defineProps({
   channel: {
@@ -48,7 +48,13 @@ const lastMessage = computed(() => {
     return "No messages yet";
   }
 
-  return message.versions[0].dataString;
+  let ret = message.versions[0].dataString;
+
+  if (message.type === MessageType.Attachment) {
+    ret = JSON.parse(message.versions[0].dataString).name;
+  }
+
+  return ret;
 });
 
 const selected = computed(() => {
@@ -122,7 +128,7 @@ let updateLastMessageTimeInterval: number;
 updateLastMessageTime();
 updateLastMessageTimeInterval = +setInterval(updateLastMessageTime, 1000);
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   clearInterval(updateLastMessageTimeInterval);
 });
 </script>
