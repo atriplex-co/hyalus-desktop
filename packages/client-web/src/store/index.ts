@@ -714,14 +714,14 @@ export class Socket {
               accept: "*/*",
             },
           });
-  
+
           if (
             store.state.value.updateCheck &&
             store.state.value.updateCheck !== updateCheck
           ) {
             store.state.value.updateAvailable = true;
           }
-  
+
           store.state.value.updateCheck = updateCheck;
         } catch {
           //
