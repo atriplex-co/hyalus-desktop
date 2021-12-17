@@ -76,7 +76,10 @@
         leave-from-class="opacity-100 scale-y-100"
         leave-to-class="opacity-0 scale-y-95"
       >
-        <div v-if="inCall" class="h-[50vh] w-full flex">
+        <div
+          v-if="inCall"
+          class="h-[50vh] w-full flex border-b border-gray-700 bg-gray-900"
+        >
           <ChannelCall />
         </div>
       </transition>
