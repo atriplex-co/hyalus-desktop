@@ -487,7 +487,10 @@ const callStart = async (e: MouseEvent) => {
   await router.push("/call");
 
   if (!e.shiftKey) {
-    await store.callAddLocalStream(CallStreamType.Audio);
+    await store.callAddLocalStream({
+      type: CallStreamType.Audio,
+      silent: true,
+    });
   }
 };
 

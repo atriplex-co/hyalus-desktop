@@ -185,14 +185,18 @@ const tiles = computed(() => {
 
 const toggleStream = async (type: CallStreamType) => {
   if (getComputedStream(type).value) {
-    await store.callRemoveLocalStream(type);
+    await store.callRemoveLocalStream({
+      type,
+    });
   } else {
     if (type === CallStreamType.Display && window.HyalusDesktop) {
       desktopCaptureModal.value = true;
       return;
     }
 
-    await store.callAddLocalStream(type);
+    await store.callAddLocalStream({
+      type,
+    });
   }
 };
 

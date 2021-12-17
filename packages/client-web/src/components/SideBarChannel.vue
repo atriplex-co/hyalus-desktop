@@ -51,7 +51,11 @@ const lastMessage = computed(() => {
   let ret = message.versions[0].dataString;
 
   if (message.type === MessageType.Attachment) {
-    ret = JSON.parse(message.versions[0].dataString).name;
+    try {
+      ret = JSON.parse(message.versions[0].dataString).name;
+    } catch {
+      //
+    }
   }
 
   return ret;

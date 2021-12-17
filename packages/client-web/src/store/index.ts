@@ -20,6 +20,14 @@ import MarkdownItLinkAttr from "markdown-it-link-attributes";
 import highlight from "highlight.js";
 import RnnoiseWasm from "@hyalusapp/rnnoise/rnnoise.wasm?url";
 import RnnoiseWorker from "../shared/rnnoiseWorker?url";
+import SoundNotification from "../assets/sounds/notification_simple-01.ogg";
+import SoundStateUp from "../assets/sounds/state-change_confirm-up.ogg";
+import SoundStateDown from "../assets/sounds/state-change_confirm-down.ogg";
+import SoundNavigateBackward from "../assets/sounds/navigation_backward-selection.ogg";
+import SoundNavigateBackwardMin from "../assets/sounds/navigation_backward-selection-minimal.ogg";
+import SoundNavigateForward from "../assets/sounds/navigation_forward-selection.ogg";
+import SoundNavigateForwardMin from "../assets/sounds/navigation_forward-selection-minimal.ogg";
+import ImageIcon from "../assets/images/icon-background.png";
 
 let awayController: AbortController;
 
@@ -375,6 +383,90 @@ export const processMessageVersions = (opts: {
   }
 
   return versions;
+};
+
+export const notifySend = (opts: {
+  icon: string;
+  title: string;
+  body: string;
+}) => {
+  if (store.state.value.user?.wantStatus === Status.Busy) {
+    return;
+  }
+
+  if (store.state.value.config.notifySound) {
+    try {
+      const el = document.createElement("audio");
+      el.src = SoundNotification;
+      el.volume = 0.2;
+      el.play();
+    } catch {
+      //
+    }
+  }
+
+  if (store.state.value.config.notifySystem) {
+    try {
+      new Notification(opts.title, {
+        icon: opts.icon,
+        body: opts.body,
+        silent: true,
+      });
+    } catch {
+      //
+    }
+  }
+};
+
+export const notifyGetAvatarUrl = async (
+  avatarId: string | undefined
+): Promise<string> => {
+  if (!avatarId) {
+    return ImageIcon;
+  }
+
+  const { data, headers } = await axios.get(`/api/avatars/${avatarId}`, {
+    responseType: "blob",
+  });
+
+  const url = URL.createObjectURL(data);
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000 * 5);
+
+  if (headers["content-type"].split("/")[0] === "image") {
+    return url;
+  } else {
+    return await new Promise((resolve) => {
+      const video = document.createElement("video");
+
+      video.addEventListener("error", () => {
+        resolve(ImageIcon);
+      });
+
+      video.addEventListener("loadedmetadata", () => {
+        video.currentTime = 0;
+      });
+
+      video.addEventListener("seeked", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        (canvas.getContext("2d") as CanvasRenderingContext2D).drawImage(
+          video,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        resolve(canvas.toDataURL());
+      });
+
+      video.autoplay = true;
+      video.muted = true;
+      video.src = url;
+    });
+  }
 };
 
 export class Socket {
@@ -793,6 +885,14 @@ export class Socket {
           accepted: false,
           acceptable: data.acceptable,
         });
+
+        if (data.acceptable) {
+          notifySend({
+            icon: await notifyGetAvatarUrl(data.avatarId),
+            title: data.name,
+            body: `${data.name} sent a friend request`,
+          });
+        }
       }
 
       if (msg.t === SocketMessageType.SFriendUpdate) {
@@ -1193,6 +1293,48 @@ export class Socket {
 
         if (msg.t === store.state.value.expectedEvent) {
           await router.push(`/channels/${data.channelId}`);
+        }
+
+        const user = channel.users.find((user) => user.id === data.userId);
+
+        if (!user) {
+          return; // also prevents us from getting notifs from ourselves, unlike some apps...
+        }
+
+        if (
+          !(
+            document.visibilityState === "visible" &&
+            router.currentRoute.value.path === `/channels/${channel.id}`
+          )
+        ) {
+          let title = user.name;
+          let body = "";
+
+          if (channel.name) {
+            title += ` (${channel.name})`;
+          }
+
+          if (versions && versions[0].dataString) {
+            body = versions[0].dataString;
+          }
+
+          if (data.type === MessageType.Attachment) {
+            try {
+              body = JSON.parse(body).name;
+            } catch {
+              //
+            }
+          }
+
+          if (!body) {
+            return;
+          }
+
+          notifySend({
+            icon: await notifyGetAvatarUrl(user.avatarId),
+            title,
+            body,
+          });
         }
       }
 
@@ -1858,8 +2000,12 @@ export const store = {
         (stream) => stream.type === CallStreamType.Audio
       )
     ) {
-      await this.callRemoveLocalStream(CallStreamType.Audio);
-      await this.callAddLocalStream(CallStreamType.Audio);
+      await this.callRemoveLocalStream({
+        type: CallStreamType.Audio,
+      });
+      await this.callAddLocalStream({
+        type: CallStreamType.Audio,
+      });
     }
 
     if (
@@ -1869,8 +2015,12 @@ export const store = {
         (stream) => stream.type === CallStreamType.Audio
       )
     ) {
-      await this.callRemoveLocalStream(CallStreamType.Video);
-      await this.callAddLocalStream(CallStreamType.Video);
+      await this.callRemoveLocalStream({
+        type: CallStreamType.Video,
+      });
+      await this.callAddLocalStream({
+        type: CallStreamType.Video,
+      });
     }
 
     return v;
@@ -1989,16 +2139,17 @@ export const store = {
       d: pc.localDescription?.sdp,
     });
   },
-  async callAddLocalStream(
-    type: CallStreamType,
-    track?: MediaStreamTrack
-  ): Promise<void> {
+  async callAddLocalStream(opts: {
+    type: CallStreamType;
+    track?: MediaStreamTrack;
+    silent?: boolean;
+  }): Promise<void> {
     if (!store.state.value.call) {
       console.warn("callAddLocalStream missing call");
       return;
     }
 
-    if (!track && type === CallStreamType.Audio) {
+    if (!opts.track && opts.type === CallStreamType.Audio) {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: {
@@ -2067,20 +2218,20 @@ export const store = {
       worklet.connect(gain2);
       gain2.connect(dest);
 
-      track = dest.stream.getTracks()[0];
+      opts.track = dest.stream.getTracks()[0];
 
-      const _stop = track.stop.bind(track);
-      track.stop = () => {
+      const _stop = opts.track.stop.bind(opts.track);
+      opts.track.stop = () => {
         _stop();
         stream.getTracks()[0].stop();
         ctx.close();
       };
     }
 
-    if (!track && type === CallStreamType.Video) {
+    if (!opts.track && opts.type === CallStreamType.Video) {
       const [height, frameRate] = this.state.value.config.videoMode.split("p");
 
-      track = (
+      opts.track = (
         await navigator.mediaDevices.getUserMedia({
           video: {
             deviceId: this.state.value.config.videoInput,
@@ -2091,7 +2242,7 @@ export const store = {
       ).getTracks()[0];
     }
 
-    if (!track && type === CallStreamType.Display) {
+    if (!opts.track && opts.type === CallStreamType.Display) {
       const [height, frameRate] = this.state.value.config.videoMode.split("p");
 
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -2108,31 +2259,34 @@ export const store = {
       });
 
       for (const track of stream.getTracks()) {
-        if (track.kind === "video") {
-          await this.callAddLocalStream(CallStreamType.Display, track);
-        }
-
-        if (track.kind === "audio") {
-          await this.callAddLocalStream(CallStreamType.DisplayAudio, track);
-        }
+        await this.callAddLocalStream({
+          type:
+            track.kind === "video"
+              ? CallStreamType.Display
+              : CallStreamType.DisplayAudio,
+          track,
+          silent: track.kind !== "video",
+        });
       }
     }
 
-    if (!track) {
+    if (!opts.track) {
       console.warn("callAddLocalStream missing track");
       return;
     }
 
     const stream: ICallLocalStream = {
-      type,
-      track,
+      type: opts.type,
+      track: opts.track,
       peers: [],
     };
 
     store.state.value.call.localStreams.push(stream);
 
-    track.addEventListener("ended", async () => {
-      await this.callRemoveLocalStream(stream.type);
+    opts.track.addEventListener("ended", async () => {
+      await this.callRemoveLocalStream({
+        type: stream.type,
+      });
     });
 
     const channel = store.state.value.channels.find(
@@ -2146,15 +2300,29 @@ export const store = {
     for (const user of channel.users.filter((user) => user.inCall)) {
       await this.callSendLocalStream(stream, user.id);
     }
+
+    if (!opts.silent) {
+      try {
+        const el = document.createElement("audio");
+        el.src = SoundNavigateForward;
+        el.volume = 0.2;
+        el.play();
+      } catch {
+        // prevents sound from playing twice.
+      }
+    }
   },
-  async callRemoveLocalStream(type: CallStreamType): Promise<void> {
+  async callRemoveLocalStream(opts: {
+    type: CallStreamType;
+    silent?: boolean;
+  }): Promise<void> {
     if (!store.state.value.call) {
       console.warn("callRemoveLocalStream missing call");
       return;
     }
 
     const stream = store.state.value.call.localStreams.find(
-      (stream) => stream.type === type
+      (stream) => stream.type === opts.type
     );
 
     if (!stream) {
@@ -2169,8 +2337,19 @@ export const store = {
 
     stream.track.stop();
 
-    for (const { pc: peer } of stream.peers) {
-      peer.close();
+    for (const { pc } of stream.peers) {
+      pc.close();
+    }
+
+    if (!opts.silent) {
+      try {
+        const el = document.createElement("audio");
+        el.src = SoundNavigateBackward;
+        el.volume = 0.2;
+        el.play();
+      } catch {
+        //
+      }
     }
   },
   async callStart(channelId: string): Promise<void> {
@@ -2188,6 +2367,15 @@ export const store = {
         channelId,
       },
     });
+
+    try {
+      const el = document.createElement("audio");
+      el.src = SoundStateUp;
+      el.volume = 0.2;
+      el.play();
+    } catch {
+      //
+    }
   },
   async callReset(): Promise<void> {
     if (!store.state.value.call) {
@@ -2207,6 +2395,15 @@ export const store = {
     }
 
     delete store.state.value.call;
+
+    try {
+      const el = document.createElement("audio");
+      el.src = SoundStateDown;
+      el.volume = 0.2;
+      el.play();
+    } catch {
+      //
+    }
   },
   async callSetDeaf(val: boolean) {
     if (!store.state.value.call) {
@@ -2222,5 +2419,14 @@ export const store = {
     }
 
     store.state.value.call.deaf = val;
+
+    try {
+      const el = document.createElement("audio");
+      el.src = val ? SoundNavigateBackwardMin : SoundNavigateForwardMin;
+      el.volume = 0.2;
+      el.play();
+    } catch {
+      //
+    }
   },
 };
