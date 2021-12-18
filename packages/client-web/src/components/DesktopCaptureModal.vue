@@ -86,7 +86,11 @@ const submit = async () => {
           maxFrameRate,
         },
       },
-      audio: selectedAudio.value,
+      audio: selectedAudio.value && {
+        mandatory: {
+          chromeMediaSource: "desktop",
+        },
+      },
       // what a pile of shit...
       // eslint-disable-next-line no-undef
     } as unknown as MediaStreamConstraints);
