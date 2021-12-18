@@ -637,7 +637,11 @@ onMounted(async () => {
   }
 
   new IntersectionObserver(async () => {
-    const rect = (root.value as HTMLDivElement).getBoundingClientRect();
+    if (!root.value) {
+      return;
+    }
+
+    const rect = root.value.getBoundingClientRect();
 
     if (!(rect.top > 0 && rect.bottom < innerHeight)) {
       return;
