@@ -2433,6 +2433,17 @@ export const store = {
     }
 
     await updateCallPersist();
+
+    if (
+      opts.type === CallStreamType.Display &&
+      this.state.value.call?.localStreams.find(
+        (stream) => stream.type === CallStreamType.DisplayAudio
+      )
+    ) {
+      await this.callRemoveLocalStream({
+        type: CallStreamType.DisplayAudio,
+      });
+    }
   },
   async callStart(channelId: string): Promise<void> {
     store.state.value.call = {
