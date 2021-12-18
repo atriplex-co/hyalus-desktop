@@ -2018,9 +2018,11 @@ export const store = {
     ) {
       await this.callRemoveLocalStream({
         type: CallStreamType.Audio,
+        silent: true,
       });
       await this.callAddLocalStream({
         type: CallStreamType.Audio,
+        silent: true,
       });
     }
 
@@ -2033,9 +2035,11 @@ export const store = {
     ) {
       await this.callRemoveLocalStream({
         type: CallStreamType.Video,
+        silent: true,
       });
       await this.callAddLocalStream({
         type: CallStreamType.Video,
+        silent: true,
       });
     }
 

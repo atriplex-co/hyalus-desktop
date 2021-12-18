@@ -104,12 +104,14 @@ const submit = async () => {
   }
 
   for (const track of stream.getTracks()) {
-    await store.callAddLocalStream(
-      track.kind === "video"
-        ? CallStreamType.Display
-        : CallStreamType.DisplayAudio,
-      track
-    );
+    await store.callAddLocalStream({
+      type:
+        track.kind === "video"
+          ? CallStreamType.Display
+          : CallStreamType.DisplayAudio,
+      track,
+      silent: track.kind !== "video",
+    });
   }
 
   emit("close");
