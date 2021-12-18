@@ -70,6 +70,7 @@ export interface IConfig {
   salt?: Uint8Array;
   publicKey?: Uint8Array;
   privateKey?: Uint8Array;
+  callPersist?: string;
 }
 
 export interface ICall {
@@ -78,6 +79,13 @@ export interface ICall {
   remoteStreams: ICallRemoteStream[];
   start: Date;
   deaf: boolean;
+  persistInterval: number;
+}
+
+export interface ICallPersist {
+  updated: number;
+  channelId: string;
+  localStreams: CallStreamType[];
 }
 
 export interface ICallLocalStream {
@@ -469,6 +477,21 @@ export const notifyGetAvatarUrl = async (
   }
 };
 
+export const updateCallPersist = async () => {
+  await store.writeConfig(
+    "callPersist",
+    store.state.value.call &&
+      JSON.stringify({
+        // idk why we JSON'd it but otherwise, IDB will shit itself.
+        updated: +new Date(),
+        channelId: store.state.value.call.channelId,
+        localStreams: store.state.value.call.localStreams.map(
+          (stream) => stream.type
+        ),
+      } as ICallPersist)
+  );
+};
+
 export class Socket {
   ws = new WebSocket(`${location.origin.replace("http", "ws")}/api/ws`);
   hooks: ISocketHook[] = [];
@@ -785,6 +808,35 @@ export class Socket {
           addEventListener("keydown", initPermissions);
         } else {
           await initPermissions();
+        }
+
+        // TODO: implement on web.
+        if (window.HyalusDesktop && store.state.value.config.callPersist) {
+          const callPersist = JSON.parse(
+            store.state.value.config.callPersist
+          ) as ICallPersist;
+
+          if (
+            +new Date() - callPersist.updated > 1000 * 60 * 5 ||
+            !store.state.value.channels.find(
+              (channel) => channel.id === callPersist.channelId
+            )
+          ) {
+            return;
+          }
+
+          await store.callStart(callPersist.channelId);
+
+          for (const stream of callPersist.localStreams) {
+            if ([CallStreamType.Audio].indexOf(stream) === -1) {
+              return;
+            }
+
+            await store.callAddLocalStream({
+              type: CallStreamType.Audio,
+              silent: true,
+            });
+          }
         }
       }
 
@@ -2337,6 +2389,8 @@ export const store = {
         // prevents sound from playing twice.
       }
     }
+
+    await updateCallPersist();
   },
   async callRemoveLocalStream(opts: {
     type: CallStreamType;
@@ -2377,6 +2431,8 @@ export const store = {
         //
       }
     }
+
+    await updateCallPersist();
   },
   async callStart(channelId: string): Promise<void> {
     store.state.value.call = {
@@ -2385,6 +2441,7 @@ export const store = {
       remoteStreams: [],
       start: new Date(),
       deaf: false,
+      persistInterval: +setInterval(updateCallPersist, 1000 * 30),
     };
 
     store.state.value.socket?.send({
@@ -2402,6 +2459,8 @@ export const store = {
     } catch {
       //
     }
+
+    await updateCallPersist();
   },
   async callReset(): Promise<void> {
     if (!store.state.value.call) {
@@ -2420,6 +2479,8 @@ export const store = {
       stream.pc.close();
     }
 
+    clearInterval(store.state.value.call.persistInterval);
+
     delete store.state.value.call;
 
     try {
@@ -2430,6 +2491,8 @@ export const store = {
     } catch {
       //
     }
+
+    await updateCallPersist();
   },
   async callSetDeaf(val: boolean) {
     if (!store.state.value.call) {
