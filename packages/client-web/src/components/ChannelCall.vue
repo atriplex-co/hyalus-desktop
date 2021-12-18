@@ -10,7 +10,7 @@
         />
       </div>
       <div class="flex items-center justify-center space-x-4 p-2">
-        <div @click="toggleStream(CallStreamType.Audio)">
+        <div @click="toggleStream(CallStreamType.Audio)($event)">
           <div
             class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
@@ -23,7 +23,7 @@
             <MicOffIcon v-else />
           </div>
         </div>
-        <div @click="toggleStream(CallStreamType.Video)">
+        <div @click="toggleStream(CallStreamType.Video)($event)">
           <div
             class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
@@ -41,7 +41,7 @@
             class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
           />
         </div>
-        <div @click="toggleStream(CallStreamType.Display)">
+        <div @click="toggleStream(CallStreamType.Display)($event)">
           <DisplayIcon
             class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
@@ -52,7 +52,7 @@
             }"
           />
         </div>
-        <div @click="store.callSetDeaf(!store.state.value.call?.deaf)">
+        <div @click="toggleDeaf">
           <div
             class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
             :class="{
@@ -179,12 +179,20 @@ const tiles = computed(() => {
   return tiles;
 });
 
-const toggleStream = async (type: CallStreamType) => {
+const toggleStream = (type: CallStreamType) => async (e: MouseEvent) => {
   if (getComputedStream(type).value) {
     await store.callRemoveLocalStream({
       type,
     });
   } else {
+    if (
+      type === CallStreamType.Audio &&
+      store.state.value.call?.deaf &&
+      !e.shiftKey
+    ) {
+      await store.callSetDeaf(false);
+    }
+
     if (type === CallStreamType.Display && window.HyalusDesktop) {
       desktopCaptureModal.value = true;
       return;
@@ -312,6 +320,17 @@ const stop = async () => {
   });
 
   await store.callReset();
+};
+
+const toggleDeaf = async (e: MouseEvent) => {
+  store.callSetDeaf(!store.state.value.call?.deaf);
+
+  if (!e.shiftKey && audioStream.value && store.state.value.call?.deaf) {
+    await store.callRemoveLocalStream({
+      type: CallStreamType.Audio,
+      silent: true,
+    });
+  }
 };
 
 onMounted(() => {
