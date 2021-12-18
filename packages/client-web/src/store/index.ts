@@ -1182,7 +1182,7 @@ export class Socket {
 
             store.state.value.call.remoteStreams =
               store.state.value.call.remoteStreams.filter(
-                (stream2) => stream2 !== stream
+                (stream2) => stream2.pc !== stream.pc
               );
           }
 
@@ -1455,8 +1455,8 @@ export class Socket {
           return;
         }
 
-        const peer = new RTCPeerConnection({ iceServers });
-        const dc = peer.createDataChannel("");
+        const pc = new RTCPeerConnection({ iceServers });
+        const dc = pc.createDataChannel("");
 
         const sendPayload = (val: unknown) => {
           const json = JSON.stringify(val);
@@ -1512,7 +1512,7 @@ export class Socket {
             console.debug("f_rtc/rx: %o", dataDecrypted);
 
             if (dataDecrypted.t === FileChunkRTCType.SDP) {
-              await peer.setRemoteDescription(
+              await pc.setRemoteDescription(
                 new RTCSessionDescription({
                   type: "answer",
                   sdp: dataDecrypted.d,
@@ -1521,14 +1521,14 @@ export class Socket {
             }
 
             if (dataDecrypted.t === FileChunkRTCType.ICECandidate) {
-              await peer.addIceCandidate(
+              await pc.addIceCandidate(
                 new RTCIceCandidate(JSON.parse(dataDecrypted.d))
               );
             }
           },
         });
 
-        peer.addEventListener("icecandidate", ({ candidate }) => {
+        pc.addEventListener("icecandidate", ({ candidate }) => {
           if (!candidate) {
             return;
           }
@@ -1539,8 +1539,8 @@ export class Socket {
           });
         });
 
-        peer.addEventListener("connectionstatechange", () => {
-          console.debug(`f_rtc/peer: ${peer.connectionState}`);
+        pc.addEventListener("connectionstatechange", () => {
+          console.debug(`f_rtc/peer: ${pc.connectionState}`);
         });
 
         dc.addEventListener("open", () => {
@@ -1555,19 +1555,20 @@ export class Socket {
           dc.send(""); //basically EOF.
 
           setTimeout(() => {
-            peer.close();
+            pc.close();
           }, 1000 * 10);
         });
 
         dc.addEventListener("close", () => {
+          pc.close();
           console.debug("f_rtc/dc: close");
         });
 
-        await peer.setLocalDescription(await peer.createOffer());
+        await pc.setLocalDescription(await pc.createOffer());
 
         sendPayload({
           t: FileChunkRTCType.SDP,
-          d: peer.localDescription?.sdp,
+          d: pc.localDescription?.sdp,
         });
       }
 
@@ -1710,6 +1711,7 @@ export class Socket {
           pc.addEventListener("datachannel", ({ channel: dc }) => {
             dc.addEventListener("close", () => {
               console.debug("c_rtc/dc: remoteStream close");
+              pc.close();
 
               if (!store.state.value.call) {
                 return;
@@ -2129,8 +2131,13 @@ export const store = {
 
     dc.addEventListener("close", async () => {
       console.debug("c_rtc/dc: localStream close");
+      pc.close();
 
       stream.peers = stream.peers.filter((peer2) => peer2.pc !== peer.pc);
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1000); //idk why but this works.
+      });
 
       if (
         store.state.value.ready &&
@@ -2138,7 +2145,8 @@ export const store = {
         stream.track.readyState === "live" &&
         store.state.value.channels
           .find((channel) => channel.id === store.state.value.call?.channelId)
-          ?.users.find((user) => user.id === userId)?.inCall
+          ?.users.find((user) => user.id === userId)?.inCall &&
+        !stream.peers.find((peer2) => peer2.userId === peer.userId)
       ) {
         await this.callSendLocalStream(stream, userId);
       }

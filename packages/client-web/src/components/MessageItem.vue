@@ -367,7 +367,7 @@ const fileDownload = async (save: boolean) => {
     let chunk = (await idbGet(`file:${hash}`)) as Uint8Array | undefined;
 
     if (!chunk) {
-      const peer = new RTCPeerConnection({ iceServers });
+      const pc = new RTCPeerConnection({ iceServers });
       const parts: Uint8Array[] = [];
       const tag = to_base64(randombytes_buf(16));
       let publicKey: Uint8Array | undefined;
@@ -406,7 +406,7 @@ const fileDownload = async (save: boolean) => {
       };
 
       await new Promise((resolve) => {
-        peer.addEventListener("icecandidate", ({ candidate }) => {
+        pc.addEventListener("icecandidate", ({ candidate }) => {
           if (!candidate) {
             return;
           }
@@ -417,7 +417,7 @@ const fileDownload = async (save: boolean) => {
           });
         });
 
-        peer.addEventListener("datachannel", ({ channel: dc }) => {
+        pc.addEventListener("datachannel", ({ channel: dc }) => {
           dc.addEventListener("open", () => {
             console.debug("f_rtc/dc: open");
           });
@@ -447,14 +447,14 @@ const fileDownload = async (save: boolean) => {
                 await idbSet(`file:${hash}`, chunk);
               }
 
-              peer.close();
+              pc.close();
               resolve(undefined);
             }
           });
         });
 
-        peer.addEventListener("connectionstatechange", () => {
-          console.debug(`f_rtc/peer: ${peer.connectionState}`);
+        pc.addEventListener("connectionstatechange", () => {
+          console.debug(`f_rtc/peer: ${pc.connectionState}`);
         });
 
         store.state.value.socket?.registerHook({
@@ -504,22 +504,22 @@ const fileDownload = async (save: boolean) => {
             console.debug("f_rtc/rx: %o", dataDecrypted);
 
             if (dataDecrypted.t === FileChunkRTCType.SDP) {
-              await peer.setRemoteDescription(
+              await pc.setRemoteDescription(
                 new RTCSessionDescription({
                   type: "offer",
                   sdp: dataDecrypted.d,
                 })
               );
-              await peer.setLocalDescription(await peer.createAnswer());
+              await pc.setLocalDescription(await pc.createAnswer());
 
               sendPayload({
                 t: FileChunkRTCType.SDP,
-                d: peer.localDescription?.sdp,
+                d: pc.localDescription?.sdp,
               });
             }
 
             if (dataDecrypted.t === FileChunkRTCType.ICECandidate) {
-              await peer.addIceCandidate(
+              await pc.addIceCandidate(
                 new RTCIceCandidate(JSON.parse(dataDecrypted.d))
               );
             }
@@ -632,12 +632,12 @@ onMounted(async () => {
   updateDate();
   updateDateInterval = +setInterval(updateDate, 1000 * 60);
 
-  new IntersectionObserver(async () => {
-    if (!root.value) {
-      return;
-    }
+  if (!root.value) {
+    return;
+  }
 
-    const rect = root.value.getBoundingClientRect();
+  new IntersectionObserver(async () => {
+    const rect = (root.value as HTMLDivElement).getBoundingClientRect();
 
     if (!(rect.top > 0 && rect.bottom < innerHeight)) {
       return;
