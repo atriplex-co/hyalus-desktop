@@ -28,7 +28,7 @@ import moment from "moment";
 import UserAvatar from "./UserAvatar.vue";
 import EmptyAvatar from "./EmptyAvatar.vue";
 import { defineProps, ref, computed, PropType, onUnmounted } from "vue";
-import { IChannel } from "../store";
+import { IChannel, IChannelUser, store, IUser } from "../store";
 import { useRoute } from "vue-router";
 import { ChannelType, MessageType } from "common";
 
@@ -48,11 +48,25 @@ const lastMessage = computed(() => {
     return "No messages yet";
   }
 
-  let ret = message.versions[0].dataString;
+  let user: IChannelUser | IUser | undefined;
+  let ret = "";
+
+  if (store.state.value.user && message.userId === store.state.value.user.id) {
+    user = store.state.value.user;
+  } else {
+    user = props.channel.users.find((user) => user.id === message.userId);
+  }
+
+  if (user) {
+    ret = `${user.name} \u2022 `;
+  }
+
+  ret += message.versions[0].dataString;
 
   if (message.type === MessageType.Attachment) {
     try {
-      ret = JSON.parse(message.versions[0].dataString).name;
+      ret = ret.slice(0, ret.length - message.versions[0].dataString.length);
+      ret += JSON.parse(message.versions[0].dataString).name;
     } catch {
       //
     }
