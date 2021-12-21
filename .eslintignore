@@ -1,2 +1,3 @@
-packages/web/tailwind.config.js
-packages/web/postcss.config.js
+packages/client-web/tailwind.config.js
+packages/client-web/postcss.config.js
+packages/client-desktop

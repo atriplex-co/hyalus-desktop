@@ -150,9 +150,17 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@hyalusapp/rnnoise@hyalusapp/rnnoise#e5c3ce698c04e18016a663e738ab465d61f194d6":
+"@hyalusapp/rnnoise@hyalusapp/rnnoise#de6d4dd":
+  version "0.0.3"
+  resolved "https://codeload.github.com/hyalusapp/rnnoise/tar.gz/de6d4dd9a824f68722dcb4182d3f14f4183d229e"
+
+"@hyalusapp/rnnoise@hyalusapp/rnnoise#e5c3ce6":
   version "0.0.2"
   resolved "https://codeload.github.com/hyalusapp/rnnoise/tar.gz/e5c3ce698c04e18016a663e738ab465d61f194d6"
+
+"@hyalusapp/win32-audio@hyalusapp/win32-audio#43d5350":
+  version "0.0.1"
+  resolved "https://codeload.github.com/hyalusapp/win32-audio/tar.gz/43d535026a6896a4e3a22def29b2e6a4843527c8"
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"

@@ -22,6 +22,7 @@ nativeTheme.themeSource = "dark";
 let mainWindow;
 let quitting;
 let started;
+let win32AudioCapturer;
 
 const start = () => {
   if (started) {
@@ -100,6 +101,21 @@ const restart = () => {
   app.releaseSingleInstanceLock();
   app.relaunch();
   app.quit();
+};
+
+const stopWin32AudioCapture = () => {
+  if (!win32AudioCapturer) {
+    return;
+  }
+
+  win32AudioCapturer.stop();
+  win32AudioCapturer = null;
+
+  for (const k of Object.keys(require.cache)) {
+    if (k.includes("@hyalusapp/win32-audio")) {
+      delete require.cache[k];
+    }
+  }
 };
 
 app.on("ready", () => {
@@ -203,4 +219,17 @@ ipcMain.handle("getSources", async () => {
     name: s.name,
     thumbnail: s.thumbnail.toDataURL(),
   }));
+});
+
+ipcMain.on("startWin32AudioCapture", (e, handle) => {
+  stopWin32AudioCapture();
+
+  win32AudioCapturer = require("@hyalusapp/win32-audio");
+  win32AudioCapturer.start(handle, (val) => {
+    e.reply("win32AudioCaptureData", val);
+  });
+});
+
+ipcMain.on("stopWin32AudioCapture", () => {
+  stopWin32AudioCapture();
 });
