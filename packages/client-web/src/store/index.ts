@@ -828,7 +828,11 @@ export class Socket {
         }
 
         // TODO: implement on web.
-        if (window.HyalusDesktop && store.state.value.config.callPersist) {
+        if (
+          window.HyalusDesktop &&
+          store.state.value.config.callPersist &&
+          !store.state.value.call
+        ) {
           const callPersist = JSON.parse(
             store.state.value.config.callPersist
           ) as ICallPersist;
