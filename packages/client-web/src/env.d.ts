@@ -33,6 +33,13 @@ declare interface Window {
       name: string;
       thumbnail: string;
     }>[];
+    osPlatform: string;
+    osRelease: string;
+    startWin32AudioCapture(
+      handle: number,
+      cb: (data: Float32Array) => void
+    ): void;
+    stopWin32AudioCapture(): void;
   };
   IdleDetector?: IdleDetector;
 }

@@ -92,6 +92,7 @@ export interface ICallLocalStream {
   type: CallStreamType;
   track: MediaStreamTrack;
   peers: ICallLocalStreamPeer[];
+  context?: ICallLocalStreamContext;
 }
 
 export interface ICallLocalStreamPeer {
@@ -99,15 +100,21 @@ export interface ICallLocalStreamPeer {
   pc: RTCPeerConnection;
 }
 
+export interface ICallLocalStreamContext {
+  gain?: GainNode;
+}
+
 export interface ICallRemoteStream {
   userId: string;
   type: CallStreamType;
   pc: RTCPeerConnection;
   track: MediaStreamTrack;
-  audio?: {
-    el: unknown; // TS won't let us put IHTMLAudioElement in an interface for whatever fucking reason.
-    gain: GainNode;
-  };
+  context?: ICallRemoteStreamContext;
+}
+
+export interface ICallRemoteStreamContext {
+  el?: unknown; // TS won't let us put IHTMLAudioElement in an interface for whatever fucking reason.
+  gain?: GainNode;
 }
 
 export interface ICallTile {
@@ -490,6 +497,16 @@ export const updateCallPersist = async () => {
         ),
       } as ICallPersist)
   );
+};
+
+export const patchSdp = (
+  desc: RTCSessionDescriptionInit
+): RTCSessionDescriptionInit => {
+  desc.sdp = desc.sdp?.replaceAll(
+    "useinbandfec=1",
+    "useinbandfec=1;stereo=1;maxaveragebitrate=128000"
+  );
+  return desc;
 };
 
 export class Socket {
@@ -1748,7 +1765,7 @@ export class Socket {
                 el.setSinkId(store.state.value.config.audioOutput);
                 el.play();
 
-                stream.audio = {
+                stream.context = {
                   el,
                   gain,
                 };
@@ -1786,7 +1803,7 @@ export class Socket {
               sdp: dataDecrypted.d,
             })
           );
-          await pc.setLocalDescription(await pc.createAnswer());
+          await pc.setLocalDescription(patchSdp(await pc.createAnswer()));
 
           sendPayload({
             mt: CallRTCType.LocalTrackAnswer,
@@ -2034,24 +2051,20 @@ export const store = {
 
     if (k === "audioOutput" && this.state.value.call) {
       for (const stream of this.state.value.call.remoteStreams) {
-        if (!stream.audio) {
-          continue;
+        if (stream.context?.el) {
+          (stream.context.el as IHTMLAudioElement).setSinkId(
+            this.state.value.config.audioOutput
+          );
         }
-
-        (stream.audio.el as IHTMLAudioElement).setSinkId(
-          this.state.value.config.audioOutput
-        );
       }
     }
 
     if (k === "audioOutputGain" && this.state.value.call) {
       for (const stream of this.state.value.call.remoteStreams) {
-        if (!stream.audio) {
-          continue;
+        if (stream.context?.gain) {
+          stream.context.gain.gain.value =
+            this.state.value.config.audioOutputGain / 100;
         }
-
-        stream.audio.gain.gain.value =
-          this.state.value.config.audioOutputGain / 100;
       }
     }
 
@@ -2209,7 +2222,7 @@ export const store = {
     });
 
     pc.addTrack(stream.track);
-    await pc.setLocalDescription(await pc.createOffer());
+    await pc.setLocalDescription(patchSdp(await pc.createOffer()));
 
     sendPayload({
       mt: CallRTCType.RemoteTrackOffer,
@@ -2221,10 +2234,15 @@ export const store = {
     type: CallStreamType;
     track?: MediaStreamTrack;
     silent?: boolean;
+    context?: ICallLocalStreamContext;
   }): Promise<void> {
     if (!store.state.value.call) {
       console.warn("callAddLocalStream missing call");
       return;
+    }
+
+    if (!opts.context) {
+      opts.context = {};
     }
 
     if (!opts.track && opts.type === CallStreamType.Audio) {
@@ -2304,6 +2322,10 @@ export const store = {
         stream.getTracks()[0].stop();
         ctx.close();
       };
+
+      opts.context = {
+        gain,
+      };
     }
 
     if (!opts.track && opts.type === CallStreamType.Video) {
@@ -2357,6 +2379,7 @@ export const store = {
       type: opts.type,
       track: opts.track,
       peers: [],
+      context: opts.context,
     };
 
     store.state.value.call.localStreams.push(stream);
@@ -2511,11 +2534,9 @@ export const store = {
     }
 
     for (const stream of store.state.value.call.remoteStreams) {
-      if (!stream.audio) {
-        continue;
+      if (stream.context?.el) {
+        (stream.context.el as IHTMLAudioElement).volume = val ? 0 : 1;
       }
-
-      (stream.audio.el as IHTMLAudioElement).volume = val ? 0 : 1;
     }
 
     store.state.value.call.deaf = val;

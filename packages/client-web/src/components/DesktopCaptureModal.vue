@@ -32,7 +32,7 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
+      <div v-if="audioAvailable" class="flex items-center space-x-2">
         <InputBoolean v-model="selectedAudio" />
         <p class="text-sm text-gray-300">Share audio</p>
       </div>
@@ -47,6 +47,7 @@ import InputBoolean from "./InputBoolean.vue";
 import { ref, defineEmits, Ref, defineProps, watch } from "vue";
 import { store } from "../store";
 import { CallStreamType } from "common/src";
+import EchoWorker from "../shared/echoWorker?url";
 
 interface ISource {
   id: string;
@@ -67,6 +68,11 @@ const sources: Ref<ISource[]> = ref([]);
 const selectedSourceId = ref("");
 const selectedAudio = ref(false);
 
+const audioAvailable =
+  window.HyalusDesktop?.osPlatform === "win32" &&
+  +window.HyalusDesktop?.osRelease.split(".")[0] >= 10 &&
+  +window.HyalusDesktop?.osRelease.split(".")[2] >= 19041; // Win10 2004+/Win11 required.
+
 const submit = async () => {
   if (!selectedSourceId.value) {
     return;
@@ -74,6 +80,7 @@ const submit = async () => {
 
   const [maxHeight, maxFrameRate] =
     store.state.value.config.videoMode.split("p");
+
   let stream: MediaStream;
 
   try {
@@ -86,11 +93,12 @@ const submit = async () => {
           maxFrameRate,
         },
       },
-      audio: selectedAudio.value && {
-        mandatory: {
-          chromeMediaSource: "desktop",
+      audio: selectedAudio.value &&
+        selectedSourceId.value.startsWith("screen:") && {
+          mandatory: {
+            chromeMediaSource: "desktop",
+          },
         },
-      },
       // what a pile of shit...
       // eslint-disable-next-line no-undef
     } as unknown as MediaStreamConstraints);
@@ -99,7 +107,6 @@ const submit = async () => {
       selectedAudio.value = false;
       await submit();
     }
-
     return;
   }
 
@@ -118,6 +125,41 @@ const submit = async () => {
     });
   }
 
+  if (selectedAudio.value && selectedSourceId.value.startsWith("window:")) {
+    const context = new AudioContext();
+    await context.audioWorklet.addModule(EchoWorker);
+    const worklet = new AudioWorkletNode(context, "echo-processor", {
+      outputChannelCount: [2],
+    });
+    const dest = context.createMediaStreamDestination();
+
+    worklet.connect(dest);
+
+    window.HyalusDesktop?.startWin32AudioCapture(
+      +selectedSourceId.value.split(":")[1],
+      (data) => {
+        worklet.port.postMessage(data);
+      }
+    );
+
+    const track = dest.stream.getTracks()[0];
+
+    const _stop = track.stop.bind(track);
+    track.stop = () => {
+      _stop();
+      context.close();
+      window.HyalusDesktop?.stopWin32AudioCapture();
+    };
+
+    await store.callAddLocalStream({
+      type: CallStreamType.DisplayAudio,
+      track,
+      silent: true,
+    });
+  }
+
+  selectedAudio.value = false;
+  selectedSourceId.value = "";
   emit("close");
 };
 
