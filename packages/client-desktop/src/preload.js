@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   getSources: () => ipcRenderer.invoke("getSources"),
   osPlatform: os.platform(),
   osRelease: os.release(),
-  startWin32AudioCapture(handle) {
+  startWin32AudioCapture(handle, cb) {
     ipcRenderer.on("win32AudioCaptureData", (e, val) => {
       cb(val);
     });
