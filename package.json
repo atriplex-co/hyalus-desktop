@@ -1,26 +1,21 @@
 {
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "postinstall": "patch-package || true",
-    "dev": "concurrently yarn:dev:*",
-    "dev:server": "yarn workspace server dev",
-    "dev:client-web": "yarn workspace client-web dev",
-    "build": "concurrently yarn:build:*",
-    "build:server": "yarn workspace server build",
-    "build:client-web": "yarn workspace client-web build",
-    "build:client-desktop": "yarn workspace client-desktop build",
-    "start": "yarn workspace server start",
-    "test": "concurrently yarn:test:*",
-    "test:server": "yarn workspace server test",
-    "test:client-web": "yarn workspace client-web test",
-    "test:common": "yarn workspace common test",
+    "dev": "concurrently pnpm:dev:*",
+    "dev:server": "cd packages/server && pnpm dev",
+    "dev:client-web": "cd packages/client-web && pnpm dev",
+    "build": "concurrently pnpm:build:*",
+    "build:server": "cd packages/server && pnpm build",
+    "build:client-web": "cd packages/client-web && pnpm build",
+    "build:client-desktop": "cd packages/client-desktop && pnpm build",
+    "start": "cd packages/server && pnpm start",
+    "test": "concurrently pnpm:test:*",
+    "test:server": "cd packages/server && pnpm test",
+    "test:client-web": "cd packages/client-web && pnpm test",
+    "test:common": "cd packages/common && pnpm test",
     "lint": "eslint --fix --ext .ts,.vue .",
     "sloc": "find . -not \\( -regex '.*node_modules' -prune \\) -type f -regextype posix-extended -regex '.*\\.(js|ts|vue)' | xargs wc -l",
-    "release": "yarn concurrently yarn:release:*",
-    "release:client-desktop": "yarn workspace client-desktop release"
+    "release": "yarn concurrently pnpm:release:*",
+    "release:client-desktop": "cd packages/client-desktop && pnpm release"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.5.0",
@@ -30,7 +25,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.1.1",
-    "patch-package": "^6.4.7",
     "prettier": "^2.4.1"
-  }
+  },
+  "ignore_this": 128
 }
