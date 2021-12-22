@@ -28,11 +28,13 @@ declare interface Window {
     minimize(): void;
     restart(): void;
     quit(): void;
-    getSources(): Promise<{
-      id: string;
-      name: string;
-      thumbnail: string;
-    }>[];
+    getSources(): Promise<
+      {
+        id: string;
+        name: string;
+        thumbnail: string;
+      }[]
+    >;
     osPlatform: string;
     osRelease: string;
     startWin32AudioCapture(

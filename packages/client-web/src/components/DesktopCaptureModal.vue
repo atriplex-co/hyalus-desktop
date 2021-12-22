@@ -1,6 +1,6 @@
 <template>
   <ModalBase
-    title="Share desktop"
+    title="Share screen"
     submit-text="Share"
     :show="show"
     @submit="submit"
@@ -18,23 +18,26 @@
           <div
             v-for="source in sources"
             :key="source.id"
-            class="flex items-center justify-between py-2 px-3 space-x-2 cursor-pointer"
+            class="flex items-center justify-between px-3 py-2 space-x-3 cursor-pointer text-gray-300"
             :class="{
-              'hover:bg-gray-700 text-gray-300': selectedSourceId !== source.id,
-              'bg-gray-600 text-white': selectedSourceId === source.id,
+              'hover:bg-gray-900': selectedSourceId !== source.id,
+              'bg-gray-900': selectedSourceId === source.id,
             }"
             @click="selectedSourceId = source.id"
           >
             <div class="flex items-center w-full min-w-0 space-x-3">
-              <img class="w-12 rounded-sm shadow-sm" :src="source.thumbnail" />
+              <img
+                class="w-12 rounded-sm shadow-sm border border-gray-700"
+                :src="source.thumbnail"
+              />
               <p class="text-xs font-bold truncate">{{ source.name }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div v-if="audioAvailable" class="flex items-center space-x-2">
+      <div v-if="audioAvailable" class="flex items-center space-x-3 px-2">
         <InputBoolean v-model="selectedAudio" />
-        <p class="text-sm text-gray-300">Share audio</p>
+        <p>Share audio</p>
       </div>
     </template>
   </ModalBase>
@@ -44,7 +47,7 @@
 import ModalBase from "./ModalBase.vue";
 import DisplayIcon from "../icons/DisplayIcon.vue";
 import InputBoolean from "./InputBoolean.vue";
-import { ref, defineEmits, Ref, defineProps, watch } from "vue";
+import { ref, defineEmits, Ref, defineProps, watch, computed } from "vue";
 import { store } from "../store";
 import { CallStreamType } from "common/src";
 import EchoWorker from "../shared/echoWorker?url";
@@ -66,12 +69,16 @@ const emit = defineEmits(["close"]);
 
 const sources: Ref<ISource[]> = ref([]);
 const selectedSourceId = ref("");
-const selectedAudio = ref(false);
+const selectedAudio = ref(true);
 
-const audioAvailable =
-  window.HyalusDesktop?.osPlatform === "win32" &&
-  +window.HyalusDesktop?.osRelease.split(".")[0] >= 10 &&
-  +window.HyalusDesktop?.osRelease.split(".")[2] >= 19041; // Win10 2004+/Win11 required.
+const audioAvailable = computed(() => {
+  return (
+    (!selectedSourceId.value || selectedSourceId.value.startsWith("window:")) &&
+    window.HyalusDesktop?.osPlatform === "win32" &&
+    +window.HyalusDesktop?.osRelease.split(".")[0] >= 10 &&
+    +window.HyalusDesktop?.osRelease.split(".")[2] >= 19041 // Win10 2004+/Win11 required.
+  );
+});
 
 const submit = async () => {
   if (!selectedSourceId.value) {
@@ -93,39 +100,21 @@ const submit = async () => {
           maxFrameRate,
         },
       },
-      audio: selectedAudio.value &&
-        selectedSourceId.value.startsWith("screen:") && {
-          mandatory: {
-            chromeMediaSource: "desktop",
-          },
-        },
       // what a pile of shit...
       // eslint-disable-next-line no-undef
     } as unknown as MediaStreamConstraints);
   } catch {
-    if (selectedAudio.value) {
-      selectedAudio.value = false;
-      await submit();
-    }
-    return;
-  }
-
-  if (!stream) {
     return;
   }
 
   for (const track of stream.getTracks()) {
     await store.callAddLocalStream({
-      type:
-        track.kind === "video"
-          ? CallStreamType.Display
-          : CallStreamType.DisplayAudio,
+      type: CallStreamType.Display,
       track,
-      silent: track.kind !== "video",
     });
   }
 
-  if (selectedAudio.value && selectedSourceId.value.startsWith("window:")) {
+  if (audioAvailable.value && selectedAudio.value) {
     const context = new AudioContext();
     await context.audioWorklet.addModule(EchoWorker);
     const worklet = new AudioWorkletNode(context, "echo-processor", {
@@ -169,8 +158,13 @@ const updateSources = async () => {
   if (!window.HyalusDesktop) {
     return;
   }
-  sources.value =
-    (await window.HyalusDesktop.getSources()) as unknown as ISource[];
+
+  const _sources = await window.HyalusDesktop.getSources();
+
+  sources.value = [
+    ..._sources.filter((source) => source.id.startsWith("window:")),
+    ..._sources.filter((source) => source.id.startsWith("screen:")),
+  ];
 };
 
 watch(
