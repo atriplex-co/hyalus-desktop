@@ -6,7 +6,7 @@ COPY packages/common/package.json ./packages/common/package.json
 COPY packages/server/package.json ./packages/server/package.json
 COPY packages/client-web/package.json ./packages/client-web/package.json
 COPY patches ./patches
-RUN --mount=type=cache,target=/usr/local/share/.cache yarn
+RUN --mount=type=cache,target=/usr/local/share/.cache yarn --frozen-lockfile
 
 FROM alpine:latest as package-server
 RUN apk add nodejs yarn

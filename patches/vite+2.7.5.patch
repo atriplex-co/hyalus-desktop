@@ -1,5 +1,5 @@
 diff --git a/node_modules/vite/dist/client/client.mjs b/node_modules/vite/dist/client/client.mjs
-index c06f4f9..123346a 100644
+index 341610b..fe08b72 100644
 --- a/node_modules/vite/dist/client/client.mjs
 +++ b/node_modules/vite/dist/client/client.mjs
 @@ -185,7 +185,7 @@ console.log('[vite] connecting...');
