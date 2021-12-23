@@ -1,7 +1,11 @@
 <template>
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
+      <UserAvatar
+        :id="user.avatarId"
+        :status="status"
+        class="w-8 h-8 rounded-full"
+      />
       <div>
         <p class="font-bold">{{ user.name }}</p>
         <p class="text-xs text-gray-400">@{{ user.username }}</p>
@@ -46,6 +50,12 @@ const removable = computed(
     props.channel.owner &&
     props.user.id !== store.state.value.user?.id
 );
+
+const status = computed(() => {
+  return (
+    (props.user as IChannelUser).status ?? (props.user as IUser).wantStatus
+  );
+});
 
 const remove = async () => {
   await axios.delete(
