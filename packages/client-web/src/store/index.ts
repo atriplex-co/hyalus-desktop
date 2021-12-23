@@ -397,6 +397,8 @@ export const processMessageVersions = (opts: {
     }
   }
 
+  versions.sort((a, b) => (a.created > b.created ? 1 : -1));
+
   return versions;
 };
 
@@ -920,7 +922,7 @@ export class Socket {
         );
 
         if (!session) {
-          console.warn(`sessionUpdate for invalid session: ${data.id}`);
+          console.warn(`SSessionUpdate for invalid session: ${data.id}`);
           return;
         }
 
@@ -983,7 +985,7 @@ export class Socket {
         );
 
         if (!friend) {
-          console.warn(`friendUpdate for invalid ID: ${data.id}`);
+          console.warn(`SFriendUpdate for invalid ID: ${data.id}`);
           return;
         }
 
@@ -1130,7 +1132,7 @@ export class Socket {
         );
 
         if (!channel) {
-          console.warn(`channelUpdate for invalid channel: ${data.id}`);
+          console.warn(`SChannelUpdate for invalid channel: ${data.id}`);
           return;
         }
 
@@ -1218,7 +1220,7 @@ export class Socket {
         const user = channel.users.find((user) => user.id === data.id);
 
         if (!user) {
-          console.warn(`channelUserUpdate for invalid user: ${data.id}`);
+          console.warn(`SChannelUserUpdate for invalid user: ${data.id}`);
           return;
         }
 
@@ -1332,7 +1334,7 @@ export class Socket {
         );
 
         if (!channel) {
-          console.warn(`messageCreate for invalid channel: ${data.channelId}`);
+          console.warn(`SMessageCreate for invalid channel: ${data.channelId}`);
           return;
         }
 
@@ -1435,7 +1437,7 @@ export class Socket {
         );
 
         if (!channel) {
-          console.warn(`messageDelete for invalid channel: ${data.channelId}`);
+          console.warn(`SMessageDelete for invalid channel: ${data.channelId}`);
           return;
         }
 
@@ -1481,7 +1483,53 @@ export class Socket {
       }
 
       if (msg.t === SocketMessageType.SMessageVersionCreate) {
-        //
+        const data = msg.d as {
+          id: string;
+          channelId: string;
+          created: number;
+          data: string;
+          key?: string;
+        };
+
+        const channel = store.state.value.channels.find(
+          (channel) => channel.id === data.channelId
+        );
+
+        if (!channel) {
+          console.warn(
+            `messageVerionCreate for invalid channel: ${data.channelId}`
+          );
+          return;
+        }
+
+        const message = channel.messages.find(
+          (message) => message.id === data.id
+        );
+
+        if (!message) {
+          return;
+        }
+
+        const versions = processMessageVersions({
+          id: message.id,
+          userId: message.userId,
+          channel,
+          created: message.created,
+          type: message.type,
+          versions: [
+            {
+              created: data.created,
+              data: data.data,
+              key: data.key,
+            },
+          ],
+        });
+
+        if (!versions) {
+          return;
+        }
+
+        message.versions.push(...versions);
       }
 
       if (msg.t === SocketMessageType.SFileChunkRequest) {
@@ -1495,7 +1543,7 @@ export class Socket {
         const chunk = (await idbGet(`file:${data.hash}`)) as Uint8Array;
 
         if (!chunk) {
-          console.warn(`fileChunkRequest for invalid hash: ${data.hash}`);
+          console.warn(`SFileChunkRequest for invalid hash: ${data.hash}`);
           return;
         }
 
@@ -1524,7 +1572,7 @@ export class Socket {
         }
 
         if (!publicKey) {
-          console.warn(`fileChunkRequest for invalid user: ${data.userId}`);
+          console.warn(`SFileChunkRequest for invalid user: ${data.userId}`);
           return;
         }
 
@@ -1837,7 +1885,7 @@ export class Socket {
           }
 
           if (!stream) {
-            console.warn("SCallRTC+RemoteTrackICECandidate missing stream");
+            console.warn("SCallRTC + RemoteTrackICECandidate missing stream");
             return;
           }
 

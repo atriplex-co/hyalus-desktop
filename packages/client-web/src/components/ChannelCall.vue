@@ -93,7 +93,7 @@ import { CallStreamType, SocketMessageType } from "common";
 
 const isDesktop = !!window.HyalusDesktop;
 const desktopCaptureModal = ref(false);
-const tileContainer = ref(null) as Ref<HTMLDivElement | null>;
+const tileContainer: Ref<HTMLDivElement | null> = ref(null);
 
 const getTileId = (tile: ICallTile) => {
   return `${tile.user.id}:${tile.stream?.type}`;

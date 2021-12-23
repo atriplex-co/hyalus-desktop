@@ -49,7 +49,7 @@ import DisplayIcon from "../icons/DisplayIcon.vue";
 import InputBoolean from "./InputBoolean.vue";
 import { ref, defineEmits, Ref, defineProps, watch, computed } from "vue";
 import { store } from "../store";
-import { CallStreamType } from "common/src";
+import { CallStreamType } from "common";
 import EchoWorker from "../shared/echoWorker?url";
 
 interface ISource {

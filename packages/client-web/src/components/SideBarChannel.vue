@@ -28,7 +28,13 @@ import moment from "moment";
 import UserAvatar from "./UserAvatar.vue";
 import EmptyAvatar from "./EmptyAvatar.vue";
 import { defineProps, ref, computed, PropType, onUnmounted } from "vue";
-import { IChannel, IChannelUser, store, IUser } from "../store";
+import {
+  IChannel,
+  IChannelUser,
+  store,
+  IUser,
+  IMessageVersion,
+} from "../store";
 import { useRoute } from "vue-router";
 import { ChannelType, MessageType } from "common";
 
@@ -43,8 +49,9 @@ const lastMessageTime = ref("");
 
 const lastMessage = computed(() => {
   const message = props.channel.messages.at(-1);
+  const dataString = message && message.versions.at(-1)?.dataString;
 
-  if (!message || !message.versions[0].dataString) {
+  if (!message || !dataString) {
     return "No messages yet";
   }
 
@@ -61,12 +68,12 @@ const lastMessage = computed(() => {
     ret = `${user.name} \u2022 `;
   }
 
-  ret += message.versions[0].dataString;
+  ret += dataString;
 
   if (message.type === MessageType.Attachment) {
     try {
-      ret = ret.slice(0, ret.length - message.versions[0].dataString.length);
-      ret += JSON.parse(message.versions[0].dataString).name;
+      ret = ret.slice(0, ret.length - dataString.length);
+      ret += JSON.parse(dataString).name;
     } catch {
       //
     }

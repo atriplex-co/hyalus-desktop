@@ -101,8 +101,8 @@ const props = defineProps({
 
 const controls = ref(true);
 const isFullscreen = ref(false);
-const srcObject = ref(null) as Ref<MediaStream | null>;
-const main = ref(null) as Ref<HTMLDivElement | null>;
+const srcObject: Ref<MediaStream | null> = ref(null);
+const main: Ref<HTMLDivElement | null> = ref(null);
 let controlsTimeout: number;
 
 const expand = async () => {

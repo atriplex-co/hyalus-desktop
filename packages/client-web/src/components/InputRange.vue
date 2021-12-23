@@ -48,7 +48,7 @@ const props = defineProps({
   },
 });
 
-const input = ref(null) as Ref<HTMLInputElement | null>;
+const input: Ref<HTMLInputElement | null> = ref(null);
 const width = ref("0px");
 
 const update = () => {

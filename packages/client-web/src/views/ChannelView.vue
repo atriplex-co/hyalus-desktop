@@ -171,7 +171,7 @@ import MessageItem from "../components/MessageItem.vue";
 import GroupNameModal from "../components/GroupNameModal.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
 import ChannelInfo from "../components/ChannelInfo.vue";
-import { ref, computed, onMounted, onUnmounted, Ref } from "vue";
+import { ref, computed, onMounted, onUnmounted, Ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { axios, processMessageVersions, store } from "../store";
 import {
@@ -189,10 +189,10 @@ const router = useRouter();
 const messageBoxText = ref("");
 const groupNameModal = ref(false);
 const showInfo = ref(false);
-const messageBox = ref(null) as Ref<HTMLInputElement | null>;
-const messageList = ref(null) as Ref<HTMLDivElement | null>;
-const messageListBefore = ref(null) as Ref<HTMLDivElement | null>;
-const messageListAfter = ref(null) as Ref<HTMLDivElement | null>;
+const messageBox: Ref<HTMLTextAreaElement | null> = ref(null);
+const messageList: Ref<HTMLDivElement | null> = ref(null);
+const messageListBefore: Ref<HTMLDivElement | null> = ref(null);
+const messageListAfter: Ref<HTMLDivElement | null> = ref(null);
 const typingStatus = ref("");
 let lastTyping = 0;
 let updateInterval: number;
@@ -424,7 +424,8 @@ const sendMessage = async (type: MessageType, data: string) => {
 const messageBoxSubmit = async () => {
   const data = messageBoxText.value.trim();
   messageBoxText.value = "";
-  setTimeout(messageBoxInput, 1);
+  await nextTick();
+  messageBoxInput();
 
   if (!data) {
     return;

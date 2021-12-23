@@ -33,7 +33,7 @@ import ArrowDownIcon from "../icons/ArrowDownIcon.vue";
 import { onBeforeUnmount, ref, Ref } from "vue";
 
 const open = ref(false);
-const root = ref(null) as Ref<HTMLDivElement | null>;
+const root: Ref<HTMLDivElement | null> = ref(null);
 
 const close = ({ target }: { target: EventTarget | null }) => {
   let el = target as HTMLElement;

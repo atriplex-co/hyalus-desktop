@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits, ref, Ref, onMounted } from "vue";
 
-const input = ref(null) as Ref<HTMLInputElement | null>;
+const input: Ref<HTMLInputElement | null> = ref(null);
 
 const props = defineProps({
   type: {

@@ -48,8 +48,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-const container = ref(null) as Ref<HTMLDivElement | null>;
-
+const container: Ref<HTMLDivElement | null> = ref(null);
 const error = ref("");
 
 const submit = async () => {
