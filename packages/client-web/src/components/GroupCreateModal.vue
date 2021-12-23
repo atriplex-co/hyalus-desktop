@@ -10,7 +10,7 @@
     </template>
     <template #main>
       <ModalError :error="error" />
-      <ModalInput v-model="name" type="text" label="Name" />
+      <ModalInput v-model="name" type="text" label="Name" autofocus />
       <InputUser :users="users" />
     </template>
   </ModalBase>
