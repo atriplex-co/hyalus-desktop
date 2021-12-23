@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Delete message"
     submit-text="Delete"
     @submit="submit"
@@ -27,11 +28,14 @@
 import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
-import { ref, PropType, onUpdated, Ref } from "vue";
+import { ref, PropType, onUpdated, Ref, watch } from "vue";
 import { axios, IMessage, IChannel } from "../store";
 import { prettyError } from "../util";
 
 const props = defineProps({
+  show: {
+    type: Boolean,
+  },
   message: {
     type: Object as PropType<IMessage>,
     default() {
@@ -64,24 +68,31 @@ const submit = async () => {
   emit("close");
 };
 
-onUpdated(() => {
-  setTimeout(() => {
-    if (!container.value) {
-      return;
-    }
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
 
-    new MutationObserver(() => {
+    if (props.show) {
       setTimeout(() => {
         if (!container.value) {
           return;
         }
 
-        container.value.scrollTop = container.value.scrollHeight;
+        new MutationObserver(() => {
+          setTimeout(() => {
+            if (!container.value) {
+              return;
+            }
+
+            container.value.scrollTop = container.value.scrollHeight;
+          });
+        }).observe(container.value, {
+          childList: true,
+          subtree: true,
+        });
       });
-    }).observe(container.value, {
-      childList: true,
-      subtree: true,
-    });
-  });
-});
+    }
+  }
+);
 </script>

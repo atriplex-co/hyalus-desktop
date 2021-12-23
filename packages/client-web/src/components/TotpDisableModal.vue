@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Disable 2FA"
     submit-text="Disable"
     @submit="submit"
@@ -25,12 +26,19 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import LockIcon from "../icons/LockIcon.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { prettyError } from "../util";
 import sodium from "libsodium-wrappers";
 import { axios, store } from "../store";
 
+const props = defineProps({
+  show: {
+    type: Boolean,
+  },
+});
+
 const emit = defineEmits(["close"]);
+
 const password = ref("");
 const error = ref("");
 
@@ -70,4 +78,12 @@ const submit = async () => {
 
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    password.value = "";
+  }
+);
 </script>

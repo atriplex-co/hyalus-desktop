@@ -68,11 +68,19 @@ import LockIcon from "../icons/LockIcon.vue";
 import AppleIcon from "../icons/AppleIcon.vue";
 import GooglePlayIcon from "../icons/GooglePlayIcon.vue";
 import qrcode from "qrcode";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import sodium from "libsodium-wrappers";
 import b32 from "base32-encode";
 import { axios, store } from "../store";
 import { prettyError } from "../util";
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+  },
+});
+
+const emit = defineEmits(["close"]);
 
 const error = ref("");
 const password = ref("");
@@ -81,7 +89,6 @@ const showTotpSecretB32 = ref(false);
 const totpSecret = sodium.randombytes_buf(10);
 const totpSecretB32 = b32(totpSecret, "RFC3548");
 const qrcodeUrl = ref("");
-const emit = defineEmits(["close"]);
 
 const submit = async () => {
   if (!store.state.value.config.salt) {
@@ -131,6 +138,15 @@ onMounted(async () => {
     `otpauth://totp/Hyalus:${store.state.value.user.username}?secret=${totpSecretB32}&issuer=Hyalus`
   );
 });
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    password.value = "";
+    totpCode.value = "";
+  }
+);
 </script>
 
 <style scoped>

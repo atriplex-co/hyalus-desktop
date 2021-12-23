@@ -170,6 +170,9 @@ const updateSources = async () => {
 watch(
   () => props.show,
   async () => {
+    selectedSourceId.value = "";
+    selectedAudio.value = true;
+
     if (props.show) {
       await updateSources();
 

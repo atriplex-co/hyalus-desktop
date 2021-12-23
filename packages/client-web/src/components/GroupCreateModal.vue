@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Create group"
     submit-text="Create"
     @close="$emit('close')"
@@ -22,12 +23,15 @@ import GroupIcon from "../icons/GroupIcon.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { store, axios } from "../store";
 import { prettyError } from "../util";
 import { SocketMessageType } from "common";
 
 const props = defineProps({
+  show: {
+    type: Boolean,
+  },
   selected: {
     type: String,
     default() {
@@ -65,4 +69,16 @@ const submit = async () => {
 
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    name.value = "";
+
+    for (const user of users.value) {
+      user.selected = false;
+    }
+  }
+);
 </script>

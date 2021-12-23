@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Rename group"
     submit-text="Rename"
     @submit="submit"
@@ -20,11 +21,14 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
-import { ref, PropType } from "vue";
+import { ref, PropType, watch } from "vue";
 import { axios, IChannel } from "../store";
 import { prettyError } from "../util";
 
 const props = defineProps({
+  show: {
+    type: Boolean,
+  },
   channel: {
     type: Object as PropType<IChannel>,
     default() {
@@ -49,4 +53,12 @@ const submit = async () => {
 
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    name.value = "";
+  }
+);
 </script>

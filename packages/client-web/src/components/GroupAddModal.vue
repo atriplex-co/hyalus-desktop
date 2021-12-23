@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Invite friends"
     submit-text="Invite"
     @close="$emit('close')"
@@ -20,11 +21,14 @@ import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
-import { ref, PropType } from "vue";
+import { ref, PropType, watch } from "vue";
 import { axios, IChannel, store } from "../store";
 import { prettyError } from "../util";
 
 const props = defineProps({
+  show: {
+    type: Boolean,
+  },
   channel: {
     type: Object as PropType<IChannel>,
     default() {
@@ -64,4 +68,15 @@ const submit = async () => {
 
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+
+    for (const user of users.value) {
+      user.selected = false;
+    }
+  }
+);
 </script>

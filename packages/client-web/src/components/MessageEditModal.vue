@@ -169,6 +169,7 @@ const messageBoxKeydown = (e: KeyboardEvent) => {
 watch(
   () => props.show,
   () => {
+    error.value = "";
     messageBoxText.value = props.message.versions.at(-1)?.dataString || "";
 
     setTimeout(() => {

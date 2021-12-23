@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Change password"
     submit-text="Change"
     @submit="submit"
@@ -38,7 +39,7 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import KeyIcon from "../icons/KeyIcon.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { prettyError } from "../util";
 import { axios, store } from "../store";
 import {
@@ -52,6 +53,12 @@ import {
   randombytes_buf,
   to_base64,
 } from "libsodium-wrappers";
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+  },
+});
 
 const emit = defineEmits(["close"]);
 
@@ -137,4 +144,14 @@ const submit = async () => {
   await store.writeConfig("salt", salt);
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    password.value = "";
+    newPassword.value = "";
+    newPasswordConfirm.value = "";
+  }
+);
 </script>
