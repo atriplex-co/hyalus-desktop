@@ -1207,18 +1207,6 @@ app.post(
       }
     }
 
-    // const message = await Message.create({
-    //   channelId: channel._id,
-    //   userId: session.userId,
-    //   type: req.body.type,
-    //   versions: [
-    //     {
-    //       data: Buffer.from(sodium.from_base64(req.body.data)),
-    //       keys,
-    //     },
-    //   ],
-    // });
-
     const version: IMessageVersion = {
       created: new Date(),
       data: Buffer.from(sodium.from_base64(req.body.data)),
