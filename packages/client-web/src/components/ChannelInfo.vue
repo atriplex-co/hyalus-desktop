@@ -45,7 +45,7 @@ import UserAddIcon from "../icons/UserAddIcon.vue";
 import GroupAddModal from "./GroupAddModal.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
 import GroupCreateModal from "./GroupCreateModal.vue";
-import { ref, computed, defineProps, defineEmits, PropType } from "vue";
+import { ref, computed, PropType } from "vue";
 import { axios, IChannel, store } from "../store";
 import { ChannelType } from "common";
 

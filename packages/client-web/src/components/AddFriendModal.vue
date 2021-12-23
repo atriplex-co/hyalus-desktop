@@ -20,9 +20,15 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
-import { defineEmits, ref } from "vue";
+import { ref, watch } from "vue";
 import { axios } from "../store";
 import { prettyError } from "../util";
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+  },
+});
 
 const emit = defineEmits(["close"]);
 
@@ -41,4 +47,12 @@ const submit = async () => {
 
   emit("close");
 };
+
+watch(
+  () => props.show,
+  () => {
+    error.value = "";
+    username.value = "";
+  }
+);
 </script>

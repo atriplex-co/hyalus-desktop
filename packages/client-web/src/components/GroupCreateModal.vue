@@ -22,7 +22,7 @@ import GroupIcon from "../icons/GroupIcon.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
-import { defineProps, defineEmits, ref } from "vue";
+import { ref } from "vue";
 import { store, axios } from "../store";
 import { prettyError } from "../util";
 import { SocketMessageType } from "common";

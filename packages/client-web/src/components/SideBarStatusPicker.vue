@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, defineProps, watch } from "vue";
+import { watch } from "vue";
 import { axios } from "../store";
 import { Status } from "common";
 

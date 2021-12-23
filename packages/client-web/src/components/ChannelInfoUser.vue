@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import UserAvatar from "./UserAvatar.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
-import { computed, defineProps, PropType } from "vue";
+import { computed, PropType } from "vue";
 import { store, axios, IChannel, IChannelUser, IUser } from "../store";
 import { ChannelType } from "common";
 

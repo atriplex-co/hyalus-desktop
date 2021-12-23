@@ -45,7 +45,7 @@ import GlobeIcon from "../icons/GlobeIcon.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
 import moment from "moment";
 import UAParser from "ua-parser-js";
-import { defineProps, PropType } from "vue";
+import { PropType } from "vue";
 import { axios, ISession } from "../store";
 
 const props = defineProps({

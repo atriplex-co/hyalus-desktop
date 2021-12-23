@@ -17,7 +17,6 @@
 <script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
 import LogoutIcon from "../icons/LogoutIcon.vue";
-import { defineEmits } from "vue";
 import { axios } from "../store";
 
 defineEmits(["close"]);

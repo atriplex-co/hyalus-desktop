@@ -30,7 +30,7 @@
 import UserAvatar from "./UserAvatar.vue";
 import CheckIcon from "../icons/CheckIcon.vue";
 import CloseIcon from "../icons/CloseIcon.vue";
-import { defineProps, PropType } from "vue";
+import { PropType } from "vue";
 import { axios, IFriend, store } from "../store";
 import { SocketMessageType } from "common";
 

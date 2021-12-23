@@ -68,7 +68,7 @@ import LockIcon from "../icons/LockIcon.vue";
 import AppleIcon from "../icons/AppleIcon.vue";
 import GooglePlayIcon from "../icons/GooglePlayIcon.vue";
 import qrcode from "qrcode";
-import { ref, defineEmits, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import sodium from "libsodium-wrappers";
 import b32 from "base32-encode";
 import { axios, store } from "../store";

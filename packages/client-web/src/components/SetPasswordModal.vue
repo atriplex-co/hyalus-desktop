@@ -38,7 +38,7 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import KeyIcon from "../icons/KeyIcon.vue";
-import { ref, defineEmits } from "vue";
+import { ref } from "vue";
 import { prettyError } from "../util";
 import { axios, store } from "../store";
 import {

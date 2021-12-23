@@ -27,7 +27,7 @@
 import moment from "moment";
 import UserAvatar from "./UserAvatar.vue";
 import EmptyAvatar from "./EmptyAvatar.vue";
-import { defineProps, ref, computed, PropType, onUnmounted } from "vue";
+import { ref, computed, PropType, onUnmounted } from "vue";
 import {
   IChannel,
   IChannelUser,

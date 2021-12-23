@@ -6,7 +6,6 @@
 
 <script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
-import { defineProps, defineEmits } from "vue";
 
 defineEmits(["close"]);
 

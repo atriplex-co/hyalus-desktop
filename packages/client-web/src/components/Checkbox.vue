@@ -13,7 +13,6 @@
 
 <script lang="ts" setup>
 import CheckIcon from "../icons/CheckIcon.vue";
-import { defineProps, defineEmits } from "vue";
 
 defineEmits(["update:modelValue"]);
 

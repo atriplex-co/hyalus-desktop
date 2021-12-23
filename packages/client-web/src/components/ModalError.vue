@@ -10,7 +10,6 @@
 
 <script lang="ts" setup>
 import ErrorIcon from "../icons/ErrorIcon.vue";
-import { defineProps } from "vue";
 
 defineProps({
   error: {

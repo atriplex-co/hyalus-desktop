@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref, Ref, onMounted } from "vue";
+import { ref, Ref, onMounted } from "vue";
 
 const input: Ref<HTMLInputElement | null> = ref(null);
 

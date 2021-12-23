@@ -45,7 +45,7 @@
 
 <script lang="ts" setup>
 import UserIcon from "../icons/UserIcon.vue";
-import { defineProps, watch, ref, onUnmounted, PropType } from "vue";
+import { watch, ref, onUnmounted, PropType } from "vue";
 import { Status } from "common";
 
 const props = defineProps({

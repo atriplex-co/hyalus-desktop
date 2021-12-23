@@ -20,7 +20,7 @@ import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
-import { defineProps, defineEmits, ref, PropType } from "vue";
+import { ref, PropType } from "vue";
 import { axios, IChannel, store } from "../store";
 import { prettyError } from "../util";
 

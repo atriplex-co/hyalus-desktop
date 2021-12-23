@@ -25,7 +25,7 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import LockIcon from "../icons/LockIcon.vue";
-import { defineEmits, ref } from "vue";
+import { ref } from "vue";
 import { prettyError } from "../util";
 import sodium from "libsodium-wrappers";
 import { axios, store } from "../store";

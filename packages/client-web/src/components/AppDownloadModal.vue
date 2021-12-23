@@ -46,7 +46,6 @@ import ModalBase from "./ModalBase.vue";
 import WindowsIcon from "../icons/WindowsIcon.vue";
 import AppleIcon from "../icons/AppleIcon.vue";
 import LinuxIcon from "../icons/LinuxIcon.vue";
-import { defineEmits } from "vue";
 
 defineEmits(["close"]);
 </script>

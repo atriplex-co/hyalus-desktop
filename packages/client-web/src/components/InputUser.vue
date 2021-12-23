@@ -41,7 +41,7 @@
 import Checkbox from "./Checkbox.vue";
 import GroupIcon from "../icons/GroupIcon.vue";
 import UserAvatar from "./UserAvatar.vue";
-import { defineProps, ref, computed, PropType } from "vue";
+import { ref, computed, PropType } from "vue";
 import { IChannelUser, IFriend } from "../store";
 
 const props = defineProps({

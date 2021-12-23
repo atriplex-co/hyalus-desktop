@@ -37,7 +37,7 @@
 import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
-import { defineProps, defineEmits, ref, PropType, Ref, watch } from "vue";
+import { ref, PropType, Ref, watch } from "vue";
 import { axios, IMessage, IChannel, store } from "../store";
 import { prettyError } from "../util";
 import sodium from "libsodium-wrappers";

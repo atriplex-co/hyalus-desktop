@@ -20,7 +20,6 @@
 <script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
 import RefreshIcon from "../icons/RefreshIcon.vue";
-import { defineEmits } from "vue";
 
 defineEmits(["close"]);
 
