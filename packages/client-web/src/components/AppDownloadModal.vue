@@ -1,5 +1,5 @@
 <template>
-  <ModalBase base @close="$emit('close')">
+  <ModalBase empty @close="$emit('close')">
     <div class="flex flex-col items-center p-8">
       <p class="text-2xl font-bold">Download the app</p>
       <div class="mt-8 flex space-x-10 text-gray-300">
