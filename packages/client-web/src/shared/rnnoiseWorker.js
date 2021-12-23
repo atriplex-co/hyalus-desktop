@@ -1,73 +1,75 @@
+const outputBufferSize = 4096;
+
 registerProcessor(
   "rnnoise-processor",
   class extends AudioWorkletProcessor {
     constructor(init) {
       super(init);
 
-      this.config = {
-        last: +new Date(),
-      };
+      this.last = +new Date();
+      this.wasm = init.processorOptions.wasm;
 
-      if (init.processorOptions.wasm) {
+      if (this.wasm) {
         (async () => {
-          const { instance } = await WebAssembly.instantiate(
-            init.processorOptions.wasm
-          );
+          const { instance } = await WebAssembly.instantiate(this.wasm);
 
-          this.config.pState = instance.exports.rnnoise_create();
-          this.config.pData = instance.exports.malloc(480 * 4); // don't touch this.
-          this.config.inputBuffer = [];
-          this.config.outputBuffer = [];
-          this.config.heap = new Float32Array(instance.exports.memory.buffer);
-          this.config.instance = instance;
+          this.pState = instance.exports.rnnoise_create();
+          this.pData = instance.exports.malloc(480 * 4); // don't touch this.
+          this.inputBuffer = [];
+          this.outputBuffer = [];
+          this.outputBufferFilling = true;
+          this.heap = new Float32Array(instance.exports.memory.buffer);
+          this.instance = instance;
         })();
       }
     }
 
     process([inputs], [outputs]) {
-      if (+new Date() - this.config.last > 50) {
-        this.config.last = +new Date();
+      if (+new Date() - this.last > 50) {
+        this.last = +new Date();
         this.port.postMessage(0);
       }
 
-      if (!this.config.instance) {
+      if (!this.wasm) {
         outputs[0].set(inputs[0]);
         outputs[1].set(inputs[1]);
+      }
+
+      if (!this.instance) {
         return true;
       }
 
-      if (!inputs[0]) {
-        this.config.instance.exports.free(this.config.pState);
-        this.config.instance.exports.free(this.config.pData);
-        return;
-      }
-
       for (let i = 0; i < 128; ++i) {
-        this.config.inputBuffer.push(inputs[0][i]);
+        this.inputBuffer.push(inputs[0][i]);
       }
 
-      while (this.config.inputBuffer.length >= 480) {
+      while (this.inputBuffer.length >= 480) {
         for (let i = 0; i < 480; ++i) {
-          this.config.heap[(this.config.pData >> 2) + i] =
-            this.config.inputBuffer.shift() * 0x7fff;
+          this.heap[(this.pData >> 2) + i] = this.inputBuffer.shift() * 0x7fff;
         }
 
-        this.config.instance.exports.rnnoise_process_frame(
-          this.config.pState,
-          this.config.pData,
-          this.config.pData
+        this.instance.exports.rnnoise_process_frame(
+          this.pState,
+          this.pData,
+          this.pData
         );
 
         for (let i = 0; i < 480; i++) {
-          this.config.outputBuffer.push(
-            this.config.heap[(this.config.pData >> 2) + i] / 0x7fff
-          );
+          this.outputBuffer.push(this.heap[(this.pData >> 2) + i] / 0x7fff);
         }
       }
 
-      if (this.config.outputBuffer.length > 128) {
+      if (this.outputBuffer.length < 128) {
+        this.outputBufferFilling = true;
+      }
+
+      if (this.outputBufferFilling && this.outputBuffer.length > outputBufferSize) {
+        this.outputBufferFilling = false;
+      }
+
+      if (!this.outputBufferFilling) {
         for (let i = 0; i < 128; ++i) {
-          outputs[0][i] = this.config.outputBuffer.shift();
+          outputs[0][i] = this.outputBuffer.shift();
         }
 
         outputs[1].set(outputs[0]);
