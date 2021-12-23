@@ -10,6 +10,7 @@ import {
   IChannelUser,
   idSchema,
   IMessage,
+  IMessageVersion,
   IUser,
   Message,
   messageDataSchema,
@@ -1110,5 +1111,141 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
 
   res.end();
 });
+
+app.post(
+  "/:channelId/messages/:messageId/versions",
+  async (req: express.Request, res: express.Response) => {
+    const session = await authRequest(req, res);
+
+    if (
+      !session ||
+      !validateRequest(req, res, {
+        params: {
+          channelId: idSchema.required(),
+          messageId: idSchema.required(),
+        },
+        body: {
+          data: messageDataSchema.required(),
+          keys: messageKeysSchema.required(),
+        },
+      })
+    ) {
+      return;
+    }
+
+    const channel = await Channel.findOne({
+      _id: Buffer.from(sodium.from_base64(req.params.channelId)),
+      users: {
+        $elemMatch: {
+          id: session.userId,
+          hidden: false,
+        },
+      },
+    });
+
+    if (!channel) {
+      res.status(400).json({
+        error: "Invalid channel",
+      });
+
+      return;
+    }
+
+    const message = await Message.findOne({
+      _id: Buffer.from(sodium.from_base64(req.params.messageId)),
+      userId: session.userId,
+      channelId: channel._id,
+      type: {
+        $in: [MessageType.Text],
+      },
+    });
+
+    if (!message || !message.versions) {
+      res.status(400).json({
+        error: "Invalid message",
+      });
+
+      return;
+    }
+
+    if (message.versions.length >= 10) {
+      res.status(400).json({
+        error: "Message has maximum number of edits",
+      });
+    }
+
+    if (
+      new Set(req.body.keys.map((key: { userId: string }) => key.userId))
+        .size !== req.body.keys.length
+    ) {
+      res.status(400).json({
+        error: "Duplicated message keys",
+      });
+
+      return;
+    }
+
+    const keys: {
+      userId: Buffer;
+      data: Buffer;
+    }[] = [];
+
+    for (const key of req.body.keys) {
+      keys.push({
+        userId: Buffer.from(sodium.from_base64(key.userId)),
+        data: Buffer.from(sodium.from_base64(key.data)),
+      });
+    }
+
+    for (const user of channel.users.filter((u) => !u.hidden)) {
+      if (!keys.find((k) => !k.userId.compare(user.id))) {
+        res.status(400).json({
+          error: `Missing keys for user ${sodium.to_base64(user.id)}`,
+        });
+
+        return;
+      }
+    }
+
+    // const message = await Message.create({
+    //   channelId: channel._id,
+    //   userId: session.userId,
+    //   type: req.body.type,
+    //   versions: [
+    //     {
+    //       data: Buffer.from(sodium.from_base64(req.body.data)),
+    //       keys,
+    //     },
+    //   ],
+    // });
+
+    const version: IMessageVersion = {
+      created: new Date(),
+      data: Buffer.from(sodium.from_base64(req.body.data)),
+      keys,
+    };
+
+    message.versions.push(version);
+    await message.save();
+
+    res.end();
+
+    for (const key of keys) {
+      await dispatchSocket({
+        userId: key.userId,
+        message: {
+          t: SocketMessageType.SMessageVersionCreate,
+          d: {
+            id: sodium.to_base64(message._id),
+            channelId: sodium.to_base64(message.channelId),
+            created: +version.created,
+            data: req.body.data,
+            key: sodium.to_base64(key.data),
+          },
+        },
+      });
+    }
+  }
+);
 
 export default app;
