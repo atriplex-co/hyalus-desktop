@@ -52,6 +52,10 @@ const input = ref(null) as Ref<HTMLInputElement | null>;
 const width = ref("0px");
 
 const update = () => {
+  if (!input.value) {
+    return;
+  }
+
   width.value = `${(+input.value.value / +props.max) * 22.5}rem`;
 };
 
@@ -62,6 +66,10 @@ const style = computed(() => {
 });
 
 onMounted(() => {
+  if (!input.value) {
+    return;
+  }
+
   input.value.value = String(props.modelValue);
   update();
 });

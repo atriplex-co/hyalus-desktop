@@ -43,7 +43,7 @@ const props = defineProps({
 defineEmits(["update:modelValue"]);
 
 onMounted(() => {
-  if (props.autofocus) {
+  if (input.value && props.autofocus) {
     input.value.focus();
   }
 });
