@@ -157,7 +157,7 @@
                 <TrashIcon />
               </div>
               <div
-                v-if="sentByMe"
+                v-if="sentByMe && message.type === MessageType.Text"
                 class="w-4 h-4 hover:text-gray-200 cursor-pointer"
                 @click="editModal = true"
               >
