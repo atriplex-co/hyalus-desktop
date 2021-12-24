@@ -19,9 +19,9 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   },
   stopWin32AudioCapture: () => ipcRenderer.send("stopWin32AudioCapture"),
   getOpenAtLogin: () => ipcRenderer.invoke("getOpenAtLogin"),
-  getopenAsHidden: () => ipcRenderer.invoke("getopenAsHidden"),
+  getOpenAsHidden: () => ipcRenderer.invoke("getOpenAsHidden"),
   setOpenAtLogin: (val) => ipcRenderer.invoke("setOpenAtLogin", val),
-  setopenAsHidden: (val) => ipcRenderer.invoke("setopenAsHidden", val),
+  setOpenAsHidden: (val) => ipcRenderer.invoke("setOpenAsHidden", val),
 });
 
 addEventListener("beforeunload", () => {
