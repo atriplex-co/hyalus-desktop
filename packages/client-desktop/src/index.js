@@ -253,18 +253,12 @@ ipcMain.handle("getOpenAtLogin", () => {
   return app.getLoginItemSettings().openAtLogin;
 });
 
-ipcMain.handle("getOpenAsHidden", () => {
-  return app.getLoginItemSettings().openAsHidden;
-});
-
 ipcMain.handle("setOpenAtLogin", (e, val) => {
   app.setLoginItemSettings({
     openAtLogin: val,
   });
 });
 
-ipcMain.handle("setOpenAsHidden", (e, val) => {
-  app.setLoginItemSettings({
-    openAsHidden: val,
-  });
+ipcMain.handle("getWasOpenedAtLogin", () => {
+  return app.getLoginItemSettings().wasOpenedAtLogin;
 });

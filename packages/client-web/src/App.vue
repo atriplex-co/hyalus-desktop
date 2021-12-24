@@ -91,6 +91,7 @@ const inAppRoutes = [
   "settingsMedia",
   "settingsNotifications",
   "settingsUpdate",
+  "settingsDesktop",
 ];
 
 const route = useRoute();

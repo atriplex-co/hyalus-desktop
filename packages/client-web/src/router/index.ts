@@ -93,6 +93,12 @@ export const router = createRouter({
       beforeEnter: requireAuth,
     },
     {
+      name: "settingsDesktop",
+      path: "/settings/desktop",
+      component: () => import("../views/SettingsDesktopView.vue"),
+      beforeEnter: requireAuth,
+    },
+    {
       name: "channel",
       path: "/channels/:channelId",
       component: () => import("../views/ChannelView.vue"),

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { iceServers, idbDel, idbGet, idbKeys, idbSet } from "../util";
+import { iceServers, idbGet, idbKeys, idbSet } from "../util";
 import Axios from "axios";
 import sodium from "libsodium-wrappers";
 import { router } from "../router";
@@ -71,6 +71,7 @@ export interface IConfig {
   publicKey?: Uint8Array;
   privateKey?: Uint8Array;
   callPersist?: string;
+  startMinimized: boolean;
 }
 
 export interface ICall {
@@ -2010,6 +2011,7 @@ export const store = {
       notifySound: true,
       notifySystem: true,
       betaBanner: true,
+      startMinimized: true,
     },
     updateAvailable: false,
     updateRequired: false,
@@ -2018,67 +2020,21 @@ export const store = {
     channels: [],
   }),
   async start(): Promise<void> {
-    // TODO: remove r2->r3 compat code, 2021.12.19
-    // TODO: remove r2->r3 compat code, 2021.12.19
-    // TODO: remove r2->r3 compat code, 2021.12.19
-    try {
-      const oldLocalConfig = (await idbGet("localConfig")) as Record<
-        string,
-        unknown
-      >;
-      const oldUserKeys = (await idbGet("userKeys")) as Record<string, unknown>;
-
-      if (oldLocalConfig) {
-        await idbSet("config", {
-          ...idbGet("config"),
-          adaptiveLayout: oldLocalConfig.adaptiveLayout,
-          audioInput: oldLocalConfig.audioInput,
-          audioInputGain: oldLocalConfig.audioInputGain,
-          audioOutput: oldLocalConfig.audioOutput,
-          audioOutputGain: oldLocalConfig.audioOutputGain,
-          betaBanner: !oldLocalConfig.betaBannerHidden,
-          colorTheme: oldLocalConfig.colorTheme,
-          fontScale: oldLocalConfig.fontScale,
-          grayscale: oldLocalConfig.grayscale,
-          notifySound: oldLocalConfig.notifySound,
-          notifySystem: oldLocalConfig.notifySystem,
-          videoInput: oldLocalConfig.videoInput,
-          videoMode: oldLocalConfig.videoMode,
-          voiceRtcEcho: oldLocalConfig.voiceRtcEcho,
-          voiceRtcNoise: oldLocalConfig.voiceRtcNoise,
-          voiceRtcGain: oldLocalConfig.voiceRtcGain,
-          voiceRnnoise: oldLocalConfig.voiceRnnoise,
-        });
-
-        await idbDel("localConfig");
-      }
-
-      if (oldUserKeys) {
-        await idbSet("config", {
-          ...idbGet("config"),
-          salt: oldUserKeys.salt,
-          token:
-            oldUserKeys.token &&
-            sodium.from_base64(oldUserKeys.token as string),
-          publicKey: oldUserKeys.publicKey,
-          privateKey: oldUserKeys.privateKey,
-        });
-
-        await idbDel("userKeys");
-      }
-    } catch {
-      //
-    }
-    // TODO: remove r2->r3 compat code, 2021.12.19
-    // TODO: remove r2->r3 compat code, 2021.12.19
-    // TODO: remove r2->r3 compat code, 2021.12.19
-
     this.state.value.config = {
       ...this.state.value.config,
       ...((await idbGet("config")) as IConfig),
     };
 
     await this.updateIcon();
+
+    if (
+      this.state.value.config.startMinimized &&
+      window.HyalusDesktop &&
+      window.HyalusDesktop.getWasOpenedAtLogin &&
+      (await window.HyalusDesktop.getWasOpenedAtLogin())
+    ) {
+      window.HyalusDesktop.minimize();
+    }
 
     if (!this.state.value.config.token) {
       return;

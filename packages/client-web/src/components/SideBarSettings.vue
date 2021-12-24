@@ -88,6 +88,19 @@
         <RefreshIcon class="w-5 h-5" />
         <p>Updates &amp; Changelog</p>
       </router-link>
+      <router-link
+        v-if="isDesktop"
+        class="px-4 py-2 flex items-center space-x-4 hover:bg-gray-900 hover:text-white transition cursor-pointer"
+        :class="{
+          'bg-gray-800 text-white': active === 'desktop',
+          'text-gray-300': active !== 'desktop',
+        }"
+        to="/settings/desktop"
+        @click="active = 'desktop'"
+      >
+        <PowerIcon class="w-5 h-5" />
+        <p>Desktop Integration</p>
+      </router-link>
       <div
         class="px-4 py-2 flex items-center space-x-4 hover:bg-gray-900 hover:text-white transition cursor-pointer text-gray-300"
         @click="logoutModal = true"
@@ -112,11 +125,13 @@ import EyeIcon from "../icons/EyeIcon.vue";
 import DesktopIcon from "../icons/DesktopIcon.vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import PowerIcon from "../icons/PowerIcon.vue";
 
 const route = useRoute();
 const router = useRouter();
 const active = ref("account");
 const logoutModal = ref(false);
+const isDesktop = !!window.HyalusDesktop;
 
 if (String(route.name).startsWith("settings")) {
   active.value = String(route.name).replace("settings", "").toLowerCase();

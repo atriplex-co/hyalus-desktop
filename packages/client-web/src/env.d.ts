@@ -42,6 +42,9 @@ declare interface Window {
       cb: (data: Float32Array) => void
     ): void;
     stopWin32AudioCapture(): void;
+    getOpenAtLogin(): Promise<boolean>;
+    setOpenAtLogin(val: boolean): Promise<void>;
+    getWasOpenedAtLogin(): Promise<boolean>;
   };
   IdleDetector?: IdleDetector;
 }
