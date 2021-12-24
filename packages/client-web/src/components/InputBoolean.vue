@@ -8,10 +8,9 @@
     @click="$emit('update:modelValue', !modelValue)"
   >
     <div
-      class="absolute w-5 h-5 bg-white rounded-full transform transition"
+      class="w-5 h-5 bg-white rounded-full transform transition"
       :class="{
         'translate-x-5': modelValue,
-        '': !modelValue,
       }"
     ></div>
   </div>
