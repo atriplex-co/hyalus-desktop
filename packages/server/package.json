@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "AGPL-3.0-only",
   "scripts": {
-    "dev": "nodemon -w src -w ../common/src -e ts -x 'pnpm build && pnpm start'",
+    "dev": "nodemon -w src -w ../common/src -e ts -x 'yarn build && yarn start'",
     "build": "esbuild --bundle src/index.ts --outdir=dist --minify --sourcemap --platform=node",
     "start": "node --enable-source-maps dist",
     "test": "tsc"

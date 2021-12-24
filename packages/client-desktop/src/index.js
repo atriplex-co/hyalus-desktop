@@ -233,3 +233,13 @@ ipcMain.on("startWin32AudioCapture", (e, handle) => {
 ipcMain.on("stopWin32AudioCapture", () => {
   stopWin32AudioCapture();
 });
+
+ipcMain.handle("getLoginStart", () => {
+  return app.getLoginItemSettings().openAtLogin;
+});
+
+ipcMain.handle("setLoginStart", (e, val) => {
+  app.setLoginItemSettings({
+    openAtLogin: val,
+  });
+});

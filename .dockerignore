@@ -1,6 +1,6 @@
 node_modules
 npm-error.log
-pnpm-error.log
+yarn-error.log
 .vscode
 .env
 packages/*/dist
@@ -14,4 +14,3 @@ Dockerfile
 .eslintrc
 .eslintignore
 *.md
-.pnpm-store

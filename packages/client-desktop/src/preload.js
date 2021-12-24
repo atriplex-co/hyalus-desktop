@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
     ipcRenderer.send("startWin32AudioCapture", handle);
   },
   stopWin32AudioCapture: () => ipcRenderer.send("stopWin32AudioCapture"),
+  getLoginStart: () => ipcRenderer.invoke("getLoginStart"),
+  setLoginStart: (val) => ipcRenderer.invoke("setLoginStart", val),
 });
 
 addEventListener("beforeunload", () => {
