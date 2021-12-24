@@ -28,7 +28,7 @@
 import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
-import { ref, PropType, onUpdated, Ref, watch } from "vue";
+import { ref, PropType, Ref, watch } from "vue";
 import { axios, IMessage, IChannel } from "../store";
 import { prettyError } from "../util";
 

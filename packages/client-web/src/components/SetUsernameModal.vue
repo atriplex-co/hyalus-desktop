@@ -20,7 +20,7 @@ import ModalBase from "./ModalBase.vue";
 import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import AtSymbolIcon from "../icons/AtSymbolIcon.vue";
-import { mergeProps, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { store, axios } from "../store";
 import { prettyError } from "../util";
 
