@@ -18,5 +18,8 @@
   ],
   "rules": {
     "prettier/prettier": "error"
+  },
+  "env": {
+    "vue/setup-compiler-macros": true
   }
 }
