@@ -98,7 +98,7 @@
         to="/settings/desktop"
         @click="active = 'desktop'"
       >
-        <PowerIcon class="w-5 h-5" />
+        <ChipIcon class="w-5 h-5" />
         <p>Desktop Integration</p>
       </router-link>
       <div
@@ -125,7 +125,7 @@ import EyeIcon from "../icons/EyeIcon.vue";
 import DesktopIcon from "../icons/DesktopIcon.vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import PowerIcon from "../icons/PowerIcon.vue";
+import ChipIcon from "../icons/ChipIcon.vue";
 
 const route = useRoute();
 const router = useRouter();
