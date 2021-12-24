@@ -12,6 +12,7 @@ const path = require("path");
 const os = require("os");
 const { autoUpdater } = require("electron-updater");
 const { version } = require("../package.json");
+const fs = require("fs");
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -32,6 +33,20 @@ const start = () => {
   started = true;
 
   app.setAppUserModelId("app.hyalus");
+
+  const initPath = path.join(app.getPath("userData"), "init");
+  if (!fs.existsSync(initPath)) {
+    fs.writeFileSync(initPath, ""); // so this only runs on the first start.
+
+    try {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        openAsHidden: true,
+      });
+    } catch {
+      //
+    }
+  }
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -234,12 +249,22 @@ ipcMain.on("stopWin32AudioCapture", () => {
   stopWin32AudioCapture();
 });
 
-ipcMain.handle("getLoginStart", () => {
+ipcMain.handle("getOpenAtLogin", () => {
   return app.getLoginItemSettings().openAtLogin;
 });
 
-ipcMain.handle("setLoginStart", (e, val) => {
+ipcMain.handle("getOpenAsHidden", () => {
+  return app.getLoginItemSettings().openAsHidden;
+});
+
+ipcMain.handle("setOpenAtLogin", (e, val) => {
   app.setLoginItemSettings({
     openAtLogin: val,
+  });
+});
+
+ipcMain.handle("setOpenAsHidden", (e, val) => {
+  app.setLoginItemSettings({
+    openAsHidden: val,
   });
 });
