@@ -1,6 +1,6 @@
 {
   "name": "client-desktop",
-  "version": "0.0.55",
+  "version": "0.0.56",
   "license": "AGPL-3.0-only",
   "main": "src/index.js",
   "scripts": {
