@@ -76,7 +76,7 @@ import { ref, watch } from "vue";
 
 const show2 = ref(false);
 
-defineEmits(["close", "submit"]);
+const emit = defineEmits(["close", "submit"]);
 
 const props = defineProps({
   title: {
@@ -97,12 +97,24 @@ const props = defineProps({
   },
 });
 
+const keydownHandler = (e: KeyboardEvent) => {
+  if (e.key === "Escape") {
+    emit("close");
+  }
+};
+
 watch(
   () => props.show,
   () => {
     setTimeout(() => {
       show2.value = props.show;
     });
+
+    if (props.show) {
+      addEventListener("keydown", keydownHandler);
+    } else {
+      removeEventListener("keydown", keydownHandler);
+    }
   }
 );
 </script>
