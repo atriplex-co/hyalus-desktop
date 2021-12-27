@@ -7,19 +7,11 @@
     @close="$emit('close')"
   >
     <template #icon>
-      <TrashIcon />
+      <PencilIcon />
     </template>
     <template #main>
       <ModalError v-if="error" :error="error" />
-      <!-- <div class="space-y-4 w-full">
-        <p>Are you sure you want to delete this message?</p>
-        <div
-          ref="container"
-          class="max-h-48 overflow-auto overflow-x-hidden bg-gray-800 border border-gray-600 rounded-md p-2 w-full"
-        >
-          <slot />
-        </div>
-      </div> -->
+      <p>Users can see if a message is edited.</p>
       <textarea
         ref="messageBox"
         v-model="messageBoxText"
@@ -36,11 +28,11 @@
 <script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
-import TrashIcon from "../icons/TrashIcon.vue";
 import { ref, PropType, Ref, watch } from "vue";
 import { axios, IMessage, IChannel, store } from "../store";
 import { prettyError } from "../util";
 import sodium from "libsodium-wrappers";
+import PencilIcon from "../icons/PencilIcon.vue";
 
 const props = defineProps({
   message: {
