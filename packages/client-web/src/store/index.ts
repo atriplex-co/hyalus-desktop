@@ -72,6 +72,14 @@ export interface IConfig {
   privateKey?: Uint8Array;
   callPersist?: string;
   startMinimized: boolean;
+  searchKeys: string;
+  openAppKeys: string;
+  toggleMuteKeys: string;
+  toggleDeafenKeys: string;
+  joinCallKeys: string;
+  leaveCallKeys: string;
+  openCurrentCallKeys: string;
+  uploadFileKeys: string;
 }
 
 export interface ICall {
@@ -2012,6 +2020,14 @@ export const store = {
       notifySystem: true,
       betaBanner: true,
       startMinimized: true,
+      searchKeys: "",
+      openAppKeys: "",
+      toggleMuteKeys: "",
+      toggleDeafenKeys: "",
+      joinCallKeys: "",
+      leaveCallKeys: "",
+      openCurrentCallKeys: "",
+      uploadFileKeys: "",
     },
     updateAvailable: false,
     updateRequired: false,

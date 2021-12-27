@@ -1,4 +1,6 @@
 import { AxiosError } from "axios";
+import { computed } from "vue";
+import { store } from "../store";
 
 let idbDb: IDBDatabase;
 
@@ -82,3 +84,14 @@ export const iceServers = [
     urls: ["stun:stun1.l.google.com:19302"],
   },
 ];
+
+export const configToComputed = <T>(k: string) => {
+  return computed({
+    get() {
+      return (store.state.value.config as Record<string, unknown>)[k] as T;
+    },
+    async set(v: T) {
+      await store.writeConfig(k, v);
+    },
+  });
+};

@@ -18,26 +18,10 @@
 
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
-import { computed } from "vue";
-import { store } from "../store";
+import { configToComputed } from "../util";
 
-const notifySound = computed({
-  get() {
-    return store.state.value.config.notifySound;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("notifySound", val);
-  },
-});
-
-const notifySystem = computed({
-  get() {
-    return store.state.value.config.notifySystem;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("notifySystem", val);
-  },
-});
+const notifySound = configToComputed<boolean>("notifySound");
+const notifySystem = configToComputed<boolean>("notifySystem");
 
 document.title = "Hyalus \u2022 Notifications";
 </script>

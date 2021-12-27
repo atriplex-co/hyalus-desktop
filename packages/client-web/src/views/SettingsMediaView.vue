@@ -120,6 +120,7 @@ import InputListItem from "../components/InputListItem.vue";
 import InputBoolean from "../components/InputBoolean.vue";
 import { computed, onMounted, ref, Ref } from "vue";
 import { store } from "../store";
+import { configToComputed } from "../util";
 
 const usableVideoModes = [
   "480p30",
@@ -185,77 +186,14 @@ const videoInput = computed({
   },
 });
 
-const audioOutputGain = computed({
-  get() {
-    return store.state.value.config.audioOutputGain;
-  },
-  async set(val: number) {
-    await store.writeConfig("audioOutputGain", val);
-  },
-});
-
-const audioInputGain = computed({
-  get() {
-    return store.state.value.config.audioInputGain;
-  },
-  async set(val: number) {
-    await store.writeConfig("audioInputGain", val);
-  },
-});
-
-const audioInputTrigger = computed({
-  get() {
-    return store.state.value.config.audioInputTrigger;
-  },
-  async set(val: number) {
-    await store.writeConfig("audioInputTrigger", val);
-  },
-});
-
-const videoMode = computed({
-  get() {
-    return store.state.value.config.videoMode;
-  },
-  async set(val) {
-    await store.writeConfig("videoMode", val);
-  },
-});
-
-const voiceRtcGain = computed({
-  get() {
-    return store.state.value.config.voiceRtcGain;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("voiceRtcGain", val);
-  },
-});
-
-const voiceRtcEcho = computed({
-  get() {
-    return store.state.value.config.voiceRtcEcho;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("voiceRtcEcho", val);
-  },
-});
-
-const voiceRtcNoise = computed({
-  get() {
-    return store.state.value.config.voiceRtcNoise;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("voiceRtcNoise", val);
-  },
-});
-
-const voiceRnnoise = computed({
-  get() {
-    return store.state.value.config.voiceRnnoise;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("voiceRnnoise", val);
-  },
-});
+const audioOutputGain = configToComputed<number>("audioOutputGain");
+const audioInputGain = configToComputed<number>("audioInputGain");
+const audioInputTrigger = configToComputed<number>("audioInputTrigger");
+const videoMode = configToComputed<string>("videoMode");
+const voiceRtcGain = configToComputed<boolean>("voiceRtcGain");
+const voiceRtcEcho = configToComputed<boolean>("voiceRtcEcho");
+const voiceRtcNoise = configToComputed<boolean>("voiceRtcNoise");
+const voiceRnnoise = configToComputed<boolean>("voiceRnnoise");
 
 document.title = "Hyalus \u2022 Audio & Video";
 

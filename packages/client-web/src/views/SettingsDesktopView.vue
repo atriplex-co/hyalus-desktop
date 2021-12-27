@@ -21,8 +21,8 @@
 
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
-import { ref, onMounted, computed } from "vue";
-import { store } from "../store";
+import { ref, onMounted } from "vue";
+import { configToComputed } from "../util";
 
 const openAtLogin = ref(false);
 
@@ -31,14 +31,7 @@ const setOpenAtLogin = async (val: boolean) => {
   openAtLogin.value = val;
 };
 
-const startMinimized = computed({
-  get() {
-    return store.state.value.config.startMinimized;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("startMinimized", val);
-  },
-});
+const startMinimized = configToComputed<boolean>("startMinimized");
 
 document.title = "Hyalus \u2022 Notifications";
 

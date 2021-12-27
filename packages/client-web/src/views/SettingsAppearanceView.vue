@@ -84,6 +84,7 @@ import InputBoolean from "../components/InputBoolean.vue";
 import { computed } from "vue";
 import { axios, store } from "../store";
 import { ColorTheme } from "common";
+import { configToComputed } from "../util";
 
 const usableColorThemes = [
   ColorTheme.Red,
@@ -109,6 +110,10 @@ const usableFontScales = [
   50, 67, 75, 80, 90, 100, 110, 125, 133, 140, 150, 175, 200,
 ];
 
+const adaptiveLayout = configToComputed<boolean>("adaptiveLayout");
+const fontScale = configToComputed<number>("fontScale");
+const grayscale = configToComputed<boolean>("grayscale");
+
 const colorTheme = computed({
   get(): ColorTheme {
     return store.state.value.config.colorTheme;
@@ -117,33 +122,6 @@ const colorTheme = computed({
     await axios.post("/api/self", {
       colorTheme: val,
     });
-  },
-});
-
-const adaptiveLayout = computed({
-  get(): boolean {
-    return store.state.value.config.adaptiveLayout;
-  },
-  async set(val: boolean): Promise<void> {
-    await store.writeConfig("adaptiveLayout", val);
-  },
-});
-
-const fontScale = computed({
-  get() {
-    return store.state.value.config.fontScale;
-  },
-  async set(val) {
-    await store.writeConfig("fontScale", val);
-  },
-});
-
-const grayscale = computed({
-  get() {
-    return store.state.value.config.grayscale;
-  },
-  async set(val: boolean) {
-    await store.writeConfig("grayscale", val);
   },
 });
 
