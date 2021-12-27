@@ -1,4 +1,4 @@
-export const SocketProtocol = 3;
+export const SocketProtocol = 4;
 export const MaxAvatarWidth = 256;
 export const MaxAvatarFPS = 30;
 export const MaxAvatarDuration = 10;
@@ -50,7 +50,7 @@ export enum SocketMessageType {
   SForeignUserUpdate,
   SMessageCreate,
   SMessageDelete,
-  SMessageVersionCreate,
+  SMessageUpdate,
   SFileChunkRequest,
   SFileChunkRTC,
   SCallReset,

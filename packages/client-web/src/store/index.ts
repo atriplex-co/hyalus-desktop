@@ -202,11 +202,7 @@ export interface IMessage {
   userId: string;
   type: MessageType;
   created: Date;
-  versions: IMessageVersion[];
-}
-
-export interface IMessageVersion {
-  created: Date;
+  updated?: Date;
   data?: Uint8Array;
   dataString?: string;
   dataFormatted?: string;
@@ -264,20 +260,23 @@ const messageFormatter = new MarkdownIt("zero", {
     },
   });
 
-export const processMessageVersions = (opts: {
+export const processMessage = (opts: {
+  channel: IChannel;
   id: string;
   userId: string;
   type: MessageType;
-  created: Date;
-  versions?: {
-    created: number;
-    data: string;
-    key?: string;
-  }[];
-  channel: IChannel;
-}): IMessageVersion[] | undefined => {
+  created: number | Date;
+  updated?: number | Date;
+  data?: string;
+  key?: string;
+}): IMessage | undefined => {
   let sender: IUser | IChannelUser | undefined;
   let publicKey: Uint8Array | undefined;
+  let dataString: string | undefined;
+  let dataFormatted: string | undefined;
+
+  const data = opts.data ? sodium.from_base64(opts.data) : undefined;
+  const key = opts.key ? sodium.from_base64(opts.key) : undefined;
 
   if (
     store.state.value.user &&
@@ -296,119 +295,101 @@ export const processMessageVersions = (opts: {
     return;
   }
 
-  const versions: IMessageVersion[] = [];
-
-  if (opts.versions) {
-    for (const version of opts.versions) {
-      const data = version.data ? sodium.from_base64(version.data) : undefined;
-      const key = version.key ? sodium.from_base64(version.key) : undefined;
-      let dataString: string | undefined;
-      let dataFormatted: string | undefined;
-
-      if (data && key && store.state.value.config.privateKey) {
-        try {
-          dataString = sodium.to_string(
-            sodium.crypto_secretbox_open_easy(
-              data.slice(sodium.crypto_secretbox_NONCEBYTES),
-              data.slice(0, sodium.crypto_secretbox_NONCEBYTES),
-              sodium.crypto_box_open_easy(
-                key.slice(sodium.crypto_box_NONCEBYTES),
-                key.slice(0, sodium.crypto_box_NONCEBYTES),
-                publicKey,
-                store.state.value.config.privateKey
-              )
+  if (opts.data) {
+    if (data && key && store.state.value.config.privateKey) {
+      try {
+        dataString = sodium.to_string(
+          sodium.crypto_secretbox_open_easy(
+            data.slice(sodium.crypto_secretbox_NONCEBYTES),
+            data.slice(0, sodium.crypto_secretbox_NONCEBYTES),
+            sodium.crypto_box_open_easy(
+              key.slice(sodium.crypto_box_NONCEBYTES),
+              key.slice(0, sodium.crypto_box_NONCEBYTES),
+              publicKey,
+              store.state.value.config.privateKey
             )
-          );
-        } catch (e) {
-          console.warn(`failed to decrypt message: ${opts.id}`);
-        }
+          )
+        );
+      } catch (e) {
+        console.warn(`failed to decrypt message: ${opts.id}`);
+      }
+    }
+
+    if (data && !key) {
+      try {
+        dataString = sodium.to_string(data);
+      } catch {
+        //
+      }
+    }
+
+    if (opts.type === MessageType.Text && dataString) {
+      dataFormatted = messageFormatter.render(dataString).trim();
+    }
+
+    if (opts.type === MessageType.GroupName && dataString) {
+      dataString = `${sender.name} set the group name to "${dataString}"`;
+    }
+
+    if (
+      [MessageType.GroupAdd, MessageType.GroupRemove].indexOf(opts.type) !==
+        -1 &&
+      opts.data
+    ) {
+      let target: IChannelUser | IUser | undefined;
+
+      if (store.state.value.user && opts.data === store.state.value.user?.id) {
+        target = store.state.value.user;
+      } else {
+        target = opts.channel.users.find((user) => user.id === opts.data);
       }
 
-      if (data && !key) {
-        try {
-          dataString = sodium.to_string(data);
-        } catch {
-          //
-        }
+      if (!target) {
+        console.warn(`processMessageVersions for invalid target: ${opts.data}`);
+        return;
       }
 
-      if (opts.type === MessageType.Text && dataString) {
-        dataFormatted = messageFormatter.render(dataString).trim();
+      if (opts.type === MessageType.GroupAdd) {
+        dataString = `${sender.name} added ${target.name}`;
       }
 
-      if (opts.type === MessageType.GroupName && dataString) {
-        dataString = `${sender.name} set the group name to "${dataString}"`;
+      if (opts.type === MessageType.GroupRemove) {
+        dataString = `${sender.name} removed ${target.name}`;
       }
-
-      if (
-        [MessageType.GroupAdd, MessageType.GroupRemove].indexOf(opts.type) !==
-          -1 &&
-        version.data
-      ) {
-        let target: IChannelUser | IUser | undefined;
-
-        if (
-          store.state.value.user &&
-          version.data === store.state.value.user?.id
-        ) {
-          target = store.state.value.user;
-        } else {
-          target = opts.channel.users.find((user) => user.id === version.data);
-        }
-
-        if (!target) {
-          console.warn(
-            `processMessageVersions for invalid target: ${version.data}`
-          );
-          return;
-        }
-
-        if (opts.type === MessageType.GroupAdd) {
-          dataString = `${sender.name} added ${target.name}`;
-        }
-
-        if (opts.type === MessageType.GroupRemove) {
-          dataString = `${sender.name} removed ${target.name}`;
-        }
-      }
-
-      versions.push({
-        created: new Date(version.created),
-        data,
-        dataString,
-        dataFormatted,
-        key,
-      });
     }
   } else {
-    versions.push({
-      created: opts.created,
-    });
-
     if (opts.type === MessageType.GroupCreate) {
-      versions[0].dataString = `${sender.name} created a group`;
+      dataString = `${sender.name} created a group`;
     }
 
     if (opts.type === MessageType.FriendAccept) {
       if (sender === store.state.value.user) {
-        versions[0].dataString = `You accepted ${opts.channel.users[0].name}'s friend request`;
+        dataString = `You accepted ${opts.channel.users[0].name}'s friend request`;
       } else {
-        versions[0].dataString = `${opts.channel.users[0].name} accepted your friend request`;
+        dataString = `${opts.channel.users[0].name} accepted your friend request`;
       }
     }
 
     if (opts.type === MessageType.GroupAvatar) {
-      versions[0].dataString = `${sender.name} set the group avatar`;
+      dataString = `${sender.name} set the group avatar`;
     }
 
     if (opts.type === MessageType.GroupLeave) {
-      versions[0].dataString = `${sender.name} left the group`;
+      dataString = `${sender.name} left the group`;
     }
   }
 
-  versions.sort((a, b) => (a.created > b.created ? 1 : -1));
-
-  return versions;
+  return {
+    id: opts.id,
+    userId: opts.userId,
+    type: opts.type,
+    created: new Date(opts.created),
+    updated: opts.updated ? new Date(opts.updated) : undefined,
+    data,
+    dataString,
+    dataFormatted,
+    key,
+  };
 };
 
 export const notifySend = (opts: {
@@ -620,11 +601,9 @@ export class Socket {
               userId: string;
               type: MessageType;
               created: number;
-              versions?: {
-                created: number;
-                data: string;
-                key?: string;
-              }[];
+              updated?: number;
+              data?: string;
+              key?: string;
             };
           }[];
         };
@@ -704,23 +683,13 @@ export class Socket {
             messages: [],
           };
 
-          const lastMessageVersions = processMessageVersions({
-            id: channel.lastMessage.id,
-            userId: channel.lastMessage.userId,
-            type: channel.lastMessage.type,
-            created: new Date(channel.lastMessage.created),
-            versions: channel.lastMessage.versions,
+          const lastMessage = processMessage({
+            ...channel.lastMessage,
             channel: out,
           });
 
-          if (lastMessageVersions) {
-            out.messages.push({
-              id: channel.lastMessage.id,
-              userId: channel.lastMessage.userId,
-              type: channel.lastMessage.type,
-              created: new Date(channel.lastMessage.created),
-              versions: lastMessageVersions,
-            });
+          if (lastMessage) {
+            out.messages.push(lastMessage);
           }
 
           store.state.value.channels.push(out);
@@ -1060,11 +1029,9 @@ export class Socket {
             userId: string;
             type: MessageType;
             created: number;
-            versions?: {
-              created: number;
-              data: string;
-              key?: string;
-            }[];
+            updated?: number;
+            data?: string;
+            key?: string;
           };
         };
 
@@ -1095,23 +1062,13 @@ export class Socket {
           messages: [],
         };
 
-        const lastMessageVersions = processMessageVersions({
-          id: data.lastMessage.id,
-          userId: data.lastMessage.userId,
-          type: data.lastMessage.type,
-          created: new Date(data.lastMessage.created),
-          versions: data.lastMessage.versions,
+        const lastMessage = processMessage({
+          ...data.lastMessage,
           channel,
         });
 
-        if (lastMessageVersions) {
-          channel.messages.push({
-            id: data.lastMessage.id,
-            userId: data.lastMessage.userId,
-            type: data.lastMessage.type,
-            created: new Date(data.lastMessage.created),
-            versions: lastMessageVersions,
-          });
+        if (lastMessage) {
+          channel.messages.push(lastMessage);
         }
 
         store.state.value.channels.push(channel);
@@ -1331,11 +1288,9 @@ export class Socket {
           userId: string;
           type: MessageType;
           created: number;
-          versions?: {
-            created: number;
-            data: string;
-            key?: string;
-          }[];
+          updated?: number;
+          data?: string;
+          key?: string;
         };
 
         const channel = store.state.value.channels.find(
@@ -1347,27 +1302,16 @@ export class Socket {
           return;
         }
 
-        const versions = processMessageVersions({
-          id: data.id,
-          userId: data.userId,
-          type: data.type,
-          created: new Date(data.created),
-          versions: data.versions,
+        const message = processMessage({
+          ...data,
           channel,
         });
 
-        if (!versions) {
+        if (!message) {
           return;
         }
 
-        channel.messages.push({
-          id: data.id,
-          userId: data.userId,
-          type: data.type,
-          created: new Date(data.created),
-          versions,
-        });
-
+        channel.messages.push(message);
         channel.messages.sort((a, b) => (a.created > b.created ? 1 : -1));
 
         store.state.value.channels.sort((a, b) =>
@@ -1400,8 +1344,8 @@ export class Socket {
             title += ` (${channel.name})`;
           }
 
-          if (versions && versions[0].dataString) {
-            body = versions[0].dataString;
+          if (message && message.dataString) {
+            body = message.dataString;
           }
 
           if (data.type === MessageType.Attachment) {
@@ -1433,11 +1377,9 @@ export class Socket {
             userId: string;
             type: MessageType;
             created: number;
-            versions?: {
-              created: number;
-              data: string;
-              key?: string;
-            }[];
+            updated?: number;
+            data?: string;
+            key?: string;
           };
         };
 
@@ -1455,16 +1397,12 @@ export class Socket {
         );
 
         if (data.lastMessage) {
-          const versions = processMessageVersions({
-            id: data.lastMessage.id,
-            userId: data.lastMessage.userId,
-            type: data.lastMessage.type,
-            created: new Date(data.lastMessage.created),
-            versions: data.lastMessage.versions,
+          const lastMessage = processMessage({
+            ...data.lastMessage,
             channel,
           });
 
-          if (!versions) {
+          if (!lastMessage) {
             return;
           }
 
@@ -1472,13 +1410,7 @@ export class Socket {
             (message) => message.id !== data.lastMessage?.id
           );
 
-          channel.messages.push({
-            id: data.lastMessage.id,
-            userId: data.lastMessage.userId,
-            type: data.lastMessage.type,
-            created: new Date(data.lastMessage.created),
-            versions,
-          });
+          channel.messages.push(lastMessage);
 
           channel.messages.sort((a, b) => (a.created > b.created ? 1 : -1));
         }
@@ -1491,13 +1423,13 @@ export class Socket {
         );
       }
 
-      if (msg.t === SocketMessageType.SMessageVersionCreate) {
+      if (msg.t === SocketMessageType.SMessageUpdate) {
         const data = msg.d as {
           id: string;
           channelId: string;
-          created: number;
+          updated: number;
           data: string;
-          key?: string;
+          key: string;
         };
 
         const channel = store.state.value.channels.find(
@@ -1519,26 +1451,17 @@ export class Socket {
           return;
         }
 
-        const versions = processMessageVersions({
-          id: message.id,
-          userId: message.userId,
+        const message2 = processMessage({
+          ...message,
+          ...data,
           channel,
-          created: message.created,
-          type: message.type,
-          versions: [
-            {
-              created: data.created,
-              data: data.data,
-              key: data.key,
-            },
-          ],
         });
 
-        if (!versions) {
+        if (!message2) {
           return;
         }
 
-        message.versions.push(...versions);
+        channel.messages[channel.messages.indexOf(message)] = message2;
       }
 
       if (msg.t === SocketMessageType.SFileChunkRequest) {

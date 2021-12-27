@@ -173,7 +173,7 @@ import PencilIcon from "../icons/PencilIcon.vue";
 import ChannelInfo from "../components/ChannelInfo.vue";
 import { ref, computed, onMounted, onUnmounted, Ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { axios, processMessageVersions, store } from "../store";
+import { axios, processMessage, store } from "../store";
 import {
   CallStreamType,
   ChannelType,
@@ -298,11 +298,9 @@ const getMessages = async (method: "before" | "after") => {
       userId: string;
       type: MessageType;
       created: number;
-      versions?: {
-        created: number;
-        data: string;
-        key?: string;
-      }[];
+      updated?: number;
+      data?: string;
+      key?: string;
     }[];
   } = await axios.get(
     `/api/channels/${channelObj.id}/messages?${
@@ -316,17 +314,13 @@ const getMessages = async (method: "before" | "after") => {
     }`
   );
 
-  for (const message of messages) {
-    const versions = processMessageVersions({
-      id: message.id,
-      userId: message.userId,
-      type: message.type,
-      created: new Date(message.created),
-      versions: message.versions,
+  for (const _message of messages) {
+    const message = processMessage({
+      ..._message,
       channel: channelObj,
     });
 
-    if (!versions) {
+    if (!message) {
       return;
     }
 
@@ -334,13 +328,7 @@ const getMessages = async (method: "before" | "after") => {
       (message2) => message2.id !== message.id
     );
 
-    channelObj.messages.push({
-      id: message.id,
-      userId: message.userId,
-      type: message.type,
-      created: new Date(message.created),
-      versions,
-    });
+    channelObj.messages.push(message);
   }
 
   channelObj.messages.sort((a, b) => (a.created > b.created ? 1 : -1));

@@ -117,7 +117,7 @@ const messageBoxSubmit = async () => {
       });
 
       await axios.post(
-        `/api/channels/${props.channel.id}/messages/${props.message.id}/versions`,
+        `/api/channels/${props.channel.id}/messages/${props.message.id}/edit`,
         {
           data: sodium.to_base64(
             new Uint8Array([
@@ -162,7 +162,7 @@ watch(
   () => props.show,
   () => {
     error.value = "";
-    messageBoxText.value = props.message.versions.at(-1)?.dataString || "";
+    messageBoxText.value = props.message.dataString || "";
 
     setTimeout(() => {
       messageBoxInput();

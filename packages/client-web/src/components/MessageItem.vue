@@ -49,7 +49,7 @@
           v-if="message.type === MessageType.GroupAvatar"
           class="w-5 h-5 text-gray-400"
         />
-        <p>{{ message.versions.at(-1)?.dataString }}</p>
+        <p>{{ message.dataString }}</p>
       </div>
       <p class="text-gray-400 opacity-0 group-hover:opacity-100 transition">
         {{ time }}
@@ -88,7 +88,7 @@
             <div
               v-if="message.type === MessageType.Text"
               class="p-2 whitespace-pre-wrap"
-              v-html="message.versions.at(-1)?.dataFormatted"
+              v-html="message.dataFormatted"
             />
             <!-- eslint-enable -->
             <div v-if="file">
@@ -615,7 +615,7 @@ const file = computed(() => {
     return;
   }
 
-  const json = JSON.parse(props.message.versions.at(-1)?.dataString || "");
+  const json = JSON.parse(props.message.dataString || "");
 
   let sizeFormattedUnits = "BKMG";
   let sizeFormattedUnit = 0;

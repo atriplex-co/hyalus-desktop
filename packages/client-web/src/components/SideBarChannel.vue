@@ -43,7 +43,7 @@ const lastMessageTime = ref("");
 
 const lastMessage = computed(() => {
   const message = props.channel.messages.at(-1);
-  const dataString = message && message.versions.at(-1)?.dataString;
+  const dataString = message && message.dataString;
 
   if (!message || !dataString) {
     return "No messages yet";

@@ -10,7 +10,6 @@ import {
   IChannelUser,
   idSchema,
   IMessage,
-  IMessageVersion,
   IUser,
   Message,
   messageDataSchema,
@@ -78,31 +77,18 @@ app.get(
         created: -1,
       })
       .limit(Math.min(Number(req.query.limit) || 100, 100))) {
-      let versions = null;
-
-      if (message.versions) {
-        versions = [];
-
-        for (const version of message.versions) {
-          const key =
-            version.keys &&
-            version.keys.find((key) => !key.userId.compare(session.userId))
-              ?.data;
-
-          versions.push({
-            created: +version.created,
-            data: version.data && sodium.to_base64(version.data),
-            key: key && sodium.to_base64(key),
-          });
-        }
-      }
+      const key =
+        message.keys &&
+        message.keys.find((key) => !key.userId.compare(session.userId))?.data;
 
       messages.push({
         id: sodium.to_base64(message._id),
         userId: sodium.to_base64(message.userId),
         type: message.type,
         created: +message.created,
-        versions,
+        updated: message.updated && +message.updated,
+        data: message.data && sodium.to_base64(message.data),
+        key: key && sodium.to_base64(key),
       });
     }
 
@@ -186,12 +172,8 @@ app.post(
       channelId: channel._id,
       userId: session.userId,
       type: req.body.type,
-      versions: [
-        {
-          data: Buffer.from(sodium.from_base64(req.body.data)),
-          keys,
-        },
-      ],
+      data: Buffer.from(sodium.from_base64(req.body.data)),
+      keys,
     });
 
     res.end();
@@ -207,13 +189,8 @@ app.post(
             userId: sodium.to_base64(message.userId),
             type: message.type,
             created: +message.created,
-            versions: [
-              {
-                created: +message.created,
-                data: req.body.data,
-                key: sodium.to_base64(key.data),
-              },
-            ],
+            data: req.body.data,
+            key: sodium.to_base64(key.data),
           },
         },
       });
@@ -283,23 +260,9 @@ app.delete(
     })) as IMessage;
 
     for (const user of channel.users.filter((u) => !u.hidden)) {
-      let lastMessageVersions;
-
-      if (lastMessage.versions) {
-        lastMessageVersions = [];
-
-        for (const version of lastMessage.versions) {
-          const key =
-            version.keys &&
-            version.keys.find((key) => !key.userId.compare(user.id))?.data;
-
-          lastMessageVersions.push({
-            created: +version.created,
-            data: version.data && sodium.to_base64(version.data),
-            key: key && sodium.to_base64(key),
-          });
-        }
-      }
+      const key =
+        lastMessage.keys &&
+        lastMessage.keys.find((key) => !key.userId.compare(user.id))?.data;
 
       await dispatchSocket({
         userId: user.id,
@@ -313,7 +276,9 @@ app.delete(
               userId: sodium.to_base64(lastMessage.userId),
               type: lastMessage.type,
               created: +lastMessage.created,
-              versions: lastMessageVersions,
+              updated: lastMessage.updated && +lastMessage.updated,
+              data: lastMessage.data && sodium.to_base64(lastMessage.data),
+              key: key && sodium.to_base64(key),
             },
           },
         },
@@ -437,11 +402,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupAdd,
-      versions: [
-        {
-          data: user._id,
-        },
-      ],
+      data: user._id,
     });
 
     for (const user2 of users) {
@@ -455,12 +416,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
             userId: sodium.to_base64(groupAddMessage.userId),
             type: groupAddMessage.type,
             created: +groupAddMessage.created,
-            versions: [
-              {
-                created: +groupAddMessage.created,
-                data: sodium.to_base64(user._id),
-              },
-            ],
+            data: sodium.to_base64(user._id),
           },
         },
       });
@@ -515,11 +471,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupName,
-      versions: [
-        {
-          data: Buffer.from(req.body.name),
-        },
-      ],
+      data: Buffer.from(req.body.name),
     });
 
     for (const user of channel.users.filter((user) => !user.hidden)) {
@@ -533,12 +485,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
             userId: sodium.to_base64(groupNameMessage.userId),
             type: groupNameMessage.type,
             created: +groupNameMessage.created,
-            versions: [
-              {
-                created: +groupNameMessage.created,
-                data: sodium.to_base64(req.body.name),
-              },
-            ],
+            data: sodium.to_base64(req.body.name),
           },
         },
       });
@@ -769,11 +716,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     channelId: channel._id,
     userId: session.userId,
     type: MessageType.GroupAdd,
-    versions: [
-      {
-        data: userId,
-      },
-    ],
+    data: userId,
   });
 
   for (const channelUser of channel.users.filter(
@@ -789,11 +732,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
           userId: sodium.to_base64(groupAddMessage.userId),
           type: groupAddMessage.type,
           created: +groupAddMessage.created,
-          versions: [
-            {
-              data: req.body.id,
-            },
-          ],
+          data: req.body.id,
         },
       },
     });
@@ -844,11 +783,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
           userId: sodium.to_base64(groupAddMessage.userId),
           type: groupAddMessage.type,
           created: +groupAddMessage.created,
-          versions: [
-            {
-              data: req.body.id,
-            },
-          ],
+          data: req.body.id,
         },
       },
     },
@@ -915,11 +850,7 @@ app.delete(
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupRemove,
-      versions: [
-        {
-          data: channelUser.id,
-        },
-      ],
+      data: channelUser.id,
     });
 
     const callSocket = sockets.find(
@@ -969,12 +900,7 @@ app.delete(
             userId: sodium.to_base64(groupRemoveMessage.userId),
             type: groupRemoveMessage.type,
             created: +groupRemoveMessage.created,
-            versions: [
-              {
-                created: +groupRemoveMessage.created,
-                data: sodium.to_base64(channelUser.id),
-              },
-            ],
+            data: sodium.to_base64(channelUser.id),
           },
         },
       });
@@ -1113,7 +1039,7 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
 });
 
 app.post(
-  "/:channelId/messages/:messageId/versions",
+  "/:channelId/messages/:messageId/data",
   async (req: express.Request, res: express.Response) => {
     const session = await authRequest(req, res);
 
@@ -1160,18 +1086,12 @@ app.post(
       },
     });
 
-    if (!message || !message.versions) {
+    if (!message) {
       res.status(400).json({
         error: "Invalid message",
       });
 
       return;
-    }
-
-    if (message.versions.length >= 10) {
-      res.status(400).json({
-        error: "Message has maximum number of edits",
-      });
     }
 
     if (
@@ -1207,13 +1127,10 @@ app.post(
       }
     }
 
-    const version: IMessageVersion = {
-      created: new Date(),
-      data: Buffer.from(sodium.from_base64(req.body.data)),
-      keys,
-    };
+    message.updated = new Date();
+    message.data = Buffer.from(sodium.from_base64(req.body.data));
+    message.keys = keys;
 
-    message.versions.push(version);
     await message.save();
 
     res.end();
@@ -1222,11 +1139,11 @@ app.post(
       await dispatchSocket({
         userId: key.userId,
         message: {
-          t: SocketMessageType.SMessageVersionCreate,
+          t: SocketMessageType.SMessageUpdate,
           d: {
             id: sodium.to_base64(message._id),
             channelId: sodium.to_base64(message.channelId),
-            created: +version.created,
+            updated: +message.updated,
             data: req.body.data,
             key: sodium.to_base64(key.data),
           },

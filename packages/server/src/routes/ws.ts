@@ -231,24 +231,10 @@ export class Socket {
               }
             )) as IMessage;
 
-            let lastMessageVersions;
-
-            if (lastMessage.versions) {
-              lastMessageVersions = [];
-
-              for (const version of lastMessage.versions) {
-                const key =
-                  version.keys &&
-                  version.keys.find((key) => !key.userId.compare(reqUser._id))
-                    ?.data;
-
-                lastMessageVersions.push({
-                  created: +version.created,
-                  data: version.data && sodium.to_base64(version.data),
-                  key: key && sodium.to_base64(key),
-                });
-              }
-            }
+            const key =
+              lastMessage.keys &&
+              lastMessage.keys.find((key) => !key.userId.compare(reqUser._id))
+                ?.data;
 
             channels.push({
               id: sodium.to_base64(channel._id),
@@ -264,7 +250,9 @@ export class Socket {
                 userId: sodium.to_base64(lastMessage.userId),
                 type: lastMessage.type,
                 created: +lastMessage.created,
-                versions: lastMessageVersions,
+                updated: lastMessage.updated && +lastMessage.updated,
+                data: lastMessage.data && sodium.to_base64(lastMessage.data),
+                key: key && sodium.to_base64(key),
               },
             });
           }

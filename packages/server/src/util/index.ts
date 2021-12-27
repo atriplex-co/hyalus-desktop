@@ -80,13 +80,9 @@ export interface IMessage {
   userId: Buffer;
   type: MessageType;
   created: Date;
-  versions?: IMessageVersion[];
-}
-
-export interface IMessageVersion {
-  created: Date;
-  data: Buffer;
-  keys?: IMessageKey[];
+  updated?: Date;
+  data?: Buffer;
+  keys: IMessageKey[];
 }
 
 export interface IMessageKey {
@@ -364,34 +360,22 @@ export const Message = mongoose.model<IMessage>(
         return new Date();
       },
     },
-    versions: {
+    updated: {
+      type: Date,
+    },
+    data: {
+      type: Buffer.alloc(0),
+    },
+    keys: {
       type: [
-        new mongoose.Schema<IMessageVersion>({
-          created: {
-            type: Date,
+        new mongoose.Schema<IMessageKey>({
+          userId: {
+            type: Buffer.alloc(0),
             required: true,
-            default() {
-              return new Date();
-            },
           },
           data: {
             type: Buffer.alloc(0),
             required: true,
-          },
-          keys: {
-            type: [
-              new mongoose.Schema<IMessageKey>({
-                userId: {
-                  type: Buffer.alloc(0),
-                  required: true,
-                },
-                data: {
-                  type: Buffer.alloc(0),
-                  required: true,
-                },
-              }),
-            ],
-            default: undefined,
           },
         }),
       ],
