@@ -32,7 +32,9 @@
     <DesktopTitlebar v-if="isDesktop" />
     <div class="flex-1 min-h-0">
       <template v-if="inApp">
-        <LoadingView v-show="!store.state.value.ready" />
+        <LoadingView
+          v-show="!store.state.value.updateRequired && !store.state.value.ready"
+        />
         <UpdateRequiredView v-show="store.state.value.updateRequired" />
         <div
           v-if="store.state.value.ready && !store.state.value.updateRequired"

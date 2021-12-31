@@ -638,6 +638,7 @@ export class Socket {
         if (data.proto !== SocketProtocol) {
           store.state.value.updateAvailable = true;
           store.state.value.updateRequired = true;
+          this.closedManually = true;
           this.ws.close();
           return;
         }
