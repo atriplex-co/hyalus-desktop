@@ -11,7 +11,6 @@ import {
   FileChunkRTCType,
   MessageType,
   SocketMessageType,
-  SocketProtocol,
   Status,
 } from "common";
 import MarkdownIt from "markdown-it";
