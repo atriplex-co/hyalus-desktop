@@ -63,10 +63,15 @@ export class Socket {
 
         if (msg.t === SocketMessageType.CStart) {
           const data = msg.d as {
+            proto: number;
             token: string;
             away: boolean;
             fileChunks: string[];
           };
+
+          if (!data.proto) {
+            return;
+          } // prevent old/broken clients from reconnecting infinitely.
 
           const { error } = Joi.object({
             token: tokenSchema.required(),

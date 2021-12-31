@@ -543,6 +543,7 @@ export class Socket {
       this.send({
         t: SocketMessageType.CStart,
         d: {
+          proto: SocketProtocol,
           token: sodium.to_base64(store.state.value.config.token),
           away: store.state.value.away,
           fileChunks: (await idbKeys())
