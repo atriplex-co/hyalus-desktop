@@ -517,7 +517,7 @@ export const callCheckStreams = async () => {
 
       if (peer) {
         if (peer.pc.connectionState === "failed") {
-          stream.peers.splice(stream.peers.indexOf(peer), 1);
+          stream.peers = stream.peers.filter((peer2) => peer2 !== peer);
         } else {
           continue;
         }
