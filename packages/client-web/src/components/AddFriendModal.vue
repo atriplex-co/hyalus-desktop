@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Add friend"
     submit-text="Add"
     @submit="submit"

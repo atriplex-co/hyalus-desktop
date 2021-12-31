@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Enable 2FA"
     submit-text="Enable"
     @submit="submit"

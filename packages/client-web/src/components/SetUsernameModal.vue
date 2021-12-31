@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Change username"
     submit-text="Change"
     @submit="submit"
