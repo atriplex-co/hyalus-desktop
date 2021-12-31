@@ -52,42 +52,6 @@ export class Socket {
       try {
         const msg = JSON.parse(String(buf)) as ISocketMessage;
 
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        if (typeof msg.t === "string") {
-          this.send({
-            t: "callReset",
-          } as unknown as ISocketMessage);
-
-          this.send({
-            t: "ready",
-            d: {
-              proto: SocketProtocol,
-              user: {
-                id: "outdated-client",
-                username: "outdated-client",
-                name: "outdated-client",
-                avatarId: null,
-                created: +new Date(),
-                authKeyUpdated: +new Date(),
-                totpEnabled: false,
-                typingEvents: false,
-                colorTheme: "green",
-                wantStatus: "online",
-              },
-              sessions: [],
-              friends: [],
-              channels: [],
-            },
-          } as unknown as ISocketMessage);
-
-          return;
-        }
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-        // TODO: r3 outdated clients workaround, remove after 2021.12.19
-
         const { error } = Joi.object({
           t: Joi.number().required(),
           d: Joi.object(),
