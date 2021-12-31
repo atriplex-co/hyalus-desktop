@@ -531,7 +531,7 @@ export const callCheckStreams = async () => {
 export class Socket {
   ws = new WebSocket(`${location.origin.replace("http", "ws")}/api/ws`);
   hooks: ISocketHook[] = [];
-  closedManually = false;
+  preventReconnect = false;
 
   constructor() {
     this.ws.addEventListener("open", async () => {
@@ -543,7 +543,7 @@ export class Socket {
       this.send({
         t: SocketMessageType.CStart,
         d: {
-          proto: SocketProtocol,
+          proto: 4,
           token: sodium.to_base64(store.state.value.config.token),
           away: store.state.value.away,
           fileChunks: (await idbKeys())
@@ -575,7 +575,6 @@ export class Socket {
 
       if (msg.t === SocketMessageType.SReady) {
         const data = msg.d as {
-          proto: number;
           user: {
             id: string;
             name: string;
@@ -635,14 +634,6 @@ export class Socket {
             };
           }[];
         };
-
-        if (data.proto !== SocketProtocol) {
-          store.state.value.updateAvailable = true;
-          store.state.value.updateRequired = true;
-          this.closedManually = true;
-          this.ws.close();
-          return;
-        }
 
         store.state.value.user = {
           id: data.user.id,
@@ -871,6 +862,18 @@ export class Socket {
       }
 
       if (msg.t === SocketMessageType.SReset) {
+        const data = msg.d as {
+          error?: string;
+          updateRequired?: boolean;
+        };
+
+        if (data && data.updateRequired) {
+          store.state.value.updateAvailable = true;
+          store.state.value.updateRequired = true;
+          this.close();
+          return;
+        }
+
         await store.writeConfig("token", null);
         await router.push("/auth");
       }
@@ -1916,7 +1919,7 @@ export class Socket {
         }
       }
 
-      if (!this.closedManually) {
+      if (!this.preventReconnect) {
         setTimeout(() => {
           store.state.value.socket = new Socket();
         }, 1000);
@@ -1933,7 +1936,7 @@ export class Socket {
   }
 
   close(): void {
-    this.closedManually = true;
+    this.preventReconnect = true;
     this.ws.close();
   }
 

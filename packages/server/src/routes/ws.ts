@@ -71,9 +71,21 @@ export class Socket {
 
           if (!data.proto) {
             return;
-          } // prevent old/broken clients from reconnecting infinitely.
+          } // prevent old/broken clients from reconnecting infinitely, remove later.
+
+          if (data.proto !== SocketProtocol) {
+            this.send({
+              t: SocketMessageType.SReset,
+              d: {
+                updateRequired: true,
+              },
+            });
+
+            return;
+          }
 
           const { error } = Joi.object({
+            proto: Joi.number(),
             token: tokenSchema.required(),
             away: awaySchema.required(),
             fileChunks: Joi.array().items(fileChunkHashSchema).required(),
@@ -229,7 +241,6 @@ export class Socket {
           this.send({
             t: SocketMessageType.SReady,
             d: {
-              proto: SocketProtocol,
               user: {
                 id: sodium.to_base64(reqUser._id),
                 name: reqUser.name,
