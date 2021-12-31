@@ -88,7 +88,8 @@ export interface ICall {
   remoteStreams: ICallRemoteStream[];
   start: Date;
   deaf: boolean;
-  persistInterval: number;
+  updatePersistInterval: number;
+  checkStreamsInterval: number;
 }
 
 export interface ICallPersist {
@@ -476,7 +477,7 @@ export const notifyGetAvatarUrl = async (
   }
 };
 
-export const updateCallPersist = async () => {
+export const callUpdatePersist = async () => {
   await store.writeConfig(
     "callPersist",
     store.state.value.call &&
@@ -499,6 +500,32 @@ export const patchSdp = (
     "useinbandfec=1;stereo=1;maxaveragebitrate=128000"
   );
   return desc;
+};
+
+export const callCheckStreams = async () => {
+  const channel = store.state.value.channels.find(
+    (channel) => channel.id === store.state.value.call?.channelId
+  );
+
+  if (!store.state.value.call || !channel) {
+    return;
+  }
+
+  for (const stream of store.state.value.call.localStreams) {
+    for (const user of channel.users.filter((user) => user.inCall)) {
+      const peer = stream.peers.find((peer) => peer.userId === user.id);
+
+      if (peer) {
+        if (peer.pc.connectionState === "failed") {
+          stream.peers.splice(stream.peers.indexOf(peer), 1);
+        } else {
+          continue;
+        }
+      }
+
+      await store.callSendLocalStream(stream, user.id);
+    }
+  }
 };
 
 export class Socket {
@@ -2361,7 +2388,7 @@ export const store = {
       }
     }
 
-    await updateCallPersist();
+    await callUpdatePersist();
   },
   async callRemoveLocalStream(opts: {
     type: CallStreamType;
@@ -2403,7 +2430,7 @@ export const store = {
       }
     }
 
-    await updateCallPersist();
+    await callUpdatePersist();
 
     if (
       opts.type === CallStreamType.Display &&
@@ -2423,7 +2450,8 @@ export const store = {
       remoteStreams: [],
       start: new Date(),
       deaf: false,
-      persistInterval: +setInterval(updateCallPersist, 1000 * 30),
+      updatePersistInterval: +setInterval(callUpdatePersist, 1000 * 30),
+      checkStreamsInterval: +setInterval(callCheckStreams, 1000 * 1),
     };
 
     store.state.value.socket?.send({
@@ -2442,7 +2470,7 @@ export const store = {
       //
     }
 
-    await updateCallPersist();
+    await callUpdatePersist();
   },
   async callReset(): Promise<void> {
     if (!store.state.value.call) {
@@ -2461,7 +2489,8 @@ export const store = {
       stream.pc.close();
     }
 
-    clearInterval(store.state.value.call.persistInterval);
+    clearInterval(store.state.value.call.updatePersistInterval);
+    clearInterval(store.state.value.call.checkStreamsInterval);
 
     delete store.state.value.call;
 
@@ -2474,7 +2503,7 @@ export const store = {
       //
     }
 
-    await updateCallPersist();
+    await callUpdatePersist();
   },
   async callSetDeaf(val: boolean) {
     if (!store.state.value.call) {
