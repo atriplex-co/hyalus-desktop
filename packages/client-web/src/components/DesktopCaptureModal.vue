@@ -72,12 +72,24 @@ const selectedSourceId = ref("");
 const selectedAudio = ref(true);
 
 const audioAvailable = computed(() => {
-  return (
-    (!selectedSourceId.value || selectedSourceId.value.startsWith("window:")) &&
-    window.HyalusDesktop?.osPlatform === "win32" &&
-    +window.HyalusDesktop?.osRelease.split(".")[0] >= 10 &&
-    +window.HyalusDesktop?.osRelease.split(".")[2] >= 19041 // Win10 2004+/Win11 required.
-  );
+  if (window.HyalusDesktop?.osPlatform !== "win32") {
+    return false;
+  }
+
+  if (
+    selectedSourceId.value &&
+    selectedSourceId.value.startsWith("window:") &&
+    !(
+      (
+        +window.HyalusDesktop?.osRelease.split(".")[0] >= 10 &&
+        +window.HyalusDesktop?.osRelease.split(".")[2] >= 19041
+      ) // Win10 2004+/Win11 required.
+    )
+  ) {
+    return false;
+  }
+
+  return true;
 });
 
 const submit = async () => {
@@ -100,6 +112,17 @@ const submit = async () => {
           maxFrameRate,
         },
       },
+      ...(audioAvailable.value &&
+      selectedAudio.value &&
+      selectedSourceId.value.startsWith("screen:")
+        ? {
+            audio: {
+              mandatory: {
+                chromeMediaSource: "desktop",
+              },
+            },
+          }
+        : {}),
       // what a pile of shit...
       // eslint-disable-next-line no-undef
     } as unknown as MediaStreamConstraints);
@@ -109,12 +132,20 @@ const submit = async () => {
 
   for (const track of stream.getTracks()) {
     await store.callAddLocalStream({
-      type: CallStreamType.Display,
+      type:
+        track.kind === "video"
+          ? CallStreamType.Display
+          : CallStreamType.DisplayAudio,
       track,
+      silent: track.kind !== "video",
     });
   }
 
-  if (audioAvailable.value && selectedAudio.value) {
+  if (
+    audioAvailable.value &&
+    selectedAudio.value &&
+    selectedSourceId.value.startsWith("window:")
+  ) {
     const context = new AudioContext();
     await context.audioWorklet.addModule(EchoWorker);
     const worklet = new AudioWorkletNode(context, "echo-processor", {
@@ -159,12 +190,7 @@ const updateSources = async () => {
     return;
   }
 
-  const _sources = await window.HyalusDesktop.getSources();
-
-  sources.value = [
-    ..._sources.filter((source) => source.id.startsWith("window:")),
-    ..._sources.filter((source) => source.id.startsWith("screen:")),
-  ];
+  sources.value = await window.HyalusDesktop.getSources();
 };
 
 watch(
