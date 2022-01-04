@@ -3,14 +3,8 @@ import App from "./App.vue";
 import { router } from "./router";
 import { store } from "./store";
 import ServiceWorker from "./shared/serviceWorker?url";
-import { idbDel } from "./util";
 
-try {
-  await store.start();
-} catch {
-  await idbDel("config");
-  location.reload();
-}
+await store.start();
 
 const app = createApp(App);
 app.use(router);
