@@ -8,7 +8,7 @@
   >
     <p
       v-if="showDate && !embedded"
-      class="text-center text-sm text-gray-300 py-4 border-t border-gray-600 mt-4 mb-2"
+      class="text-center text-sm text-gray-300 py-4 border-t border-gray-700 mt-4 mb-2"
     >
       {{ date }}
     </p>

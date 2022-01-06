@@ -1,78 +1,83 @@
 <template>
-  <div class="flex-1 flex">
-    <div v-if="store.state.value.call" class="flex-1 flex flex-col p-2">
-      <div ref="tileContainer" class="flex-1 relative">
-        <ChannelCallTile
-          v-for="tile in tiles"
-          :key="getTileId(tile)"
-          class="absolute"
-          :tile="tile"
-        />
-      </div>
-      <div class="flex items-center justify-center space-x-4 p-2">
-        <div @click="toggleStream(CallStreamType.Audio)($event)">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-                audioStream,
-              'text-gray-400 border-gray-600 hover:text-gray-300': !audioStream,
-            }"
-          >
-            <MicIcon v-if="audioStream" />
-            <MicOffIcon v-else />
-          </div>
-        </div>
-        <div @click="toggleStream(CallStreamType.Video)($event)">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-                videoStream,
-              'text-gray-400 border-gray-600 hover:text-gray-300': !videoStream,
-            }"
-          >
-            <VideoIcon v-if="videoStream" />
-            <VideoOffIcon v-else />
-          </div>
-        </div>
-        <div @click="stop">
-          <CallEndIcon
-            class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
-          />
-        </div>
-        <div @click="toggleStream(CallStreamType.Display)($event)">
-          <DisplayIcon
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-                displayStream,
-              'text-gray-400 border-gray-600 hover:text-gray-300':
-                !displayStream,
-            }"
-          />
-        </div>
-        <div @click="toggleDeaf">
-          <div
-            class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
-            :class="{
-              'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-                store.state.value.call.deaf,
-              'text-gray-400 border-gray-600 hover:text-gray-300':
-                !store.state.value.call.deaf,
-            }"
-          >
-            <AudioOffIcon v-if="store.state.value.call" />
-            <AudioIcon v-else />
-          </div>
-        </div>
-      </div>
-      <DesktopCaptureModal
-        v-if="isDesktop"
-        :show="desktopCaptureModal"
-        @close="desktopCaptureModal = false"
+  <div
+    v-if="store.state.value.call"
+    class="flex flex-col p-2 bg-gray-900 relative"
+    :style="`height: ${resizeHeight}px;`"
+  >
+    <div ref="tileContainer" class="flex-1 relative">
+      <ChannelCallTile
+        v-for="tile in tiles"
+        :key="getTileId(tile)"
+        class="absolute"
+        :tile="tile"
       />
     </div>
+    <div class="flex items-center justify-center space-x-4 p-2">
+      <div @click="toggleStream(CallStreamType.Audio)($event)">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+              audioStream,
+            'text-gray-400 border-gray-600 hover:text-gray-300': !audioStream,
+          }"
+        >
+          <MicIcon v-if="audioStream" />
+          <MicOffIcon v-else />
+        </div>
+      </div>
+      <div @click="toggleStream(CallStreamType.Video)($event)">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+              videoStream,
+            'text-gray-400 border-gray-600 hover:text-gray-300': !videoStream,
+          }"
+        >
+          <VideoIcon v-if="videoStream" />
+          <VideoOffIcon v-else />
+        </div>
+      </div>
+      <div @click="stop">
+        <CallEndIcon
+          class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
+        />
+      </div>
+      <div @click="toggleStream(CallStreamType.Display)($event)">
+        <DisplayIcon
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+              displayStream,
+            'text-gray-400 border-gray-600 hover:text-gray-300': !displayStream,
+          }"
+        />
+      </div>
+      <div @click="toggleDeaf">
+        <div
+          class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
+          :class="{
+            'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
+              store.state.value.call.deaf,
+            'text-gray-400 border-gray-600 hover:text-gray-300':
+              !store.state.value.call.deaf,
+          }"
+        >
+          <AudioOffIcon v-if="store.state.value.call" />
+          <AudioIcon v-else />
+        </div>
+      </div>
+    </div>
+    <DesktopCaptureModal
+      v-if="isDesktop"
+      :show="desktopCaptureModal"
+      @close="desktopCaptureModal = false"
+    />
+    <div
+      class="absolute left-0 bottom-0 w-full h-px cursor-ns-resize"
+      @mousedown="resizeMouseDown"
+    ></div>
   </div>
 </template>
 
@@ -94,6 +99,8 @@ import { CallStreamType, SocketMessageType } from "common";
 const isDesktop = !!window.HyalusDesktop;
 const desktopCaptureModal = ref(false);
 const tileContainer: Ref<HTMLDivElement | null> = ref(null);
+const resizeHeight = ref(innerHeight * 0.45);
+let resizeY = 0;
 
 const getTileId = (tile: ICallTile) => {
   return `${tile.user.id}:${tile.stream?.type}`;
@@ -331,6 +338,23 @@ const toggleDeaf = async (e: MouseEvent) => {
       silent: true,
     });
   }
+};
+
+const resizeMouseMove = (e: MouseEvent) => {
+  resizeHeight.value += e.y - resizeY;
+  resizeY = e.y;
+};
+
+const resizeMouseUp = () => {
+  removeEventListener("mousemove", resizeMouseMove);
+  removeEventListener("mouseup", resizeMouseUp);
+};
+
+const resizeMouseDown = (e: MouseEvent) => {
+  resizeY = e.y;
+
+  addEventListener("mousemove", resizeMouseMove);
+  addEventListener("mouseup", resizeMouseUp);
 };
 
 onMounted(() => {
