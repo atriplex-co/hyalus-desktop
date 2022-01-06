@@ -23,9 +23,11 @@
       />
     </div>
     <div
-      class="flex items-center justify-center group overflow-hidden w-full h-full absolute top-0 left-0 backdrop-blur-3xl bg-black bg-opacity-25"
+      class="flex items-center justify-center group overflow-hidden w-full h-full absolute top-0 left-0 bg-black bg-opacity-25"
       :class="{
         'bg-gray-800': srcObject,
+        'backdrop-blur-3xl': isFullscreen,
+        'backdrop-blur-2xl': !isFullscreen,
       }"
     >
       <video
