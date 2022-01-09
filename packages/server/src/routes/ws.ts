@@ -73,7 +73,7 @@ export class Socket {
             return;
           } // prevent old/broken clients from reconnecting infinitely, remove later.
 
-          if (data.proto !== SocketProtocol) {
+          if (data.proto < SocketProtocol) {
             this.send({
               t: SocketMessageType.SReset,
               d: {
@@ -257,6 +257,11 @@ export class Socket {
               sessions,
               friends,
               channels,
+              meta: {
+                proto: SocketProtocol,
+                type: process.env.NODE_ENV,
+                vapidPublic: process.env.VAPID_PUBLIC,
+              },
             },
           });
 
@@ -603,6 +608,39 @@ export class Socket {
           this.away = data.away;
 
           await propagateStatusUpdate(this.session.userId);
+        }
+
+        if (msg.t === SocketMessageType.CSetPushSubscription) {
+          const data = msg.d as {
+            endpoint: string;
+            p256dh: string;
+            auth: string;
+          };
+
+          const { error } = Joi.object({
+            endpoint: Joi.string().uri().max(1000).required(),
+            p256dh: binarySchema((l) => l === 65).required(),
+            auth: binarySchema((l) => l === 16).required(),
+          }).validate(data);
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          await Session.findOneAndUpdate(
+            {
+              _id: this.session._id,
+            },
+            {
+              $set: {
+                pushSubscription: {
+                  endpoint: data.endpoint,
+                  p256dh: Buffer.from(sodium.from_base64(data.p256dh)),
+                  auth: Buffer.from(sodium.from_base64(data.auth)),
+                },
+              },
+            }
+          );
         }
       } catch (e: unknown) {
         if (process.env.NODE_ENV !== "production") {

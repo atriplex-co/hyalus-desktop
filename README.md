@@ -42,15 +42,6 @@ $ yarn test:common
 
 - Setting up a basic development enviornment can be done like this.
 
-1. Spin up a MongoDB container.
-
 ```sh
-$ docker run -dp 27017:27017 --restart always mongo
-```
-
-2. Install & start the development server.
-
-```sh
-$ yarn
-$ yarn dev
+docker-compose -f docker-compose.dev.yml up -d --build
 ```

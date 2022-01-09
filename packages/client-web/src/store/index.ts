@@ -11,6 +11,7 @@ import {
   FileChunkRTCType,
   MessageType,
   SocketMessageType,
+  SocketProtocol,
   Status,
 } from "common";
 import MarkdownIt from "markdown-it";
@@ -531,6 +532,11 @@ export class Socket {
   ws = new WebSocket(`${location.origin.replace("http", "ws")}/api/ws`);
   hooks: ISocketHook[] = [];
   preventReconnect = false;
+  meta: {
+    proto?: number;
+    type?: string;
+    vapidPublic?: string;
+  } = {};
 
   constructor() {
     this.ws.addEventListener("open", async () => {
@@ -542,7 +548,7 @@ export class Socket {
       this.send({
         t: SocketMessageType.CStart,
         d: {
-          proto: 4,
+          proto: SocketProtocol,
           token: sodium.to_base64(store.state.value.config.token),
           away: store.state.value.away,
           fileChunks: (await idbKeys())
@@ -632,7 +638,14 @@ export class Socket {
               key?: string;
             };
           }[];
+          meta: {
+            proto: number;
+            type: string;
+            vapidPublic: string;
+          };
         };
+
+        this.meta = data.meta;
 
         store.state.value.user = {
           id: data.user.id,
@@ -765,22 +778,42 @@ export class Socket {
         }
 
         const initPermissions = async () => {
-          removeEventListener("mousemove", initPermissions);
+          removeEventListener("mousedown", initPermissions);
           removeEventListener("keydown", initPermissions);
 
           if (window.Notification) {
             try {
               await Notification.requestPermission();
-            } catch {
-              //
+
+              const sub = JSON.parse(
+                JSON.stringify(
+                  await (
+                    await navigator.serviceWorker.getRegistrations()
+                  )[0].pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: this.meta.vapidPublic,
+                  })
+                )
+              );
+
+              this.send({
+                t: SocketMessageType.CSetPushSubscription,
+                d: {
+                  endpoint: sub.endpoint,
+                  p256dh: sub.keys.p256dh,
+                  auth: sub.keys.auth,
+                },
+              });
+            } catch (e) {
+              console.warn(e);
             }
           }
 
           if (window.IdleDetector) {
             try {
               await IdleDetector.requestPermission();
-            } catch {
-              // this will fail on desktop but still work fine.
+            } catch (e) {
+              console.warn(e); // this will fail on desktop but still work fine.
             }
 
             try {

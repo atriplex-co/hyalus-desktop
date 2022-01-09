@@ -12,6 +12,7 @@ import SelfRoute from "./routes/self";
 import SessionsRoute from "./routes/sessions";
 import UsersRoute from "./routes/users";
 import WsRoute from "./routes/ws";
+import webpush from "web-push";
 
 (async () => {
   const log = winston.createLogger({
@@ -78,6 +79,12 @@ import WsRoute from "./routes/ws";
       res.sendFile(path.join(__dirname, "../../client-web/dist/index.html"));
     });
   }
+
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || "",
+    process.env.VAPID_PUBLIC || "",
+    process.env.VAPID_PRIVATE || ""
+  );
 
   server.listen(PORT);
   log.info(`HTTP listening on :${PORT}`);

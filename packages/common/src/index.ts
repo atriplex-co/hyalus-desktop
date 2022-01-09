@@ -1,4 +1,5 @@
-export const SocketProtocol = 4;
+export const SocketProtocol = 5;
+export const PushProtocol = 1;
 export const MaxAvatarWidth = 256;
 export const MaxAvatarFPS = 30;
 export const MaxAvatarDuration = 10;
@@ -33,6 +34,7 @@ export enum SocketMessageType {
   CCallStop,
   CCallRTC,
   CSetAway,
+  CSetPushSubscription,
   SReset,
   SReady,
   SSelfUpdate,

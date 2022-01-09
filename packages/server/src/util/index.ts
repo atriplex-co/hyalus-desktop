@@ -12,11 +12,13 @@ import {
   MaxAvatarFPS,
   MaxAvatarWidth,
   MessageType,
+  PushProtocol,
   SocketMessageType,
   Status,
 } from "common";
 import { ISocketMessage, sockets } from "../routes/ws";
 import multer from "multer";
+import webpush from "web-push";
 
 export interface IUser {
   _id: Buffer;
@@ -43,6 +45,13 @@ export interface ISession {
   lastStart: Date;
   ip: string;
   agent: string;
+  pushSubscription?: ISessionPushSubscription;
+}
+
+export interface ISessionPushSubscription {
+  endpoint: string;
+  p256dh: Buffer;
+  auth: Buffer;
 }
 
 export interface IAvatar {
@@ -218,6 +227,22 @@ export const Session = mongoose.model<ISession>(
     agent: {
       type: String,
       required: true,
+    },
+    pushSubscription: {
+      type: new mongoose.Schema<ISessionPushSubscription>({
+        endpoint: {
+          type: String,
+          required: true,
+        },
+        p256dh: {
+          type: Buffer.alloc(0),
+          required: true,
+        },
+        auth: {
+          type: Buffer.alloc(0),
+          required: true,
+        },
+      }),
     },
   })
 );
@@ -883,6 +908,89 @@ export const dispatchSocket = async (opts: {
     }
 
     socket.send(opts.message);
+  }
+
+  if ([SocketMessageType.SMessageCreate].indexOf(opts.message.t) !== -1) {
+    const sessions: ISession[] = [];
+
+    if (opts.sessionId) {
+      const session = await Session.findOne({
+        _id: opts.sessionId,
+      });
+
+      if (session) {
+        sessions.push(session);
+      }
+    }
+
+    if (opts.userId) {
+      for (const session of await Session.find({
+        userId: opts.userId,
+      })) {
+        sessions.push(session);
+      }
+    }
+
+    for (const session of sessions) {
+      if (
+        // sockets.find(
+        //   (socket) => socket.session && !socket.session._id.compare(session._id)
+        // ) ||
+        !session.pushSubscription
+      ) {
+        continue;
+      }
+
+      let extra;
+
+      if (opts.message.t === SocketMessageType.SMessageCreate) {
+        const data = opts.message.d as {
+          channelId: string;
+          userId: string;
+        };
+
+        const channel = await Channel.findOne({
+          _id: Buffer.from(sodium.from_base64(data.channelId)),
+        });
+
+        const user = await User.findOne({
+          _id: Buffer.from(sodium.from_base64(data.userId)),
+        });
+
+        if (!channel || !user) {
+          return;
+        }
+
+        extra = {
+          channel: {
+            type: channel.type,
+            name: channel.name,
+            avatarId: channel.avatarId && sodium.to_base64(channel.avatarId),
+          },
+          user: {
+            name: user.name,
+            avatarId: user.avatarId && sodium.to_base64(user.avatarId),
+          },
+        };
+      }
+
+      const res = await webpush.sendNotification(
+        {
+          endpoint: session.pushSubscription.endpoint,
+          keys: {
+            p256dh: sodium.to_base64(session.pushSubscription.p256dh),
+            auth: sodium.to_base64(session.pushSubscription.auth),
+          },
+        },
+        JSON.stringify({
+          ...opts.message,
+          p: PushProtocol,
+          e: extra,
+        })
+      );
+
+      console.log(res);
+    }
   }
 };
 

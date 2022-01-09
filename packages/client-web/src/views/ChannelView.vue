@@ -8,8 +8,8 @@
     @dragstart.prevent
     @dragsend.prevent
   >
-    <div class="shadow-xl z-10">
-      <div class="flex justify-between h-16 border-b border-gray-700 mt-px">
+    <div class="shadow-xl z-10 border-b border-gray-700">
+      <div class="flex justify-between h-16 mt-px">
         <div class="flex items-center">
           <div
             class="w-16 h-16 flex items-center justify-center"
@@ -76,12 +76,7 @@
         leave-from-class="opacity-100 scale-y-100"
         leave-to-class="opacity-0 scale-y-95"
       >
-        <div
-          v-if="inCall"
-          class="h-[50vh] w-full flex border-b border-gray-700 bg-gray-900"
-        >
-          <ChannelCall />
-        </div>
+        <ChannelCall v-if="inCall" />
       </transition>
       <p
         v-if="!writable"
@@ -128,7 +123,7 @@
     </div>
     <div
       v-if="writable"
-      class="flex items-center px-4 py-3 space-x-4 border-t border-gray-800"
+      class="flex items-center px-4 py-3 space-x-4 border-t border-gray-700"
     >
       <textarea
         ref="messageBox"

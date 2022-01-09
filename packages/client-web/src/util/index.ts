@@ -32,10 +32,10 @@ const idbGetStore = async () => {
   return idbDb.transaction("default", "readwrite").objectStore("default");
 };
 
-export const idbGet = async (k: string): Promise<unknown> => {
+export const idbGet = async <T>(k: string): Promise<T | null> => {
   const store = await idbGetStore();
 
-  return await idbPromisify(store.get(k));
+  return (await idbPromisify(store.get(k))) as T | null;
 };
 
 export const idbSet = async <T>(k: string, v: T): Promise<T> => {
@@ -94,4 +94,8 @@ export const configToComputed = <T>(k: string) => {
       await store.writeConfig(k, v);
     },
   });
+};
+
+export const getWorkerUrl = (val: new () => Worker) => {
+  return String(val).split('("')[1].split('"')[0];
 };

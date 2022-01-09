@@ -2,17 +2,27 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { router } from "./router";
 import { store } from "./store";
-import ServiceWorker from "./shared/serviceWorker?url";
+import _ServiceWorker from "./shared/serviceWorker?worker";
+import { getWorkerUrl } from "./util";
+
+const ServiceWorker = getWorkerUrl(_ServiceWorker);
+console.log(ServiceWorker);
+
+const swReg = (await navigator.serviceWorker.getRegistrations())[0];
+
+if (swReg) {
+  await swReg.unregister();
+}
+
+await navigator.serviceWorker.register(ServiceWorker, {
+  type: "module",
+});
 
 await store.start();
 
 const app = createApp(App);
 app.use(router);
 app.mount("#app");
-
-if (navigator.serviceWorker && !window.HyalusDesktop) {
-  await navigator.serviceWorker.register(ServiceWorker);
-}
 
 const _debug = console.debug.bind(console);
 console.debug = (...args) => {
