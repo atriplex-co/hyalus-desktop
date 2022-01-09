@@ -5,11 +5,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vue-tsc",
-    "postinstall": "patch-package"
+    "test": "vue-tsc"
   },
   "devDependencies": {
-    "@hyalusapp/rnnoise": "hyalusapp/rnnoise#de6d4dd",
+    "@hyalusapp/rnnoise": "hyalusapp/rnnoise#afab6453bc657a514ffd48ebbae25aa1cf4eecf3",
     "@types/emscripten": "^1.39.6",
     "@types/libsodium-wrappers": "^0.7.9",
     "@types/markdown-it": "^12.2.3",
@@ -28,7 +27,6 @@
     "markdown-it-emoji": "^2.0.0",
     "markdown-it-link-attributes": "^3.0.0",
     "moment": "^2.29.1",
-    "patch-package": "^6.4.7",
     "postcss": "^8.3.9",
     "qrcode": "^1.4.4",
     "tailwindcss": "^3.0.1",
