@@ -1,8 +1,8 @@
 node_modules
-npm-error.log
-yarn-error.log
+*.log
 .vscode
 .env
 packages/*/dist
 packages/*/node_modules
 packages/*/tsconfig.tsbuildinfo
+packages/*/*.log
