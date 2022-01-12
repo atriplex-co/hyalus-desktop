@@ -61,7 +61,7 @@ export class Socket {
           throw new Error(error.message);
         }
 
-        if (msg.t === SocketMessageType.CStart) {
+        if (!this.session && msg.t === SocketMessageType.CStart) {
           const data = msg.d as {
             proto: number;
             token: string;
@@ -277,6 +277,23 @@ export class Socket {
           });
 
           await propagateStatusUpdate(this.session.userId);
+        }
+
+        // half-ass fix for a when SReset changed #'s.
+        // TODO: remove on 2022.01.18
+        if (
+          !this.session &&
+          msg.t === 0 &&
+          (msg.d as { proto: number }).proto === 4
+        ) {
+          this.send({
+            t: 10,
+            d: {
+              updateRequired: true,
+            },
+          });
+
+          return;
         }
 
         if (!this.session) {
