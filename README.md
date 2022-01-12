@@ -43,5 +43,5 @@ $ yarn test:common
 - Setting up a basic development enviornment can be done like this.
 
 ```sh
-docker-compose -f docker-compose.dev.yml up -d --build
+./scripts/dev.sh
 ```
