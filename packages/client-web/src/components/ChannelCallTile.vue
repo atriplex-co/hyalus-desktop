@@ -35,7 +35,7 @@
         class="w-full h-full"
         :class="{
           'object-cover':
-            !isFullscreen && tile.stream?.type !== CallStreamType.Display,
+            !isFullscreen && tile.stream?.type !== CallStreamType.DisplayVideo,
         }"
         :srcObject.prop="srcObject"
         autoplay
@@ -59,7 +59,7 @@
           </div>
           <MicOffIcon v-if="muted" class="w-4 h-4 text-gray-300" />
           <DisplayIcon
-            v-if="tile.stream?.type === CallStreamType.Display"
+            v-if="tile.stream?.type === CallStreamType.DisplayVideo"
             class="w-4 h-4 text-gray-300"
           />
         </div>

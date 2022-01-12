@@ -1,5 +1,3 @@
-const outputBufferSize = 4096;
-
 registerProcessor(
   "rnnoise-processor",
   class extends AudioWorkletProcessor {
@@ -17,7 +15,6 @@ registerProcessor(
           this.pData = instance.exports.malloc(480 * 4); // don't touch this.
           this.inputBuffer = [];
           this.outputBuffer = [];
-          this.outputBufferFilling = true;
           this.heap = new Float32Array(instance.exports.memory.buffer);
           this.instance = instance;
         })();
@@ -59,15 +56,7 @@ registerProcessor(
         }
       }
 
-      if (this.outputBuffer.length < 128) {
-        this.outputBufferFilling = true;
-      }
-
-      if (this.outputBufferFilling && this.outputBuffer.length > outputBufferSize) {
-        this.outputBufferFilling = false;
-      }
-
-      if (!this.outputBufferFilling) {
+      if (this.outputBuffer.length > 128) {
         for (let i = 0; i < 128; ++i) {
           outputs[0][i] = this.outputBuffer.shift();
         }

@@ -44,13 +44,14 @@
           class="w-12 h-12 p-3 text-white bg-primary-500 hover:bg-primary-600 rounded-full cursor-pointer transition"
         />
       </div>
-      <div @click="toggleStream(CallStreamType.Display)($event)">
+      <div @click="toggleStream(CallStreamType.DisplayVideo)($event)">
         <DisplayIcon
           class="w-12 h-12 p-3 rounded-full cursor-pointer transition border-2"
           :class="{
             'text-white bg-gray-600 hover:bg-gray-600 border-transparent':
-              displayStream,
-            'text-gray-400 border-gray-600 hover:text-gray-300': !displayStream,
+              displayVideoStream,
+            'text-gray-400 border-gray-600 hover:text-gray-300':
+              !displayVideoStream,
           }"
         />
       </div>
@@ -120,7 +121,7 @@ const getComputedStream = (type: CallStreamType) => {
 
 const audioStream = getComputedStream(CallStreamType.Audio);
 const videoStream = getComputedStream(CallStreamType.Video);
-const displayStream = getComputedStream(CallStreamType.Display);
+const displayVideoStream = getComputedStream(CallStreamType.DisplayVideo);
 
 const channel = computed(() => {
   return store.state.value.channels.find(
@@ -142,8 +143,9 @@ const tiles = computed(() => {
       (stream) => stream.userId === user.id
     )) {
       if (
-        [CallStreamType.Video, CallStreamType.Display].indexOf(stream.type) !==
-        -1
+        [CallStreamType.Video, CallStreamType.DisplayVideo].indexOf(
+          stream.type
+        ) !== -1
       ) {
         userTiles.push({
           user,
@@ -165,7 +167,9 @@ const tiles = computed(() => {
 
   for (const stream of store.state.value.call.localStreams) {
     if (
-      [CallStreamType.Video, CallStreamType.Display].indexOf(stream.type) !== -1
+      [CallStreamType.Video, CallStreamType.DisplayVideo].indexOf(
+        stream.type
+      ) !== -1
     ) {
       selfTiles.push({
         user: store.state.value.user,
@@ -200,7 +204,7 @@ const toggleStream = (type: CallStreamType) => async (e: MouseEvent) => {
       await store.callSetDeaf(false);
     }
 
-    if (type === CallStreamType.Display && window.HyalusDesktop) {
+    if (type === CallStreamType.DisplayVideo && window.HyalusDesktop) {
       desktopCaptureModal.value = true;
       return;
     }

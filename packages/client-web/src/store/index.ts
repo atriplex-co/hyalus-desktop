@@ -102,7 +102,7 @@ export interface ICallLocalStream {
   type: CallStreamType;
   track: MediaStreamTrack;
   peers: ICallLocalStreamPeer[];
-  context?: ICallLocalStreamContext;
+  config: ICallLocalStreamConfig;
 }
 
 export interface ICallLocalStreamPeer {
@@ -110,7 +110,7 @@ export interface ICallLocalStreamPeer {
   pc: RTCPeerConnection;
 }
 
-export interface ICallLocalStreamContext {
+export interface ICallLocalStreamConfig {
   gain?: GainNode;
 }
 
@@ -119,10 +119,10 @@ export interface ICallRemoteStream {
   type: CallStreamType;
   pc: RTCPeerConnection;
   track: MediaStreamTrack;
-  context?: ICallRemoteStreamContext;
+  config: ICallRemoteStreamConfig;
 }
 
-export interface ICallRemoteStreamContext {
+export interface ICallRemoteStreamConfig {
   el?: unknown; // TS won't let us put IHTMLAudioElement in an interface for whatever fucking reason.
   gain?: GainNode;
 }
@@ -495,10 +495,73 @@ export const callUpdatePersist = async () => {
 export const patchSdp = (
   desc: RTCSessionDescriptionInit
 ): RTCSessionDescriptionInit => {
-  desc.sdp = desc.sdp?.replaceAll(
-    "useinbandfec=1",
-    "useinbandfec=1;stereo=1;maxaveragebitrate=128000"
-  );
+  console.debug("sdp/1:");
+  console.debug(desc.sdp);
+
+  desc.sdp ||= "";
+  let lines = desc.sdp.split("\r\n");
+  let codecStart = 0;
+
+  for (const [k, v] of Object.entries(lines)) {
+    if (v.startsWith("m=audio") || v.startsWith("m=video")) {
+      lines[+k] = `${v.split(" ").slice(0, 3).join(" ")} 100`;
+    }
+
+    if (
+      v.startsWith("a=rtpmap") ||
+      v.startsWith("a=rtcp-fb") ||
+      v.startsWith("a=fmtp")
+    ) {
+      if (!codecStart) {
+        codecStart = +k;
+      }
+
+      lines[+k] = "";
+    }
+  }
+
+  let codec: string[] = [];
+
+  if (desc.sdp.includes("m=audio")) {
+    codec = [
+      "a=rtpmap:100 opus/48000/2",
+      "a=rtcp-fb:100 transport-cc",
+      "a=fmtp:100 minptime=10;useinbandfec=1;stereo=1;maxaveragebitrate=256000",
+    ];
+  }
+
+  if (desc.sdp.includes("m=video")) {
+    const bitrate = {
+      "480p30": 2000,
+      "480p60": 3000,
+      "720p30": 4000,
+      "720p60": 6000,
+      "1080p30": 6000,
+      "1080p60": 8000,
+    }[store.state.value.config.videoMode];
+
+    codec = [
+      "a=rtpmap:100 H264/90000",
+      "a=rtcp-fb:100 goog-remb",
+      "a=rtcp-fb:100 transport-cc",
+      "a=rtcp-fb:100 ccm fir",
+      "a=rtcp-fb:100 nack",
+      "a=rtcp-fb:100 nack pli",
+      `a=fmtp:100 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f;x-google-min-bitrate=${bitrate};x-google-max-bitrate=${bitrate}`,
+    ];
+  }
+
+  lines = [
+    ...lines.slice(0, codecStart + 1),
+    ...codec,
+    ...lines.slice(codecStart),
+  ];
+
+  desc.sdp = `${lines.filter((l) => l).join("\r\n")}\r\n`;
+
+  console.debug("sdp/2:");
+  console.debug(desc.sdp);
+
   return desc;
 };
 
@@ -783,27 +846,31 @@ export class Socket {
 
           if (window.Notification) {
             try {
-              await Notification.requestPermission();
+              if (!window.HyalusDesktop) {
+                await Notification.requestPermission();
+              }
 
-              const sub = JSON.parse(
-                JSON.stringify(
-                  await (
-                    await navigator.serviceWorker.getRegistrations()
-                  )[0].pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: this.meta.vapidPublic,
-                  })
-                )
-              );
+              if (navigator.userAgent.includes("Mobile")) {
+                const pushSubscription = JSON.parse(
+                  JSON.stringify(
+                    await (
+                      await navigator.serviceWorker.getRegistrations()
+                    )[0].pushManager.subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: this.meta.vapidPublic,
+                    })
+                  )
+                );
 
-              this.send({
-                t: SocketMessageType.CSetPushSubscription,
-                d: {
-                  endpoint: sub.endpoint,
-                  p256dh: sub.keys.p256dh,
-                  auth: sub.keys.auth,
-                },
-              });
+                this.send({
+                  t: SocketMessageType.CSetPushSubscription,
+                  d: {
+                    endpoint: pushSubscription.endpoint,
+                    p256dh: pushSubscription.keys.p256dh,
+                    auth: pushSubscription.keys.auth,
+                  },
+                });
+              }
             } catch (e) {
               console.warn(e);
             }
@@ -811,12 +878,10 @@ export class Socket {
 
           if (window.IdleDetector) {
             try {
-              await IdleDetector.requestPermission();
-            } catch (e) {
-              console.warn(e); // this will fail on desktop but still work fine.
-            }
+              if (!window.HyalusDesktop) {
+                await IdleDetector.requestPermission();
+              }
 
-            try {
               const awayDetector = new IdleDetector();
               awayController = new AbortController();
 
@@ -846,8 +911,8 @@ export class Socket {
                 threshold: 1000 * 60 * 10,
                 signal: awayController.signal,
               });
-            } catch {
-              //
+            } catch (e) {
+              console.warn(e);
             }
           }
         };
@@ -1737,6 +1802,15 @@ export class Socket {
 
         if (dataDecrypted.mt === CallRTCType.RemoteTrackOffer) {
           const pc = new RTCPeerConnection({ iceServers });
+          let ctx: AudioContext;
+
+          if (
+            [CallStreamType.Audio, CallStreamType.DisplayAudio].indexOf(
+              dataDecrypted.st
+            ) !== -1
+          ) {
+            ctx = new AudioContext();
+          }
 
           const sendPayload = (val: unknown) => {
             const jsonRaw = JSON.stringify(val);
@@ -1790,15 +1864,16 @@ export class Socket {
               type: dataDecrypted.st,
               pc,
               track,
+              config: {},
             };
 
             store.state.value.call.remoteStreams.push(stream);
 
-            if (track.kind === "audio") {
+            if (ctx) {
               const el2 = document.createElement("audio");
 
               el2.onloadedmetadata = () => {
-                const ctx = new AudioContext();
+                ctx = new AudioContext();
                 const gain = ctx.createGain();
                 const dest = ctx.createMediaStreamDestination();
                 const el = document.createElement("audio") as IHTMLAudioElement;
@@ -1814,10 +1889,8 @@ export class Socket {
                 el.volume = !store.state.value.call?.deaf ? 1 : -1;
                 el.play();
 
-                stream.context = {
-                  el,
-                  gain,
-                };
+                stream.config.el = el;
+                stream.config.gain = gain;
               };
 
               el2.srcObject = new MediaStream([track]);
@@ -1830,6 +1903,10 @@ export class Socket {
             dc.addEventListener("close", () => {
               console.debug("c_rtc/dc: remoteStream close");
               pc.close();
+
+              if (ctx) {
+                ctx.close();
+              }
 
               if (!store.state.value.call) {
                 return;
@@ -2063,8 +2140,8 @@ export const store = {
 
     if (k === "audioOutput" && this.state.value.call) {
       for (const stream of this.state.value.call.remoteStreams) {
-        if (stream.context?.el) {
-          (stream.context.el as IHTMLAudioElement).setSinkId(
+        if (stream.config?.el) {
+          (stream.config.el as IHTMLAudioElement).setSinkId(
             this.state.value.config.audioOutput
           );
         }
@@ -2073,8 +2150,8 @@ export const store = {
 
     if (k === "audioOutputGain" && this.state.value.call) {
       for (const stream of this.state.value.call.remoteStreams) {
-        if (stream.context?.gain) {
-          stream.context.gain.gain.value =
+        if (stream.config?.gain) {
+          stream.config.gain.gain.value =
             this.state.value.config.audioOutputGain / 100;
         }
       }
@@ -2246,15 +2323,15 @@ export const store = {
     type: CallStreamType;
     track?: MediaStreamTrack;
     silent?: boolean;
-    context?: ICallLocalStreamContext;
+    config?: ICallLocalStreamConfig;
   }): Promise<void> {
     if (!store.state.value.call) {
       console.warn("callAddLocalStream missing call");
       return;
     }
 
-    if (!opts.context) {
-      opts.context = {};
+    if (!opts.config) {
+      opts.config = {};
     }
 
     if (!opts.track && opts.type === CallStreamType.Audio) {
@@ -2335,7 +2412,7 @@ export const store = {
         ctx.close();
       };
 
-      opts.context = {
+      opts.config = {
         gain,
       };
     }
@@ -2354,7 +2431,7 @@ export const store = {
       ).getTracks()[0];
     }
 
-    if (!opts.track && opts.type === CallStreamType.Display) {
+    if (!opts.track && opts.type === CallStreamType.DisplayVideo) {
       const [height, frameRate] = this.state.value.config.videoMode.split("p");
 
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -2374,7 +2451,7 @@ export const store = {
         await this.callAddLocalStream({
           type:
             track.kind === "video"
-              ? CallStreamType.Display
+              ? CallStreamType.DisplayVideo
               : CallStreamType.DisplayAudio,
           track,
           silent: track.kind !== "video",
@@ -2391,7 +2468,7 @@ export const store = {
       type: opts.type,
       track: opts.track,
       peers: [],
-      context: opts.context,
+      config: opts.config,
     };
 
     store.state.value.call.localStreams.push(stream);
@@ -2470,7 +2547,7 @@ export const store = {
     await callUpdatePersist();
 
     if (
-      opts.type === CallStreamType.Display &&
+      opts.type === CallStreamType.DisplayVideo &&
       this.state.value.call?.localStreams.find(
         (stream) => stream.type === CallStreamType.DisplayAudio
       )
@@ -2548,8 +2625,8 @@ export const store = {
     }
 
     for (const stream of store.state.value.call.remoteStreams) {
-      if (stream.context?.el) {
-        (stream.context.el as IHTMLAudioElement).volume = val ? 0 : 1;
+      if (stream.config?.el) {
+        (stream.config.el as IHTMLAudioElement).volume = val ? 0 : 1;
       }
     }
 

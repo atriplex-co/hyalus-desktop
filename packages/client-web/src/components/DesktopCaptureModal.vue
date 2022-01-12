@@ -69,7 +69,7 @@ const emit = defineEmits(["close"]);
 
 const sources: Ref<ISource[]> = ref([]);
 const selectedSourceId = ref("");
-const selectedAudio = ref(true);
+const selectedAudio = ref(false);
 
 const audioAvailable = computed(() => {
   if (window.HyalusDesktop?.osPlatform !== "win32") {
@@ -134,7 +134,7 @@ const submit = async () => {
     await store.callAddLocalStream({
       type:
         track.kind === "video"
-          ? CallStreamType.Display
+          ? CallStreamType.DisplayVideo
           : CallStreamType.DisplayAudio,
       track,
       silent: track.kind !== "video",
@@ -197,7 +197,7 @@ watch(
   () => props.show,
   async () => {
     selectedSourceId.value = "";
-    selectedAudio.value = true;
+    selectedAudio.value = false;
 
     if (props.show) {
       await updateSources();

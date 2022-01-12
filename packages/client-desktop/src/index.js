@@ -13,6 +13,7 @@ const os = require("os");
 const { autoUpdater } = require("electron-updater");
 const { version } = require("../package.json");
 const fs = require("fs");
+const { spawn, fork } = require("child_process");
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -23,7 +24,7 @@ nativeTheme.themeSource = "dark";
 let mainWindow;
 let quitting;
 let started;
-let win32AudioCapturer;
+let win32AudioProc;
 
 const start = () => {
   if (started) {
@@ -67,11 +68,7 @@ const start = () => {
     },
   });
 
-  if (app.isPackaged) {
-    mainWindow.loadURL("https://hyalus.app/app");
-  } else {
-    mainWindow.loadURL("http://localhost:3000/app");
-  }
+  mainWindow.loadURL("https://hyalus.app/app");
 
   mainWindow.on("close", (e) => {
     if (!quitting) {
@@ -118,19 +115,12 @@ const restart = () => {
   app.quit();
 };
 
-const stopWin32AudioCapture = () => {
-  if (!win32AudioCapturer) {
+const stopWin32AudioCapture = async () => {
+  if (!win32AudioProc) {
     return;
   }
 
-  win32AudioCapturer.stop();
-  win32AudioCapturer = null;
-
-  for (const k of Object.keys(require.cache)) {
-    if (k.includes("@hyalusapp/win32-audio")) {
-      delete require.cache[k];
-    }
-  }
+  win32AudioProc.kill();
 };
 
 app.on("ready", () => {
@@ -163,10 +153,6 @@ app.on("ready", () => {
   tray.on("click", () => {
     mainWindow.show();
   });
-
-  if (!app.isPackaged) {
-    return start();
-  }
 
   autoUpdater.checkForUpdates();
 
@@ -236,17 +222,23 @@ ipcMain.handle("getSources", async () => {
   }));
 });
 
-ipcMain.on("startWin32AudioCapture", (e, handle) => {
-  stopWin32AudioCapture();
+ipcMain.on("startWin32AudioCapture", async (e, handle) => {
+  await stopWin32AudioCapture();
 
-  win32AudioCapturer = require("@hyalusapp/win32-audio");
-  win32AudioCapturer.start(handle, (val) => {
+  win32AudioProc = fork(path.join(__dirname, "win32-audio.js"), {
+    env: {
+      HANDLE: handle,
+    },
+    serialization: "advanced",
+  });
+
+  win32AudioProc.on("message", (val) => {
     e.reply("win32AudioCaptureData", val);
   });
 });
 
-ipcMain.on("stopWin32AudioCapture", () => {
-  stopWin32AudioCapture();
+ipcMain.on("stopWin32AudioCapture", async () => {
+  await stopWin32AudioCapture();
 });
 
 ipcMain.handle("getOpenAtLogin", () => {

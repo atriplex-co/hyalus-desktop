@@ -932,12 +932,18 @@ export const dispatchSocket = async (opts: {
     }
 
     for (const session of sessions) {
-      if (
-        // sockets.find(
-        //   (socket) => socket.session && !socket.session._id.compare(session._id)
-        // ) ||
-        !session.pushSubscription
-      ) {
+      const socket = sockets.find(
+        (socket) =>
+          socket.session && !socket.session._id.compare(session._id as Buffer)
+      );
+
+      if (socket && !socket.away) {
+        return;
+      }
+    }
+
+    for (const session of sessions) {
+      if (!session.pushSubscription) {
         continue;
       }
 
@@ -974,7 +980,7 @@ export const dispatchSocket = async (opts: {
         };
       }
 
-      const res = await webpush.sendNotification(
+      await webpush.sendNotification(
         {
           endpoint: session.pushSubscription.endpoint,
           keys: {
@@ -988,8 +994,6 @@ export const dispatchSocket = async (opts: {
           e: extra,
         })
       );
-
-      console.log(res);
     }
   }
 };

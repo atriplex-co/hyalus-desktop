@@ -48,3 +48,5 @@ declare interface Window {
   };
   IdleDetector?: IdleDetector;
 }
+
+declare function registerProcessor(name: string, proc: unknown): void;

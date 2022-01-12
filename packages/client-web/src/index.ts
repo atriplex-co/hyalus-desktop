@@ -5,18 +5,18 @@ import { store } from "./store";
 import _ServiceWorker from "./shared/serviceWorker?worker";
 import { getWorkerUrl } from "./util";
 
-const ServiceWorker = getWorkerUrl(_ServiceWorker);
-console.log(ServiceWorker);
+if (!window.HyalusDesktop) {
+  const ServiceWorker = getWorkerUrl(_ServiceWorker);
+  const swReg = (await navigator.serviceWorker.getRegistrations())[0];
 
-const swReg = (await navigator.serviceWorker.getRegistrations())[0];
+  if (swReg && swReg.active?.scriptURL !== ServiceWorker) {
+    await swReg.unregister();
+  }
 
-if (swReg) {
-  await swReg.unregister();
+  await navigator.serviceWorker.register(ServiceWorker, {
+    type: "module",
+  });
 }
-
-await navigator.serviceWorker.register(ServiceWorker, {
-  type: "module",
-});
 
 await store.start();
 

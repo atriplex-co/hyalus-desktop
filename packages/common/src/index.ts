@@ -101,6 +101,6 @@ export enum CallRTCType {
 export enum CallStreamType {
   Audio,
   Video,
-  Display,
+  DisplayVideo,
   DisplayAudio,
 }
