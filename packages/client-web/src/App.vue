@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col h-screen min-h-0 text-white bg-gray-800 selection:bg-primary-400 selection:text-black select-none"
+    class="flex flex-col h-screen min-h-0"
     :class="{
       'accent-red': store.state.value.config.colorTheme === ColorTheme.Red,
       'accent-orange':
@@ -142,6 +142,10 @@ const fontScale = computed(() => {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-white bg-opacity-10 rounded-sm;
+}
+
+body {
+  @apply text-white bg-gray-800 selection:bg-primary-400 selection:text-black select-none;
 }
 
 pre {
