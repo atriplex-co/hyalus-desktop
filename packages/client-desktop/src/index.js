@@ -21,6 +21,7 @@ if (!app.requestSingleInstanceLock()) {
 
 nativeTheme.themeSource = "dark";
 
+let tray;
 let mainWindow;
 let quitting;
 let started;
@@ -124,7 +125,7 @@ const stopWin32AudioCapture = async () => {
 };
 
 app.on("ready", () => {
-  const tray = new Tray(path.join(__dirname, "../build/icon.png"));
+  tray = new Tray(path.join(__dirname, "../build/icon.png"));
 
   tray.setToolTip(`Hyalus ${version}`);
 
