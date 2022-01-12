@@ -1,6 +1,6 @@
 <template>
-  <ModalBase :show="show" empty>
-    <img :src="src" class="cursor-pointer" @click="$emit('close')" />
+  <ModalBase :show="show" empty class="cursor-pointer" @click="$emit('close')">
+    <img :src="src" />
   </ModalBase>
 </template>
 
