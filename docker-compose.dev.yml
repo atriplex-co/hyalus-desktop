@@ -3,6 +3,7 @@ services:
   web:
     build:
       dockerfile: "Dockerfile.dev"
+      context: "."
     restart: always
     ports:
       - ${PORT}:3000
