@@ -84,7 +84,7 @@
       </div>
     </div>
     <div
-      class="flex-1 bg-gray-700"
+      class="flex-1 bg-gray-700 min-w-0"
       :class="{
         hidden: store.state.value.sideBarContent === SideBarContent.NONE,
       }"
