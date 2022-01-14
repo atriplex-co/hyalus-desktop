@@ -2,19 +2,19 @@ import express from "express";
 import {
   authRequest,
   Channel,
-  channelNameSchema,
+  channelNameValidator,
   cleanObject,
   dispatchSocket,
   Friend,
   getStatus,
   IChannelUser,
-  idSchema,
+  idValidator,
   IMessage,
   IUser,
   Message,
-  messageDataSchema,
-  messageKeysSchema,
-  messageTypeSchema,
+  messageDataValidator,
+  messageKeysValidator,
+  messageTypeValidator,
   processAvatar,
   User,
   validateRequest,
@@ -35,7 +35,7 @@ app.get(
       !session ||
       !validateRequest(req, res, {
         params: {
-          id: idSchema.required(),
+          id: idValidator.required(),
         },
       })
     ) {
@@ -105,12 +105,12 @@ app.post(
       !session ||
       !validateRequest(req, res, {
         params: {
-          id: idSchema.required(),
+          id: idValidator.required(),
         },
         body: {
-          type: messageTypeSchema.required(),
-          data: messageDataSchema.required(),
-          keys: messageKeysSchema.required(),
+          type: messageTypeValidator.required(),
+          data: messageDataValidator.required(),
+          keys: messageKeysValidator.required(),
         },
       })
     ) {
@@ -207,8 +207,8 @@ app.delete(
       !session ||
       !validateRequest(req, res, {
         params: {
-          channelId: idSchema.required(),
-          messageId: idSchema.required(),
+          channelId: idValidator.required(),
+          messageId: idValidator.required(),
         },
       })
     ) {
@@ -294,8 +294,8 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       body: {
-        name: channelNameSchema.required(),
-        userIds: Joi.array().items(idSchema).max(50).required(),
+        name: channelNameValidator.required(),
+        userIds: Joi.array().items(idValidator).max(50).required(),
       },
     })
   ) {
@@ -433,10 +433,10 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       params: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
       body: {
-        name: channelNameSchema,
+        name: channelNameValidator,
       },
     })
   ) {
@@ -521,7 +521,7 @@ app.post("/:id/avatar", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       params: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
     })
   ) {
@@ -597,10 +597,10 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       params: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
       body: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
     })
   ) {
@@ -801,8 +801,8 @@ app.delete(
       !session ||
       !validateRequest(req, res, {
         params: {
-          channelId: idSchema.required(),
-          userId: idSchema.required(),
+          channelId: idValidator.required(),
+          userId: idValidator.required(),
         },
       })
     ) {
@@ -917,7 +917,7 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       params: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
     })
   ) {
@@ -1047,12 +1047,12 @@ app.post(
       !session ||
       !validateRequest(req, res, {
         params: {
-          channelId: idSchema.required(),
-          messageId: idSchema.required(),
+          channelId: idValidator.required(),
+          messageId: idValidator.required(),
         },
         body: {
-          data: messageDataSchema.required(),
-          keys: messageKeysSchema.required(),
+          data: messageDataValidator.required(),
+          keys: messageKeysValidator.required(),
         },
       })
     ) {

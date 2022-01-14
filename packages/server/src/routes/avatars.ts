@@ -1,5 +1,5 @@
 import express from "express";
-import { Avatar, avatarIdSchema, validateRequest } from "../util";
+import { Avatar, avatarIdValidator, validateRequest } from "../util";
 import sodium from "libsodium-wrappers";
 
 const app = express.Router();
@@ -10,7 +10,7 @@ app.get(
     if (
       !validateRequest(req, res, {
         params: {
-          avatarId: avatarIdSchema.required(),
+          avatarId: avatarIdValidator.required(),
         },
       })
     ) {

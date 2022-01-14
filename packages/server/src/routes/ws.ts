@@ -2,22 +2,22 @@ import Joi from "joi";
 import sodium from "libsodium-wrappers";
 import WebSocket from "ws";
 import {
-  awaySchema,
+  awayValidator,
   binarySchema,
   Channel,
   dispatchSocket,
-  fileChunkHashSchema,
+  fileChunkHashValidator,
   Friend,
   getStatus,
   IChannel,
-  idSchema,
+  idValidator,
   IMessage,
   ISession,
   IUser,
   Message,
   propagateStatusUpdate,
   Session,
-  tokenSchema,
+  tokenValidator,
   User,
 } from "../util";
 import { SocketMessageType, SocketProtocol } from "common";
@@ -86,9 +86,9 @@ export class Socket {
 
           const { error } = Joi.object({
             proto: Joi.number(),
-            token: tokenSchema.required(),
-            away: awaySchema.required(),
-            fileChunks: Joi.array().items(fileChunkHashSchema).required(),
+            token: tokenValidator.required(),
+            away: awayValidator.required(),
+            fileChunks: Joi.array().items(fileChunkHashValidator).required(),
           }).validate(data);
 
           if (error) {
@@ -306,7 +306,7 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            id: idSchema.required(),
+            id: idValidator.required(),
           }).validate(data);
 
           if (error) {
@@ -351,7 +351,7 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            hash: fileChunkHashSchema.required(),
+            hash: fileChunkHashValidator.required(),
           }).validate(data);
 
           if (error) {
@@ -367,7 +367,7 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            hash: fileChunkHashSchema.required(),
+            hash: fileChunkHashValidator.required(),
           }).validate(data);
 
           if (error) {
@@ -387,9 +387,9 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            hash: fileChunkHashSchema.required(),
-            tag: idSchema.required(),
-            channelId: idSchema.required(),
+            hash: fileChunkHashValidator.required(),
+            tag: idValidator.required(),
+            channelId: idValidator.required(),
           }).validate(data);
 
           if (error) {
@@ -461,8 +461,8 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            hash: fileChunkHashSchema.required(),
-            tag: idSchema.required(),
+            hash: fileChunkHashValidator.required(),
+            tag: idValidator.required(),
             data: binarySchema((l) => l <= 10240).required(),
           }).validate(data);
 
@@ -496,7 +496,7 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            channelId: idSchema.required(),
+            channelId: idValidator.required(),
           }).validate(data);
 
           if (error) {
@@ -573,7 +573,7 @@ export class Socket {
           };
 
           const { error } = Joi.object({
-            userId: idSchema.required(),
+            userId: idValidator.required(),
             data: binarySchema((l) => l <= 10240).required(),
           }).validate(data);
 

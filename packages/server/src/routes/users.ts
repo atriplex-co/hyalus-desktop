@@ -1,13 +1,13 @@
 import express, { Request, Response } from "express";
 import sodium from "libsodium-wrappers";
 import {
-  authKeySchema,
-  encryptedPrivateKeySchema,
-  publicKeySchema,
-  saltSchema,
+  authKeyValidator,
+  encryptedPrivateKeyValidator,
+  publicKeyValidator,
+  saltValidator,
   Session,
   User,
-  usernameSchema,
+  usernameValidator,
   validateRequest,
 } from "../util";
 
@@ -17,11 +17,11 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
   if (
     !validateRequest(req, res, {
       body: {
-        username: usernameSchema.required(),
-        salt: saltSchema.required(),
-        authKey: authKeySchema.required(),
-        publicKey: publicKeySchema.required(),
-        encryptedPrivateKey: encryptedPrivateKeySchema.required(),
+        username: usernameValidator.required(),
+        salt: saltValidator.required(),
+        authKey: authKeyValidator.required(),
+        publicKey: publicKeyValidator.required(),
+        encryptedPrivateKey: encryptedPrivateKeyValidator.required(),
       },
     })
   ) {
@@ -67,7 +67,7 @@ app.get("/:username", async (req: Request, res: Response): Promise<void> => {
   if (
     !validateRequest(req, res, {
       params: {
-        username: usernameSchema.required(),
+        username: usernameValidator.required(),
       },
     })
   ) {

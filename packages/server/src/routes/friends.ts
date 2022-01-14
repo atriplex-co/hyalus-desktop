@@ -2,10 +2,10 @@ import express from "express";
 import {
   authRequest,
   validateRequest,
-  usernameSchema,
+  usernameValidator,
   User,
   Friend,
-  idSchema,
+  idValidator,
   Channel,
   IUser,
   getStatus,
@@ -25,7 +25,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       body: {
-        username: usernameSchema.required(),
+        username: usernameValidator.required(),
       },
     })
   ) {
@@ -119,7 +119,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     !session ||
     !validateRequest(req, res, {
       params: {
-        id: idSchema.required(),
+        id: idValidator.required(),
       },
       body: {
         accepted: Joi.bool().required(),

@@ -104,310 +104,304 @@ export interface IValidateOpts {
   params?: Record<string, Joi.Schema>;
 }
 
-export const User = mongoose.model<IUser>(
-  "User",
-  new mongoose.Schema<IUser>({
-    _id: {
-      type: Buffer.alloc(0), //idk why tf we have to do this.
-      required: true,
-      default() {
-        return generateId();
-      },
+export const userSchema = new mongoose.Schema<IUser>({
+  _id: {
+    type: Buffer.alloc(0), //idk why tf we have to do this.
+    required: true,
+    default() {
+      return generateId();
     },
-    created: {
-      type: Date,
-      required: true,
-      default() {
-        return new Date();
-      },
+  },
+  created: {
+    type: Date,
+    required: true,
+    default() {
+      return new Date();
     },
-    username: {
-      type: String,
-      required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+    default(): string {
+      return (this as unknown as IUser).username; //this is the IDE-recommended solution- no really, it is.
     },
-    name: {
-      type: String,
-      required: true,
-      default(): string {
-        return (this as unknown as IUser).username; //this is the IDE-recommended solution- no really, it is.
-      },
+  },
+  salt: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  authKey: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  authKeyUpdated: {
+    type: Date,
+    required: true,
+    default(): Date {
+      return (this as unknown as IUser).created;
     },
-    salt: {
-      type: Buffer.alloc(0),
-      required: true,
+  },
+  publicKey: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  encryptedPrivateKey: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  avatarId: {
+    type: Buffer.alloc(0),
+  },
+  typingEvents: {
+    type: Boolean,
+    required: true,
+    default() {
+      return true;
     },
-    authKey: {
-      type: Buffer.alloc(0),
-      required: true,
+  },
+  colorTheme: {
+    type: Number,
+    required: true,
+    default() {
+      return ColorTheme.Green;
     },
-    authKeyUpdated: {
-      type: Date,
-      required: true,
-      default(): Date {
-        return (this as unknown as IUser).created;
-      },
+  },
+  wantStatus: {
+    type: Number,
+    required: true,
+    default() {
+      return Status.Online;
     },
-    publicKey: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    encryptedPrivateKey: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    avatarId: {
-      type: Buffer.alloc(0),
-    },
-    typingEvents: {
-      type: Boolean,
-      required: true,
-      default() {
-        return true;
-      },
-    },
-    colorTheme: {
-      type: Number,
-      required: true,
-      default() {
-        return ColorTheme.Green;
-      },
-    },
-    wantStatus: {
-      type: Number,
-      required: true,
-      default() {
-        return Status.Online;
-      },
-    },
-    totpSecret: {
-      type: Buffer.alloc(0),
-    },
-  })
-);
+  },
+  totpSecret: {
+    type: Buffer.alloc(0),
+  },
+});
 
-export const Session = mongoose.model<ISession>(
-  "Session",
-  new mongoose.Schema<ISession>({
-    _id: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateId();
+export const User = mongoose.model<IUser>("User", userSchema);
+
+export const sessionSchema = new mongoose.Schema<ISession>({
+  _id: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateId();
+    },
+  },
+  token: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateToken();
+    },
+  },
+  userId: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  created: {
+    type: Date,
+    required: true,
+    default() {
+      return new Date();
+    },
+  },
+  lastStart: {
+    type: Date,
+    required: true,
+    default() {
+      return new Date();
+    },
+  },
+  ip: {
+    type: String,
+    required: true,
+  },
+  agent: {
+    type: String,
+    required: true,
+  },
+  pushSubscription: {
+    type: new mongoose.Schema<ISessionPushSubscription>({
+      endpoint: {
+        type: String,
+        required: true,
       },
-    },
-    token: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateToken();
+      p256dh: {
+        type: Buffer.alloc(0),
+        required: true,
       },
-    },
-    userId: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    created: {
-      type: Date,
-      required: true,
-      default() {
-        return new Date();
+      auth: {
+        type: Buffer.alloc(0),
+        required: true,
       },
+    }),
+  },
+});
+
+export const Session = mongoose.model<ISession>("Session", sessionSchema);
+
+export const avatarSchema = new mongoose.Schema<IAvatar>({
+  _id: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateId();
     },
-    lastStart: {
-      type: Date,
-      required: true,
-      default() {
-        return new Date();
+  },
+  data: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  type: {
+    type: String,
+    required: true,
+  },
+});
+
+export const Avatar = mongoose.model<IAvatar>("Avatar", avatarSchema);
+
+export const friendSchema = new mongoose.Schema<IFriend>({
+  _id: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateId();
+    },
+  },
+  user1Id: {
+    type: Buffer.alloc(0),
+    required: true,
+    ref: "User",
+  },
+  user2Id: {
+    type: Buffer.alloc(0),
+    required: true,
+    ref: "User",
+  },
+  accepted: {
+    type: Boolean,
+    required: true,
+    default() {
+      return false;
+    },
+  },
+});
+
+export const Friend = mongoose.model<IFriend>("Friend", friendSchema);
+
+export const channelSchema = new mongoose.Schema<IChannel>({
+  _id: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateId();
+    },
+  },
+  type: {
+    type: Number,
+    required: true,
+  },
+  created: {
+    type: Date,
+    required: true,
+    default() {
+      return new Date();
+    },
+  },
+  name: {
+    type: String,
+  },
+  avatarId: {
+    type: Buffer.alloc(0),
+  },
+  users: [
+    new mongoose.Schema<IChannelUser>({
+      id: {
+        type: Buffer.alloc(0),
+        required: true,
       },
-    },
-    ip: {
-      type: String,
-      required: true,
-    },
-    agent: {
-      type: String,
-      required: true,
-    },
-    pushSubscription: {
-      type: new mongoose.Schema<ISessionPushSubscription>({
-        endpoint: {
-          type: String,
-          required: true,
+      owner: {
+        type: Boolean,
+        required: true,
+        default() {
+          return false;
         },
-        p256dh: {
+      },
+      hidden: {
+        type: Boolean,
+        required: true,
+        default() {
+          return false;
+        },
+      },
+      added: {
+        type: Date,
+        required: true,
+        default() {
+          return new Date();
+        },
+      },
+    }),
+  ],
+});
+
+export const Channel = mongoose.model<IChannel>("Channel", channelSchema);
+
+export const messageSchema = new mongoose.Schema<IMessage>({
+  _id: {
+    type: Buffer.alloc(0),
+    required: true,
+    default() {
+      return generateId();
+    },
+  },
+  channelId: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  userId: {
+    type: Buffer.alloc(0),
+    required: true,
+  },
+  type: {
+    type: Number,
+    required: true,
+  },
+  created: {
+    type: Date,
+    default() {
+      return new Date();
+    },
+  },
+  updated: {
+    type: Date,
+  },
+  data: {
+    type: Buffer.alloc(0),
+  },
+  keys: {
+    type: [
+      new mongoose.Schema<IMessageKey>({
+        userId: {
           type: Buffer.alloc(0),
           required: true,
         },
-        auth: {
+        data: {
           type: Buffer.alloc(0),
           required: true,
-        },
-      }),
-    },
-  })
-);
-
-export const Avatar = mongoose.model<IAvatar>(
-  "Avatar",
-  new mongoose.Schema<IAvatar>({
-    _id: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateId();
-      },
-    },
-    data: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
-  })
-);
-
-export const Friend = mongoose.model<IFriend>(
-  "Friend",
-  new mongoose.Schema<IFriend>({
-    _id: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateId();
-      },
-    },
-    user1Id: {
-      type: Buffer.alloc(0),
-      required: true,
-      ref: "User",
-    },
-    user2Id: {
-      type: Buffer.alloc(0),
-      required: true,
-      ref: "User",
-    },
-    accepted: {
-      type: Boolean,
-      required: true,
-      default() {
-        return false;
-      },
-    },
-  })
-);
-
-export const Channel = mongoose.model<IChannel>(
-  "Channel",
-  new mongoose.Schema<IChannel>({
-    _id: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateId();
-      },
-    },
-    type: {
-      type: Number,
-      required: true,
-    },
-    created: {
-      type: Date,
-      required: true,
-      default() {
-        return new Date();
-      },
-    },
-    name: {
-      type: String,
-    },
-    avatarId: {
-      type: Buffer.alloc(0),
-    },
-    users: [
-      new mongoose.Schema<IChannelUser>({
-        id: {
-          type: Buffer.alloc(0),
-          required: true,
-        },
-        owner: {
-          type: Boolean,
-          required: true,
-          default() {
-            return false;
-          },
-        },
-        hidden: {
-          type: Boolean,
-          required: true,
-          default() {
-            return false;
-          },
-        },
-        added: {
-          type: Date,
-          required: true,
-          default() {
-            return new Date();
-          },
         },
       }),
     ],
-  })
-);
+    default: undefined,
+  },
+});
 
-export const Message = mongoose.model<IMessage>(
-  "Message",
-  new mongoose.Schema<IMessage>({
-    _id: {
-      type: Buffer.alloc(0),
-      required: true,
-      default() {
-        return generateId();
-      },
-    },
-    channelId: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    userId: {
-      type: Buffer.alloc(0),
-      required: true,
-    },
-    type: {
-      type: Number,
-      required: true,
-    },
-    created: {
-      type: Date,
-      default() {
-        return new Date();
-      },
-    },
-    updated: {
-      type: Date,
-    },
-    data: {
-      type: Buffer.alloc(0),
-    },
-    keys: {
-      type: [
-        new mongoose.Schema<IMessageKey>({
-          userId: {
-            type: Buffer.alloc(0),
-            required: true,
-          },
-          data: {
-            type: Buffer.alloc(0),
-            required: true,
-          },
-        }),
-      ],
-      default: undefined,
-    },
-  })
-);
+export const Message = mongoose.model<IMessage>("Message", messageSchema);
 
 export const generateId = (): Buffer => {
   return Buffer.from(sodium.randombytes_buf(16));
@@ -447,7 +441,7 @@ export const authRequest = async (
 ): Promise<(Document<ISession> & ISession) | undefined> => {
   const token = req.headers["authorization"];
 
-  if (tokenSchema.required().validate(token).error) {
+  if (tokenValidator.required().validate(token).error) {
     res.status(400).json({
       error: "Invalid token",
     });
@@ -492,27 +486,27 @@ export const binarySchema = (check: (l: number) => boolean): Joi.Schema => {
   });
 };
 
-export const usernameSchema = Joi.string().regex(/^[a-zA-Z0-9-_]{3,32}$/);
+export const usernameValidator = Joi.string().regex(/^[a-zA-Z0-9-_]{3,32}$/);
 
-export const saltSchema = binarySchema((l) => l === 16);
+export const saltValidator = binarySchema((l) => l === 16);
 
-export const authKeySchema = binarySchema((l) => l === 32);
+export const authKeyValidator = binarySchema((l) => l === 32);
 
-export const publicKeySchema = binarySchema((l) => l === 32);
+export const publicKeyValidator = binarySchema((l) => l === 32);
 
-export const encryptedPrivateKeySchema = binarySchema((l) => l === 72);
+export const encryptedPrivateKeyValidator = binarySchema((l) => l === 72);
 
-export const idSchema = binarySchema((l) => l === 16);
+export const idValidator = binarySchema((l) => l === 16);
 
-export const totpCodeSchema = Joi.number().min(0).max(999999);
+export const totpCodeValidator = Joi.number().min(0).max(999999);
 
-export const tokenSchema = binarySchema((l) => l === 32);
+export const tokenValidator = binarySchema((l) => l === 32);
 
-export const awaySchema = Joi.boolean();
+export const awayValidator = Joi.boolean();
 
-export const fileChunkHashSchema = binarySchema((l) => l === 64);
+export const fileChunkHashValidator = binarySchema((l) => l === 64);
 
-export const colorThemeSchema = Joi.number().valid(
+export const colorThemeValidator = Joi.number().valid(
   ColorTheme.Red,
   ColorTheme.Orange,
   ColorTheme.Amber,
@@ -532,36 +526,36 @@ export const colorThemeSchema = Joi.number().valid(
   ColorTheme.Rose
 );
 
-export const nameSchema = Joi.string().min(1).max(32);
+export const nameValidator = Joi.string().min(1).max(32);
 
-export const typingEventsSchema = Joi.boolean();
+export const typingEventsValidator = Joi.boolean();
 
-export const wantStatusSchema = Joi.number().valid(
+export const wantStatusValidator = Joi.number().valid(
   Status.Online,
   Status.Away,
   Status.Busy,
   Status.Offline
 );
 
-export const totpSecretSchema = binarySchema((l) => l === 10);
+export const totpSecretValidator = binarySchema((l) => l === 10);
 
-export const avatarIdSchema = binarySchema((l) => l === 32);
+export const avatarIdValidator = binarySchema((l) => l === 32);
 
-export const messageTypeSchema = Joi.number().valid(
+export const messageTypeValidator = Joi.number().valid(
   MessageType.Text,
   MessageType.Attachment
 );
 
-export const messageDataSchema = binarySchema((l) => !!l && l <= 32 * 1024);
+export const messageDataValidator = binarySchema((l) => !!l && l <= 32 * 1024);
 
-export const messageKeysSchema = Joi.array().items(
+export const messageKeysValidator = Joi.array().items(
   Joi.object({
-    userId: idSchema.required(),
+    userId: idValidator.required(),
     data: binarySchema((l) => l === 72),
   })
 );
 
-export const channelNameSchema = Joi.string().min(1).max(64);
+export const channelNameValidator = Joi.string().min(1).max(64);
 
 export const processAvatar = (
   req: express.Request,

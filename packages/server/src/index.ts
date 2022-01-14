@@ -13,6 +13,14 @@ import SessionsRoute from "./routes/sessions";
 import UsersRoute from "./routes/users";
 import WsRoute from "./routes/ws";
 import webpush from "web-push";
+import {
+  channelSchema,
+  friendSchema,
+  messageSchema,
+  sessionSchema,
+  User,
+  userSchema,
+} from "./util";
 
 (async () => {
   const log = winston.createLogger({
@@ -39,7 +47,26 @@ import webpush from "web-push";
     PORT = "3001";
   }
 
+  userSchema.index({
+    username: 1,
+  });
+  sessionSchema.index({
+    token: 1,
+  });
+  sessionSchema.index({
+    userId: 1,
+  });
+  friendSchema.index({
+    user1Id: 1,
+    user2Id: 1,
+  });
+  messageSchema.index({
+    channelId: 1,
+    created: 1,
+  });
+
   await mongoose.connect(DB);
+
   log.info("Connected to DB");
 
   const app = express();

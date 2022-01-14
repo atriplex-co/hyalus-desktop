@@ -3,11 +3,11 @@ import sodium from "libsodium-wrappers";
 import {
   User,
   Session,
-  authKeySchema,
+  authKeyValidator,
   authRequest,
-  idSchema,
-  totpCodeSchema,
-  usernameSchema,
+  idValidator,
+  totpCodeValidator,
+  usernameValidator,
   validateRequest,
   checkTotpCode,
   dispatchSocket,
@@ -20,9 +20,9 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
   if (
     !validateRequest(req, res, {
       body: {
-        username: usernameSchema.required(),
-        authKey: authKeySchema,
-        totpCode: totpCodeSchema,
+        username: usernameValidator.required(),
+        authKey: authKeyValidator,
+        totpCode: totpCodeValidator,
       },
     })
   ) {
@@ -137,7 +137,7 @@ app.delete(
       !reqSession ||
       !validateRequest(req, res, {
         params: {
-          sessionId: idSchema.required(),
+          sessionId: idValidator.required(),
         },
       })
     ) {
