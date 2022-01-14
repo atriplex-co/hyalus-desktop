@@ -13,14 +13,7 @@ import SessionsRoute from "./routes/sessions";
 import UsersRoute from "./routes/users";
 import WsRoute from "./routes/ws";
 import webpush from "web-push";
-import {
-  channelSchema,
-  friendSchema,
-  messageSchema,
-  sessionSchema,
-  User,
-  userSchema,
-} from "./util";
+import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
 
 (async () => {
   const log = winston.createLogger({
