@@ -18,7 +18,7 @@ import {
 } from "common";
 import { ISocketMessage, sockets } from "../routes/ws";
 import multer from "multer";
-import webpush from "web-push";
+import webpush, { WebPushError } from "web-push";
 
 export interface IUser {
   _id: Buffer;
@@ -974,20 +974,35 @@ export const dispatchSocket = async (opts: {
         };
       }
 
-      await webpush.sendNotification(
-        {
-          endpoint: session.pushSubscription.endpoint,
-          keys: {
-            p256dh: sodium.to_base64(session.pushSubscription.p256dh),
-            auth: sodium.to_base64(session.pushSubscription.auth),
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: session.pushSubscription.endpoint,
+            keys: {
+              p256dh: sodium.to_base64(session.pushSubscription.p256dh),
+              auth: sodium.to_base64(session.pushSubscription.auth),
+            },
           },
-        },
-        JSON.stringify({
-          ...opts.message,
-          p: PushProtocol,
-          e: extra,
-        })
-      );
+          JSON.stringify({
+            ...opts.message,
+            p: PushProtocol,
+            e: extra,
+          })
+        );
+      } catch (e) {
+        if (e instanceof WebPushError && e.statusCode === 410) {
+          await Session.findOneAndUpdate(
+            {
+              _id: session._id,
+            },
+            {
+              $unset: {
+                pushSubscription: 1,
+              },
+            }
+          );
+        }
+      }
     }
   }
 };
