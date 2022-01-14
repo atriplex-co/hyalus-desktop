@@ -7,8 +7,8 @@
       'max-w-[26.25rem]': !isMobile,
     }"
   >
-    <div class="flex flex-col w-16 flex-shrink-0 justify-between bg-gray-900">
-      <div class="flex flex-col">
+    <div class="flex flex-col justify-between w-16 bg-gray-900">
+      <div>
         <div
           class="h-16 flex items-center justify-center border-b border-gray-700 mt-px"
         >
@@ -84,7 +84,7 @@
       </div>
     </div>
     <div
-      class="flex-1 min-w-0 h-full bg-gray-700"
+      class="flex-1 bg-gray-700"
       :class="{
         hidden: store.state.value.sideBarContent === SideBarContent.NONE,
       }"
@@ -155,7 +155,9 @@ const updateRoute = () => {
     return;
   }
 
-  store.state.value.sideBarContent = SideBarContent.NONE;
+  if (!isMobile) {
+    store.state.value.sideBarContent = SideBarContent.NONE;
+  }
 };
 
 const acceptableFriends = computed(() => {

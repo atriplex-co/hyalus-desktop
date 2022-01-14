@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full bg-gray-700 flex flex-col">
+  <div class="w-full bg-gray-700 flex flex-col h-full">
     <div
       class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold justify-between"
     >
@@ -13,8 +13,9 @@
         </div>
       </template>
     </div>
-    <div class="flex-1 overflow-auto divide-y divide-gray-600">
-      <div />
+    <div
+      class="flex-1 divide-y divide-gray-600 overflow-auto border-t border-gray-600"
+    >
       <SideBarChannel
         v-for="channel in channels"
         :key="channel.id"

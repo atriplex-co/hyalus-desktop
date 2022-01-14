@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full bg-gray-700 flex flex-col">
+  <div class="w-full bg-gray-700 flex flex-col h-full">
     <div class="h-16 flex items-center justify-between px-4 text-gray-200">
       <p class="font-bold text-2xl">Friends</p>
       <div @click="addFriendModal = true">
@@ -8,8 +8,9 @@
         />
       </div>
     </div>
-    <div class="flex-1 overflow-auto divide-y divide-gray-600">
-      <div />
+    <div
+      class="flex-1 overflow-auto divide-y divide-gray-600 border-t border-gray-600"
+    >
       <SideBarFriend
         v-for="friend in friends"
         :key="friend.id"
