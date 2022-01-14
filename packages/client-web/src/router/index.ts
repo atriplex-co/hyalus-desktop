@@ -113,6 +113,7 @@ export const router = createRouter({
         from: RouteLocationNormalized,
         next: NavigationGuardNext
       ) => {
+        store.state.value.invite = String(to.params.username);
         next("/app");
       },
     },

@@ -45,6 +45,7 @@ export interface IState {
   channels: IChannel[];
   call?: ICall;
   expectedEvent?: SocketMessageType;
+  invite?: string;
 }
 
 export interface IConfig {

@@ -1,5 +1,6 @@
 <template>
   <ModalBase
+    :show="show"
     title="Send friend request"
     submit-text="Send"
     @submit="submit"
@@ -14,14 +15,12 @@
         <p class="text-sm text-gray-300">User</p>
         <div
           v-if="user"
-          class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-md"
+          class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-md flex items-center space-x-4"
         >
-          <div class="flex items-center space-x-4">
-            <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
-            <div>
-              <p class="font-bold text-sm">{{ user.name }}</p>
-              <p class="text-gray-300 text-sm">@{{ user.username }}</p>
-            </div>
+          <UserAvatar :id="user.avatarId" class="w-8 h-8 rounded-full" />
+          <div>
+            <p class="text-white font-bold text-sm">{{ user.name }}</p>
+            <p class="text-gray-300 text-sm">@{{ user.username }}</p>
           </div>
         </div>
       </div>
@@ -29,44 +28,65 @@
   </ModalBase>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import ModalBase from "./ModalBase.vue";
 import ModalError from "./ModalError.vue";
 import UserAvatar from "./UserAvatar.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
-import axios from "axios";
-import { ref, onMounted } from "vue";
-import { useStore } from "vuex";
+import { ref, Ref, watch } from "vue";
+import { store, IUser, axios } from "../store";
+import { prettyError } from "../util";
 
-const store = useStore();
-
-const user = ref(null);
+const user: Ref<IUser | null> = ref(null);
 const error = ref("");
 
-axios.defaults.baseURL = store.getters.baseUrl;
+const props = defineProps({
+  show: {
+    type: Boolean,
+  },
+});
 
 const reset = () => {
-  store.commit("setUserInvite", "");
+  delete store.state.value.invite;
 };
 
 const submit = async () => {
+  if (
+    store.state.value.friends.find(
+      (friend) => friend.username === store.state.value.invite
+    )
+  ) {
+    return;
+  }
+
   try {
-    await store.dispatch("addFriend", store.getters.userInvite);
+    await axios.post("/api/friends", {
+      username: store.state.value.invite,
+    });
   } catch (e) {
-    console.log(e);
-    error.value = e.response?.data?.error || e.message;
+    error.value = prettyError(e);
     return;
   }
 
   reset();
 };
 
-onMounted(async () => {
-  try {
-    const { data } = await axios.get(`/api/users/${store.getters.userInvite}`);
-    user.value = data;
-  } catch {
-    reset();
+watch(
+  () => props.show,
+  async () => {
+    if (!props.show) {
+      return;
+    }
+
+    try {
+      const { data } = await axios.get(
+        `/api/users/${store.state.value.invite}`
+      );
+
+      user.value = data;
+    } catch {
+      reset();
+    }
   }
-});
+);
 </script>

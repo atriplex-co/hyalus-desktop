@@ -1,5 +1,6 @@
 <template>
   <div
+    id="app2"
     class="flex flex-col h-screen min-h-0 text-white bg-gray-800 selection:bg-primary-400 selection:text-black select-none"
     :class="{
       'accent-red': store.state.value.config.colorTheme === ColorTheme.Red,
@@ -41,6 +42,7 @@
           class="flex h-full"
         >
           <SideBar v-if="showSideBar" />
+
           <router-view v-slot="{ Component }">
             <transition
               enter-active-class="transition transform duration-75 ease-out"
@@ -62,6 +64,7 @@
       </template>
       <router-view v-else />
     </div>
+    <UserInviteModal :show="!!store.state.value.invite" />
     <div class="hidden">{{ fontScale }}</div>
     <!-- DON'T REMOVE THIS! -->
     <!-- this is here to keep some random css classes from being puregd. -->
@@ -78,6 +81,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { store } from "./store";
 import { ColorTheme } from "common";
+import UserInviteModal from "./components/UserInviteModal.vue";
 
 const inAppRoutes = [
   "app",
