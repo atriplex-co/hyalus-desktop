@@ -1,7 +1,7 @@
 <template>
   <ModalBase
     :show="show"
-    title="Send friend request"
+    title="Add friend"
     submit-text="Send"
     @submit="submit"
     @close="reset"

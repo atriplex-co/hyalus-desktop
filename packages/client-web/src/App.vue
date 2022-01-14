@@ -1,6 +1,5 @@
 <template>
   <div
-    id="app2"
     class="flex flex-col h-screen min-h-0 text-white bg-gray-800 selection:bg-primary-400 selection:text-black select-none"
     :class="{
       'accent-red': store.state.value.config.colorTheme === ColorTheme.Red,
