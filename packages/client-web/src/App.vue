@@ -145,6 +145,10 @@ const fontScale = computed(() => {
 @tailwind components;
 @tailwind utilities;
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 * {
   @apply focus:outline-none;
 }
