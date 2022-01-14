@@ -82,9 +82,9 @@ import InputList from "../components/InputList.vue";
 import InputListItem from "../components/InputListItem.vue";
 import InputBoolean from "../components/InputBoolean.vue";
 import { computed } from "vue";
-import { axios, store } from "../store";
+import { axios, configToComputed } from "../global/helpers";
+import { store } from "../global/store";
 import { ColorTheme } from "common";
-import { configToComputed } from "../util";
 
 const usableColorThemes = [
   ColorTheme.Red,

@@ -22,8 +22,9 @@ import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
 import { ref, PropType, watch } from "vue";
-import { axios, IChannel, store } from "../store";
-import { prettyError } from "../util";
+import { IChannel } from "../global/types";
+import { axios, prettyError } from "../global/helpers";
+import { store } from "../global/store";
 
 const props = defineProps({
   show: {

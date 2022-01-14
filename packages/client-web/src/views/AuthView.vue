@@ -119,7 +119,8 @@
 import ErrorIcon from "../icons/ErrorIcon.vue";
 import AppIcon from "../icons/AppIcon.vue";
 import { ref, onMounted, watch } from "vue";
-import { axios, store } from "../store";
+import { axios, prettyError } from "../global/helpers";
+import { store } from "../global/store";
 import {
   crypto_box_keypair,
   crypto_pwhash,
@@ -136,7 +137,6 @@ import {
 } from "libsodium-wrappers";
 import { router } from "../router";
 import BetaBanner from "../components/BetaBanner.vue";
-import { prettyError } from "../util";
 
 const stage = ref("login");
 const username = ref("");

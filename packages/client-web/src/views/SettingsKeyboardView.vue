@@ -65,7 +65,7 @@ import { ref } from "vue";
 import AppDownloadModal from "../components/AppDownloadModal.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
 import InputKeys from "../components/InputKeys.vue";
-import { configToComputed } from "../util";
+import { configToComputed } from "../global/helpers";
 
 const isDesktop = !!window.HyalusDesktop;
 const appDownloadModal = ref(false);

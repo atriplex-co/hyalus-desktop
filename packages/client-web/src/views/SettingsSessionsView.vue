@@ -16,7 +16,7 @@
 <script lang="ts" setup>
 import SessionItem from "../components/SessionItem.vue";
 import { computed } from "vue";
-import { store } from "../store";
+import { store } from "../global/store";
 
 const sessions = computed(() =>
   [...store.state.value.sessions].sort((a, b) =>

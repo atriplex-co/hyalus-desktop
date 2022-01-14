@@ -119,8 +119,8 @@ import InputList from "../components/InputList.vue";
 import InputListItem from "../components/InputListItem.vue";
 import InputBoolean from "../components/InputBoolean.vue";
 import { computed, onMounted, ref, Ref } from "vue";
-import { store } from "../store";
-import { configToComputed } from "../util";
+import { store } from "../global/store";
+import { configToComputed } from "../global/helpers";
 
 const usableVideoModes = [
   "480p30",

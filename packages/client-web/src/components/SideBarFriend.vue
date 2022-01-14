@@ -31,7 +31,9 @@ import UserAvatar from "./UserAvatar.vue";
 import CheckIcon from "../icons/CheckIcon.vue";
 import CloseIcon from "../icons/CloseIcon.vue";
 import { PropType } from "vue";
-import { axios, IFriend, store } from "../store";
+import { store } from "../global/store";
+import { axios } from "../global/helpers";
+import { IFriend } from "../global/types";
 import { SocketMessageType } from "common";
 
 const props = defineProps({

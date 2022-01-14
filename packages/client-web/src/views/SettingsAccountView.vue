@@ -92,7 +92,8 @@ import TotpDisableModal from "../components/TotpDisableModal.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
 import moment from "moment";
 import { ref, computed } from "vue";
-import { axios, store } from "../store";
+import { axios } from "../global/helpers";
+import { store } from "../global/store";
 
 const setNameModal = ref(false);
 const setUsernameModal = ref(false);

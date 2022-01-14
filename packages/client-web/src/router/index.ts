@@ -4,7 +4,7 @@ import {
   NavigationGuardNext,
   RouteLocationNormalized,
 } from "vue-router";
-import { store } from "../store";
+import { store } from "../global/store";
 
 const requireAuth = (
   to: RouteLocationNormalized,

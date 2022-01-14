@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
-import { configToComputed } from "../util";
+import { configToComputed } from "../global/helpers";
 
 const notifySound = configToComputed<boolean>("notifySound");
 const notifySystem = configToComputed<boolean>("notifySystem");

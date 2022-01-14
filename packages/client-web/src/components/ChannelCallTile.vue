@@ -89,7 +89,8 @@ import {
   Ref,
   computed,
 } from "vue";
-import { ICallTile, store } from "../store";
+import { ICallTile } from "../global/types";
+import { store } from "../global/store";
 import { CallStreamType } from "common";
 
 const props = defineProps({

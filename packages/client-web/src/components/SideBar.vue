@@ -125,7 +125,8 @@ import SideBarStatusPicker from "./SideBarStatusPicker.vue";
 import UpdateReloadModal from "./UpdateReloadModal.vue";
 import { ref, watch, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { SideBarContent, store } from "../store";
+import { SideBarContent } from "../global/types";
+import { store } from "../global/store";
 import { ChannelType } from "common";
 
 const route = useRoute();

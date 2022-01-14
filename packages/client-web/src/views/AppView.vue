@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import AppIcon from "../icons/AppIcon.vue";
-import { store } from "../store";
+import { store } from "../global/store";
 
 document.title = "Hyalus";
 store.state.value.sideBarOpen = true;

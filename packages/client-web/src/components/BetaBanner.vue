@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import CloseIcon from "../icons/CloseIcon.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
-import { store } from "../store";
+import { store } from "../global/store";
 
 const isDesktop = !!window.HyalusDesktop;
 

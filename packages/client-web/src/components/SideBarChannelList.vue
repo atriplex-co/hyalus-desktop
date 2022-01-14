@@ -35,7 +35,8 @@ import SideBarChannel from "./SideBarChannel.vue";
 import GroupCreateModal from "./GroupCreateModal.vue";
 import PlusIcon from "../icons/PlusIcon.vue";
 import { computed, ref, watch } from "vue";
-import { SideBarContent, store } from "../store";
+import { SideBarContent } from "../global/types";
+import { store } from "../global/store";
 import { useRoute, useRouter } from "vue-router";
 import { ChannelType } from "common";
 

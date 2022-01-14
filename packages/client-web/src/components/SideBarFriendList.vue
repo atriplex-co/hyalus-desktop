@@ -27,7 +27,7 @@ import SideBarFriend from "./SideBarFriend.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
 import AddFriendModal from "./AddFriendModal.vue";
 import { ref, computed } from "vue";
-import { store } from "../store";
+import { store } from "../global/store";
 
 const addFriendModal = ref(false);
 const friends = computed(() =>

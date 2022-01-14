@@ -22,7 +22,7 @@
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
 import { ref, onMounted } from "vue";
-import { configToComputed } from "../util";
+import { configToComputed } from "../global/helpers";
 
 const openAtLogin = ref(false);
 
