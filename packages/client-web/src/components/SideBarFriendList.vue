@@ -1,6 +1,5 @@
 <template>
-  <!-- why w-screen? literally no fucking idea. -->
-  <div class="max-w-xs w-screen bg-gray-700 flex flex-col">
+  <div class="w-full bg-gray-700 flex flex-col">
     <div class="h-16 flex items-center justify-between px-4 text-gray-200">
       <p class="font-bold text-2xl">Friends</p>
       <div @click="addFriendModal = true">

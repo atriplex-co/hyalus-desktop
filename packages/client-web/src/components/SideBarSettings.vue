@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-xs w-screen bg-gray-700 flex flex-col">
+  <div class="w-full bg-gray-700 flex flex-col">
     <div class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold">
       <p>Settings</p>
     </div>

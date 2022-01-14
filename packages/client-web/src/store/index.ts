@@ -46,6 +46,8 @@ export interface IState {
   call?: ICall;
   expectedEvent?: SocketMessageType;
   invite?: string;
+  sideBarOpen: boolean;
+  sideBarContent: SideBarContent;
 }
 
 export interface IConfig {
@@ -225,6 +227,14 @@ export interface ISocketHook {
 
 export interface IHTMLAudioElement extends HTMLMediaElement {
   setSinkId(sinkId: string): void;
+}
+
+export enum SideBarContent {
+  NONE,
+  CHANNELS_PRIVATE,
+  CHANNELS_GROUP,
+  FRIENDS,
+  SETTINGS,
 }
 
 const messageFormatter = new MarkdownIt("zero", {
@@ -2099,6 +2109,8 @@ export const store = {
     sessions: [],
     friends: [],
     channels: [],
+    sideBarOpen: true,
+    sideBarContent: SideBarContent.NONE,
   }),
   async start(): Promise<void> {
     this.state.value.config = {

@@ -1,6 +1,13 @@
 <template>
-  <div v-if="store.state.value.user" class="flex">
-    <div class="flex flex-col w-16 justify-between bg-gray-900">
+  <div
+    v-if="store.state.value.user"
+    class="flex w-full"
+    :class="{
+      'fixed inset-0 z-40': isMobile,
+      'max-w-[26.25rem]': !isMobile,
+    }"
+  >
+    <div class="flex flex-col w-16 flex-shrink-0 justify-between bg-gray-900">
       <div class="flex flex-col">
         <div
           class="h-16 flex items-center justify-center border-b border-gray-700 mt-px"
@@ -19,9 +26,12 @@
           class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400"
           :class="{
             'text-primary-400':
-              active === 'channel' && activeChannelType === ChannelType.Private,
+              store.state.value.sideBarContent ===
+              SideBarContent.CHANNELS_PRIVATE,
           }"
-          @click="setActiveChannelType(ChannelType.Private)"
+          @click="
+            store.state.value.sideBarContent = SideBarContent.CHANNELS_PRIVATE
+          "
         >
           <ChatIcon class="w-6 h-6" />
         </div>
@@ -29,18 +39,22 @@
           class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400"
           :class="{
             'text-primary-400':
-              active === 'channel' && activeChannelType === ChannelType.Group,
+              store.state.value.sideBarContent ===
+              SideBarContent.CHANNELS_GROUP,
           }"
-          @click="setActiveChannelType(ChannelType.Group)"
+          @click="
+            store.state.value.sideBarContent = SideBarContent.CHANNELS_GROUP
+          "
         >
           <GroupIcon class="w-6 h-6" />
         </div>
         <div
           class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400 relative"
           :class="{
-            'text-primary-400': active === 'friends',
+            'text-primary-400':
+              store.state.value.sideBarContent === SideBarContent.FRIENDS,
           }"
-          @click="active = 'friends'"
+          @click="store.state.value.sideBarContent = SideBarContent.FRIENDS"
         >
           <FriendsIcon class="w-6 h-6" />
           <div
@@ -61,20 +75,39 @@
       <div
         class="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-800 cursor-pointer transition hover:text-primary-400"
         :class="{
-          'text-primary-400': active === 'settings',
+          'text-primary-400':
+            store.state.value.sideBarContent === SideBarContent.SETTINGS,
         }"
-        @click="active = 'settings'"
+        @click="store.state.value.sideBarContent = SideBarContent.SETTINGS"
       >
         <SettingsIcon class="w-6 h-6" />
       </div>
     </div>
-    <SideBarChannelList v-if="active === 'channel'" :type="activeChannelType" />
-    <SideBarSettings v-if="active === 'settings'" />
-    <SideBarFriendList v-if="active === 'friends'" />
-    <UpdateReloadModal
-      :show="updateReloadModal"
-      @close="updateReloadModal = false"
-    />
+    <div
+      class="flex-1 min-w-0 h-full bg-gray-700"
+      :class="{
+        hidden: store.state.value.sideBarContent === SideBarContent.NONE,
+      }"
+    >
+      <SideBarChannelList
+        v-if="
+          [
+            SideBarContent.CHANNELS_PRIVATE,
+            SideBarContent.CHANNELS_GROUP,
+          ].indexOf(+store.state.value.sideBarContent) !== -1
+        "
+      />
+      <SideBarSettings
+        v-if="store.state.value.sideBarContent === SideBarContent.SETTINGS"
+      />
+      <SideBarFriendList
+        v-if="store.state.value.sideBarContent === SideBarContent.FRIENDS"
+      />
+      <UpdateReloadModal
+        :show="updateReloadModal"
+        @close="updateReloadModal = false"
+      />
+    </div>
   </div>
 </template>
 
@@ -92,43 +125,37 @@ import SideBarStatusPicker from "./SideBarStatusPicker.vue";
 import UpdateReloadModal from "./UpdateReloadModal.vue";
 import { ref, watch, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { store } from "../store";
+import { SideBarContent, store } from "../store";
 import { ChannelType } from "common";
 
 const route = useRoute();
-const active = ref("");
-const activeChannelType = ref(ChannelType.Private);
 const menu = ref("");
 const updateReloadModal = ref(false);
+const isMobile = navigator.userAgent.includes("Mobile");
 
 const updateRoute = () => {
-  if (route.name === "app") {
-    return;
-  }
-
   if (route.name === "channel") {
     const channel = store.state.value.channels.find(
       (c) => c.id === route.params.channelId
     );
 
-    if (channel) {
-      active.value = "channel";
-      activeChannelType.value = channel.type;
-      return;
+    if (channel?.type === ChannelType.Private) {
+      store.state.value.sideBarContent = SideBarContent.CHANNELS_PRIVATE;
     }
-  }
 
-  if (String(route.name).startsWith("settings")) {
-    active.value = "settings";
+    if (channel?.type === ChannelType.Group) {
+      store.state.value.sideBarContent = SideBarContent.CHANNELS_GROUP;
+    }
+
     return;
   }
 
-  active.value = String(route.name);
-};
+  if (String(route.name).startsWith("settings")) {
+    store.state.value.sideBarContent = SideBarContent.SETTINGS;
+    return;
+  }
 
-const setActiveChannelType = (val: ChannelType) => {
-  active.value = "channel";
-  activeChannelType.value = val; //apparently can't see ChannelType in vue's @click prop?
+  store.state.value.sideBarContent = SideBarContent.NONE;
 };
 
 const acceptableFriends = computed(() => {

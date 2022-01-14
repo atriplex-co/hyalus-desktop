@@ -1,6 +1,5 @@
 <template>
-  <!-- why w-screen? literally no fucking idea. -->
-  <div class="max-w-xs w-screen bg-gray-700 flex flex-col">
+  <div class="w-full bg-gray-700 flex flex-col">
     <div
       class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold justify-between"
     >
@@ -34,42 +33,43 @@
 import SideBarChannel from "./SideBarChannel.vue";
 import GroupCreateModal from "./GroupCreateModal.vue";
 import PlusIcon from "../icons/PlusIcon.vue";
-import { computed, ref, watch, PropType } from "vue";
-import { store } from "../store";
+import { computed, ref, watch } from "vue";
+import { SideBarContent, store } from "../store";
 import { useRoute, useRouter } from "vue-router";
 import { ChannelType } from "common";
 
+const isMobile = navigator.userAgent.includes("Mobile");
+
 const route = useRoute();
-
 const router = useRouter();
-
-const props = defineProps({
-  type: {
-    type: Number as PropType<ChannelType>,
-    default() {
-      //
-    },
-  },
-});
 
 const groupCreateModal = ref(false);
 
+const type = computed(
+  () =>
+    ({
+      [SideBarContent.CHANNELS_PRIVATE]: ChannelType.Private,
+      [SideBarContent.CHANNELS_GROUP]: ChannelType.Group,
+    }[+store.state.value.sideBarContent])
+);
+
 const channels = computed(() =>
-  store.state.value.channels.filter((c) => c.type === props.type)
+  store.state.value.channels.filter((c) => c.type === type.value)
 );
 
 const updateRoute = () => {
   if (
+    !isMobile &&
     channels.value.length &&
     (route.name !== "channel" ||
       (route.name === "channel" &&
         store.state.value.channels.find((c) => c.id === route.params.channelId)
-          ?.type !== props.type))
+          ?.type !== type.value))
   ) {
     router.push(`/channels/${channels.value[0].id}`);
   }
 };
 
 updateRoute();
-watch(() => props.type, updateRoute);
+watch(() => type.value, updateRoute);
 </script>

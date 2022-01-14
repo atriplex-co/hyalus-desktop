@@ -9,8 +9,15 @@
     @dragsend.prevent
   >
     <div class="shadow-xl z-10 border-b border-gray-700">
-      <div class="flex justify-between h-16 mt-px">
+      <div class="flex justify-between h-16">
         <div class="flex items-center">
+          <router-link
+            v-if="isMobile"
+            class="ml-2 w-8 h-8 bg-gray-600 p-1.5 rounded-full text-gray-300 hover:bg-gray-500 transition"
+            to="/app"
+          >
+            <ArrowLeftIcon />
+          </router-link>
           <div
             class="w-16 h-16 flex items-center justify-center"
             :class="{ 'cursor-pointer': channel.owner }"
@@ -178,6 +185,7 @@ import {
 import sodium from "libsodium-wrappers";
 import { idbSet } from "../util";
 import ChannelCall from "../components/ChannelCall.vue";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -189,6 +197,7 @@ const messageList: Ref<HTMLDivElement | null> = ref(null);
 const messageListBefore: Ref<HTMLDivElement | null> = ref(null);
 const messageListAfter: Ref<HTMLDivElement | null> = ref(null);
 const typingStatus = ref("");
+const isMobile = navigator.userAgent.includes("Mobile");
 let lastTyping = 0;
 let updateInterval: number;
 let scrollUpdated = false; // make sure chat is scrolled down when initially loaded.
@@ -662,6 +671,8 @@ onMounted(async () => {
 onUnmounted(() => {
   clearInterval(updateInterval);
 });
+
+store.state.value.sideBarOpen = false;
 </script>
 
 <style scoped>

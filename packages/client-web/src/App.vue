@@ -42,7 +42,6 @@
           class="flex h-full"
         >
           <SideBar v-if="showSideBar" />
-
           <router-view v-slot="{ Component }">
             <transition
               enter-active-class="transition transform duration-75 ease-out"
@@ -83,6 +82,8 @@ import { store } from "./store";
 import { ColorTheme } from "common";
 import UserInviteModal from "./components/UserInviteModal.vue";
 
+const isMobile = navigator.userAgent.includes("Mobile");
+
 const inAppRoutes = [
   "app",
   "channel",
@@ -108,9 +109,17 @@ const inApp = computed(() => {
 
 const isDesktop = !!window.HyalusDesktop;
 
-const showSideBar = computed(
-  () => inAppRoutes.indexOf(route.name as string) !== -1
-);
+const showSideBar = computed(() => {
+  if (inAppRoutes.indexOf(route.name as string) === -1) {
+    return false;
+  }
+
+  if (isMobile && !store.state.value.sideBarOpen) {
+    return false;
+  }
+
+  return true;
+});
 
 const fontScale = computed(() => {
   let el = document.querySelector("style[fontScale]") as HTMLStyleElement;
