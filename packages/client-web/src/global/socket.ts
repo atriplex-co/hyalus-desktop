@@ -9,6 +9,7 @@ import {
   ColorTheme,
   FileChunkRTCType,
   MessageType,
+  PushProtocol,
   SocketMessageType,
   SocketProtocol,
   Status,
@@ -315,6 +316,7 @@ export class Socket {
                     endpoint: pushSubscription.endpoint,
                     p256dh: pushSubscription.keys.p256dh,
                     auth: pushSubscription.keys.auth,
+                    proto: PushProtocol,
                   },
                 });
               }
