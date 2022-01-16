@@ -294,7 +294,10 @@ export class Socket {
                 await Notification.requestPermission();
               }
 
-              if (navigator.userAgent.includes("Mobile")) {
+              if (
+                navigator.userAgent.includes("Mobile") ||
+                window.debugEnabled
+              ) {
                 const pushSubscription = JSON.parse(
                   JSON.stringify(
                     await (

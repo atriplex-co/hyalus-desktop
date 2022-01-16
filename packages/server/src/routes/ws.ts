@@ -310,7 +310,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           const channel = await Channel.findOne({
@@ -355,7 +355,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           this.fileChunks.push(data.hash);
@@ -371,7 +371,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           this.fileChunks = this.fileChunks.filter(
@@ -393,7 +393,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           const channel = await Channel.findOne({
@@ -467,7 +467,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           const req = this.fileChunkRequests.find(
@@ -500,7 +500,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           const channel = await Channel.findOne({
@@ -578,7 +578,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           if (!this.callChannelId) {
@@ -619,7 +619,7 @@ export class Socket {
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           this.away = data.away;
@@ -632,16 +632,18 @@ export class Socket {
             endpoint: string;
             p256dh: string;
             auth: string;
+            proto: number;
           };
 
           const { error } = Joi.object({
             endpoint: Joi.string().uri().max(1000).required(),
             p256dh: binarySchema((l) => l === 65).required(),
             auth: binarySchema((l) => l === 16).required(),
+            proto: Joi.number().required(),
           }).validate(data);
 
           if (error) {
-            throw new Error(error.message);
+            return;
           }
 
           await Session.findOneAndUpdate(

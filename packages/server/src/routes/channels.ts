@@ -178,23 +178,25 @@ app.post(
 
     res.end();
 
-    for (const key of keys) {
-      await dispatchSocket({
-        userId: key.userId,
-        message: {
-          t: SocketMessageType.SMessageCreate,
-          d: {
-            id: sodium.to_base64(message._id),
-            channelId: sodium.to_base64(message.channelId),
-            userId: sodium.to_base64(message.userId),
-            type: message.type,
-            created: +message.created,
-            data: req.body.data,
-            key: sodium.to_base64(key.data),
+    await Promise.all(
+      keys.map((key) =>
+        dispatchSocket({
+          userId: key.userId,
+          message: {
+            t: SocketMessageType.SMessageCreate,
+            d: {
+              id: sodium.to_base64(message._id),
+              channelId: sodium.to_base64(message.channelId),
+              userId: sodium.to_base64(message.userId),
+              type: message.type,
+              created: +message.created,
+              data: req.body.data,
+              key: sodium.to_base64(key.data),
+            },
           },
-        },
-      });
-    }
+        })
+      )
+    );
   }
 );
 
