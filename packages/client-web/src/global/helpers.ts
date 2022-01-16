@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { store } from "./store";
 import Axios from "axios";
 import sodium from "libsodium-wrappers";
-import { MessageType, Status } from "common";
+import { AvatarType, MessageType, Status } from "common";
 import SoundNotification from "../assets/sounds/notification_simple-01.ogg";
 import ImageIcon from "../assets/images/icon-background.png";
 import { ICallPersist, IChannel, IChannelUser, IMessage, IUser } from "./types";
@@ -208,48 +208,7 @@ export const notifyGetAvatarUrl = async (
     return ImageIcon;
   }
 
-  const { data, headers } = await axios.get(`/api/avatars/${avatarId}`, {
-    responseType: "blob",
-  });
-
-  const url = URL.createObjectURL(data);
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000 * 5);
-
-  if (headers["content-type"].split("/")[0] === "image") {
-    return url;
-  } else {
-    return await new Promise((resolve) => {
-      const video = document.createElement("video");
-
-      video.addEventListener("error", () => {
-        resolve(ImageIcon);
-      });
-
-      video.addEventListener("loadedmetadata", () => {
-        video.currentTime = 0;
-      });
-
-      video.addEventListener("seeked", () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        (canvas.getContext("2d") as CanvasRenderingContext2D).drawImage(
-          video,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-        resolve(canvas.toDataURL());
-      });
-
-      video.autoplay = true;
-      video.muted = true;
-      video.src = url;
-    });
-  }
+  return `/api/avatars/${avatarId}/${AvatarType.WEBP}`;
 };
 
 export const callUpdatePersist = async () => {
