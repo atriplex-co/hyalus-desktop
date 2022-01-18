@@ -982,7 +982,10 @@ export const dispatchSocket = async (opts: {
       }
 
       for (const session of sessions) {
-        if (!session.pushSubscription) {
+        if (
+          !session.pushSubscription ||
+          session.pushSubscription.proto !== PushProtocol
+        ) {
           continue;
         }
 
