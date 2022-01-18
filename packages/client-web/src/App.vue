@@ -77,7 +77,7 @@ import UpdateRequiredView from "./views/UpdateRequiredView.vue";
 import SideBar from "./components/SideBar.vue";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { store } from "./store";
+import { store } from "./global/store";
 import { ColorTheme } from "common";
 import UserInviteModal from "./components/UserInviteModal.vue";
 

@@ -1,7 +1,3 @@
-import { AxiosError } from "axios";
-import { computed } from "vue";
-import { store } from "../store";
-
 let idbDb: IDBDatabase;
 
 const idbPromisify = (req: IDBRequest | IDBTransaction) =>
@@ -64,38 +60,4 @@ export const idbClear = async (): Promise<void> => {
   store.clear();
 
   await idbPromisify(store.transaction);
-};
-
-export const prettyError = (e: unknown): string => {
-  return (
-    (
-      (e as AxiosError).response?.data as {
-        error?: string;
-      }
-    )?.error || (e as Error).message
-  );
-};
-
-export const iceServers = [
-  {
-    urls: ["stun:stun.l.google.com:19302"],
-  },
-  {
-    urls: ["stun:stun1.l.google.com:19302"],
-  },
-];
-
-export const configToComputed = <T>(k: string) => {
-  return computed({
-    get() {
-      return (store.state.value.config as Record<string, unknown>)[k] as T;
-    },
-    async set(v: T) {
-      await store.writeConfig(k, v);
-    },
-  });
-};
-
-export const getWorkerUrl = (val: new () => Worker) => {
-  return String(val).split('("')[1].split('"')[0];
 };

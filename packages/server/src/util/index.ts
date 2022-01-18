@@ -3,9 +3,9 @@ import express from "express";
 import Joi from "joi";
 import sodium from "libsodium-wrappers";
 import fs from "fs";
-import proc from "child_process";
 import crypto from "crypto";
 import {
+  AvatarType,
   ChannelType,
   ColorTheme,
   MaxAvatarDuration,
@@ -18,7 +18,8 @@ import {
 } from "common";
 import { ISocketMessage, sockets } from "../routes/ws";
 import multer from "multer";
-import webpush from "web-push";
+import webpush, { WebPushError } from "web-push";
+import { execSync } from "child_process";
 
 export interface IUser {
   _id: Buffer;
@@ -52,12 +53,17 @@ export interface ISessionPushSubscription {
   endpoint: string;
   p256dh: Buffer;
   auth: Buffer;
+  proto: number;
 }
 
 export interface IAvatar {
   _id: Buffer;
+  versions: IAvatarVersion[];
+}
+
+export interface IAvatarVersion {
+  type: AvatarType;
   data: Buffer;
-  type: string;
 }
 
 export interface IFriend {
@@ -239,6 +245,10 @@ export const sessionSchema = new mongoose.Schema<ISession>({
         type: Buffer.alloc(0),
         required: true,
       },
+      proto: {
+        type: Number,
+        required: true,
+      },
     }),
   },
 });
@@ -253,12 +263,19 @@ export const avatarSchema = new mongoose.Schema<IAvatar>({
       return generateId();
     },
   },
-  data: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  type: {
-    type: String,
+  versions: {
+    type: [
+      {
+        type: {
+          type: Number,
+          required: true,
+        },
+        data: {
+          type: Buffer.alloc(0),
+          required: true,
+        },
+      },
+    ],
     required: true,
   },
 });
@@ -574,20 +591,18 @@ export const processAvatar = (
           error: "Invalid form data",
         });
 
-        _resolve(undefined);
+        _resolve();
         return;
       }
 
       const resolve = (val?: Buffer) => {
-        if (!req.file) {
-          return;
-        }
-
-        try {
-          fs.unlinkSync(req.file.path);
-          fs.unlinkSync(`${req.file.path}.1`);
-        } catch {
-          //
+        if (req.file) {
+          try {
+            fs.unlinkSync(req.file.path);
+            fs.unlinkSync(`${req.file.path}.1`);
+          } catch {
+            //
+          }
         }
 
         _resolve(val);
@@ -614,24 +629,24 @@ export const processAvatar = (
 
       try {
         const ffprobe = String(
-          proc.execSync(
-            `ffprobe -i ${req.file.path} -show_format -show_streams`,
-            {
-              stdio: "pipe",
-            }
-          )
+          execSync(`ffprobe -i ${req.file.path} -show_format -show_streams`, {
+            stdio: "pipe",
+          })
         );
 
         codecType = ffprobe.split("codec_type=")[1].split("\n")[0];
         width = +ffprobe.split("width=")[1].split("\n")[0];
         height = +ffprobe.split("height=")[1].split("\n")[0];
-        duration = +ffprobe.split("duration=")[1].split("\n")[0];
+        duration = +ffprobe
+          .split("[FORMAT]")[1]
+          .split("duration=")[1]
+          .split("\n")[0];
       } catch {
         res.status(400).json({
           error: "Invalid avatar data",
         });
 
-        resolve(undefined);
+        resolve();
         return;
       }
 
@@ -640,23 +655,22 @@ export const processAvatar = (
           error: "Invalid avatar codec type",
         });
 
-        resolve(undefined);
+        resolve();
         return;
       }
 
       if (!width || width > 4096 || !height || height > 4096) {
         res.status(400).json({
-          error: "Invalid avatar size (max: 4096x4096)",
+          error: "Invalid avatar size",
         });
 
-        resolve(undefined);
+        resolve();
         return;
       }
 
       let cropWidth = 0;
       let cropX = 0;
       let cropY = 0;
-      let type = "";
 
       if (width > height) {
         cropWidth = height;
@@ -668,35 +682,56 @@ export const processAvatar = (
         cropY = (height - width) / 2;
       }
 
-      const cmd = ["ffmpeg", "-i", req.file.path];
+      let versions: IAvatarVersion[] = [];
 
-      if (!duration) {
-        type = "image/webp";
-
-        cmd.push(
-          "-vf",
-          `crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=${MaxAvatarWidth}:${MaxAvatarWidth}`,
-          "-c:v",
-          "libwebp",
-          "-q:v",
-          "80",
-          "-compression_level",
-          "6",
-          "-pix_fmt",
-          "yuva420p",
-          "-an",
-          "-sn",
-          "-f",
-          "webp"
+      try {
+        execSync(
+          [
+            "ffmpeg",
+            "-i",
+            req.file.path,
+            "-frames:v",
+            "1",
+            "-vf",
+            `crop=${cropWidth}:${cropWidth}:${cropX}:${cropY},scale=${MaxAvatarWidth}:${MaxAvatarWidth}`,
+            "-c:v",
+            "libwebp",
+            "-q:v",
+            "80",
+            "-compression_level",
+            "6",
+            "-pix_fmt",
+            "yuva420p",
+            "-an",
+            "-sn",
+            "-f",
+            "webp",
+            "-y",
+            `${req.file.path}.out`,
+          ].join(" "),
+          {
+            stdio: "pipe",
+          }
         );
-      } else {
-        type = "video/mp4";
+      } catch {
+        res.status(400).json({
+          error: "Failed encoding avatar",
+        });
 
-        if (duration > MaxAvatarDuration) {
-          cmd.push("-t", String(MaxAvatarDuration));
-        }
+        resolve();
+        return;
+      }
 
-        cmd.push(
+      versions.push({
+        data: fs.readFileSync(`${req.file.path}.out`),
+        type: AvatarType.WEBP,
+      });
+
+      if (duration) {
+        const cmd = [
+          "ffmpeg",
+          "-i",
+          req.file.path,
           "-f",
           "lavfi",
           "-i",
@@ -714,27 +749,37 @@ export const processAvatar = (
           "-an",
           "-sn",
           "-f",
-          "mp4"
-        );
-      }
+          "mp4",
+        ];
 
-      try {
-        proc.execSync([...cmd, "-y", `${req.file.path}.out`].join(" "), {
-          stdio: "pipe",
-        });
-      } catch {
-        res.status(400).json({
-          error: "Failed encoding avatar",
-        });
+        if (duration > MaxAvatarDuration) {
+          cmd.push("-t", String(MaxAvatarDuration));
+        }
 
-        resolve(undefined);
-        return;
+        let ok = true;
+
+        try {
+          execSync([...cmd, "-y", `${req.file.path}.out`].join(" "), {
+            stdio: "pipe",
+          });
+        } catch {
+          ok = false;
+        }
+
+        if (ok) {
+          versions = [
+            {
+              data: fs.readFileSync(`${req.file.path}.out`),
+              type: AvatarType.MP4,
+            },
+            ...versions,
+          ];
+        }
       }
 
       await Avatar.create({
         _id: hash,
-        data: fs.readFileSync(`${req.file.path}.out`),
-        type,
+        versions,
       });
 
       resolve(hash);
@@ -904,50 +949,42 @@ export const dispatchSocket = async (opts: {
     socket.send(opts.message);
   }
 
-  if ([SocketMessageType.SMessageCreate].indexOf(opts.message.t) !== -1) {
-    const sessions: ISession[] = [];
+  // so this doesn't cause any lag in groups.
+  setTimeout(async () => {
+    if (opts.userId && opts.message.t === SocketMessageType.SMessageCreate) {
+      const data = opts.message.d as {
+        channelId: string;
+        userId: string;
+      };
 
-    if (opts.sessionId) {
-      const session = await Session.findOne({
-        _id: opts.sessionId,
-      });
-
-      if (session) {
-        sessions.push(session);
+      if (!opts.userId.compare(Buffer.from(sodium.from_base64(data.userId)))) {
+        return;
       }
-    }
 
-    if (opts.userId) {
+      const sessions: ISession[] = [];
+
       for (const session of await Session.find({
         userId: opts.userId,
       })) {
+        if (
+          process.env.NODE_ENV === "production" &&
+          sockets.find(
+            (socket) =>
+              socket.session &&
+              !socket.session._id.compare(session._id as Buffer) &&
+              !socket.away
+          )
+        ) {
+          return;
+        }
+
         sessions.push(session);
       }
-    }
 
-    for (const session of sessions) {
-      const socket = sockets.find(
-        (socket) =>
-          socket.session && !socket.session._id.compare(session._id as Buffer)
-      );
-
-      if (socket && !socket.away) {
-        return;
-      }
-    }
-
-    for (const session of sessions) {
-      if (!session.pushSubscription) {
-        continue;
-      }
-
-      let extra;
-
-      if (opts.message.t === SocketMessageType.SMessageCreate) {
-        const data = opts.message.d as {
-          channelId: string;
-          userId: string;
-        };
+      for (const session of sessions) {
+        if (!session.pushSubscription) {
+          continue;
+        }
 
         const channel = await Channel.findOne({
           _id: Buffer.from(sodium.from_base64(data.channelId)),
@@ -961,35 +998,52 @@ export const dispatchSocket = async (opts: {
           return;
         }
 
-        extra = {
-          channel: {
-            type: channel.type,
-            name: channel.name,
-            avatarId: channel.avatarId && sodium.to_base64(channel.avatarId),
-          },
-          user: {
-            name: user.name,
-            avatarId: user.avatarId && sodium.to_base64(user.avatarId),
-          },
-        };
-      }
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: session.pushSubscription.endpoint,
+              keys: {
+                p256dh: sodium.to_base64(session.pushSubscription.p256dh),
+                auth: sodium.to_base64(session.pushSubscription.auth),
+              },
+            },
+            JSON.stringify({
+              ...opts.message,
+              p: PushProtocol,
+              e: {
+                channel: {
+                  type: channel.type,
+                  name: channel.name,
+                },
+                user: {
+                  name: user.name,
+                  avatarId: user.avatarId && sodium.to_base64(user.avatarId),
+                  publicKey: sodium.to_base64(user.publicKey),
+                },
+              },
+            })
+          );
+        } catch (e) {
+          if (process.env.NODE_ENV === "development") {
+            console.log(e);
+          }
 
-      await webpush.sendNotification(
-        {
-          endpoint: session.pushSubscription.endpoint,
-          keys: {
-            p256dh: sodium.to_base64(session.pushSubscription.p256dh),
-            auth: sodium.to_base64(session.pushSubscription.auth),
-          },
-        },
-        JSON.stringify({
-          ...opts.message,
-          p: PushProtocol,
-          e: extra,
-        })
-      );
+          if (e instanceof WebPushError && e.statusCode === 410) {
+            await Session.findOneAndUpdate(
+              {
+                _id: session._id,
+              },
+              {
+                $unset: {
+                  pushSubscription: 1,
+                },
+              }
+            );
+          }
+        }
+      }
     }
-  }
+  });
 };
 
 export const cleanObject = <T>(val: T): T => {

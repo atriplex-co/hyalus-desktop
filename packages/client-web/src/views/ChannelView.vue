@@ -175,7 +175,9 @@ import PencilIcon from "../icons/PencilIcon.vue";
 import ChannelInfo from "../components/ChannelInfo.vue";
 import { ref, computed, onMounted, onUnmounted, Ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { axios, processMessage, store } from "../store";
+import { axios, processMessage } from "../global/helpers";
+import { store } from "../global/store";
+import { idbSet } from "../global/idb";
 import {
   CallStreamType,
   ChannelType,
@@ -183,7 +185,6 @@ import {
   SocketMessageType,
 } from "common";
 import sodium from "libsodium-wrappers";
-import { idbSet } from "../util";
 import ChannelCall from "../components/ChannelCall.vue";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 

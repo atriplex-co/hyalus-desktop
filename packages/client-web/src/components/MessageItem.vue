@@ -224,7 +224,11 @@ import {
   PropType,
   Ref,
 } from "vue";
-import { axios, IChannel, IMessage, ISocketMessage, store } from "../store";
+import { axios } from "../global/helpers";
+import { store } from "../global/store";
+import { IChannel, IMessage, ISocketMessage } from "../global/types";
+import { idbGet, idbSet } from "../global/idb";
+import { iceServers } from "../global/config";
 import {
   MessageType,
   ChannelType,
@@ -245,7 +249,6 @@ import {
   to_base64,
   to_string,
 } from "libsodium-wrappers";
-import { idbGet, iceServers, idbSet } from "../util";
 
 const chunkThreshold = 1000 * 60 * 5;
 

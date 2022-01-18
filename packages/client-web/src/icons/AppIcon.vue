@@ -72,6 +72,6 @@
 </template>
 
 <script setup lang="ts">
-import { store } from "../store";
+import { store } from "../global/store";
 import { ColorTheme } from "common";
 </script>

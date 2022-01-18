@@ -27,9 +27,9 @@ import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import LockIcon from "../icons/LockIcon.vue";
 import { ref, watch } from "vue";
-import { prettyError } from "../util";
 import sodium from "libsodium-wrappers";
-import { axios, store } from "../store";
+import { axios, prettyError } from "../global/helpers";
+import { store } from "../global/store";
 
 const props = defineProps({
   show: {

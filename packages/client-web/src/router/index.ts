@@ -4,7 +4,7 @@ import {
   NavigationGuardNext,
   RouteLocationNormalized,
 } from "vue-router";
-import { store } from "../store";
+import { store } from "../global/store";
 
 const requireAuth = (
   to: RouteLocationNormalized,
@@ -49,6 +49,12 @@ export const router = createRouter({
       path: "/auth",
       component: () => import("../views/AuthView.vue"),
       beforeEnter: requireNoAuth,
+    },
+    {
+      name: "settings",
+      path: "/settings",
+      component: () => import("../components/SideBarSettings.vue"),
+      beforeEnter: requireAuth,
     },
     {
       name: "settingsAccount",

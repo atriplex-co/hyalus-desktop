@@ -34,8 +34,9 @@ import ModalError from "./ModalError.vue";
 import UserAvatar from "./UserAvatar.vue";
 import UserAddIcon from "../icons/UserAddIcon.vue";
 import { ref, Ref, watch } from "vue";
-import { store, IUser, axios } from "../store";
-import { prettyError } from "../util";
+import { store } from "../global/store";
+import { axios, prettyError } from "../global/helpers";
+import { IUser } from "../global/types";
 
 const user: Ref<IUser | null> = ref(null);
 const error = ref("");

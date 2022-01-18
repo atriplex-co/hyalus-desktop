@@ -48,7 +48,7 @@ import ModalBase from "./ModalBase.vue";
 import DisplayIcon from "../icons/DisplayIcon.vue";
 import InputBoolean from "./InputBoolean.vue";
 import { ref, Ref, watch, computed } from "vue";
-import { store } from "../store";
+import { store } from "../global/store";
 import { CallStreamType } from "common";
 import EchoWorker from "../shared/echoWorker?url";
 

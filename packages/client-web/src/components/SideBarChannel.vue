@@ -28,7 +28,8 @@ import moment from "moment";
 import UserAvatar from "./UserAvatar.vue";
 import EmptyAvatar from "./EmptyAvatar.vue";
 import { ref, computed, PropType, onUnmounted } from "vue";
-import { IChannel, IChannelUser, store, IUser } from "../store";
+import { IChannel, IChannelUser, IUser } from "../global/types";
+import { store } from "../global/store";
 import { useRoute } from "vue-router";
 import { ChannelType, MessageType } from "common";
 

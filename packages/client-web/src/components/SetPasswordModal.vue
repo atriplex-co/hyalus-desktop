@@ -40,8 +40,8 @@ import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import KeyIcon from "../icons/KeyIcon.vue";
 import { ref, watch } from "vue";
-import { prettyError } from "../util";
-import { axios, store } from "../store";
+import { axios, prettyError } from "../global/helpers";
+import { store } from "../global/store";
 import {
   crypto_pwhash,
   crypto_pwhash_ALG_ARGON2ID13,

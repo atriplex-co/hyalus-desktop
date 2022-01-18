@@ -42,7 +42,7 @@ import Checkbox from "./Checkbox.vue";
 import GroupIcon from "../icons/GroupIcon.vue";
 import UserAvatar from "./UserAvatar.vue";
 import { ref, computed, PropType } from "vue";
-import { IChannelUser, IFriend } from "../store";
+import { IChannelUser, IFriend } from "../global/types";
 
 const props = defineProps({
   users: {

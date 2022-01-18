@@ -22,8 +22,8 @@ import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
 import { ref, PropType, watch } from "vue";
-import { axios, IChannel } from "../store";
-import { prettyError } from "../util";
+import { axios, prettyError } from "../global/helpers";
+import { IChannel } from "../global/types";
 
 const props = defineProps({
   show: {

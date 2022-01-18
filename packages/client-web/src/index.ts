@@ -1,9 +1,9 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import { router } from "./router";
-import { store } from "./store";
+import { store } from "./global/store";
 import _ServiceWorker from "./shared/serviceWorker?worker";
-import { getWorkerUrl } from "./util";
+import { getWorkerUrl } from "./global/helpers";
 
 if (!window.HyalusDesktop) {
   const ServiceWorker = getWorkerUrl(_ServiceWorker);

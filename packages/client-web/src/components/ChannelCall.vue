@@ -94,7 +94,8 @@ import VideoOffIcon from "../icons/VideoOffIcon.vue";
 import AudioIcon from "../icons/AudioIcon.vue";
 import AudioOffIcon from "../icons/AudioOffIcon.vue";
 import { ref, computed, onMounted, Ref } from "vue";
-import { ICallTile, store } from "../store";
+import { ICallTile } from "../global/types";
+import { store } from "../global/store";
 import { CallStreamType, SocketMessageType } from "common";
 
 const isDesktop = !!window.HyalusDesktop;

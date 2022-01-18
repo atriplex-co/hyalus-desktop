@@ -101,9 +101,9 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
   }
 
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "",
-    process.env.VAPID_PUBLIC || "",
-    process.env.VAPID_PRIVATE || ""
+    process.env.VAPID_SUBJECT || "mailto:gido@gido.click",
+    process.env.VAPID_PUBLIC || "BHT0GkOoL5lxXuY9K_KUnLg7U2HXm71b1o6NDuEgtRTOr0DCN21SykQIO5H96Q9scfeD7Kyy6Jn_MmfrqqkweYc",
+    process.env.VAPID_PRIVATE || "G60iFIXL3f9UFWlyh2Z_8eglrsJyosnVSOQeGpQBXnQ"
   );
 
   server.listen(PORT);

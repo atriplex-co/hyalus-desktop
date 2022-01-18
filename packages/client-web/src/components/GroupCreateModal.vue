@@ -24,8 +24,8 @@ import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import InputUser from "./InputUser.vue";
 import { ref, watch } from "vue";
-import { store, axios } from "../store";
-import { prettyError } from "../util";
+import { store } from "../global/store";
+import { prettyError, axios } from "../global/helpers";
 import { SocketMessageType } from "common";
 
 const props = defineProps({

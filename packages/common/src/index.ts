@@ -104,3 +104,8 @@ export enum CallStreamType {
   DisplayVideo = 2,
   DisplayAudio = 3,
 }
+
+export enum AvatarType {
+  WEBP = 0,
+  MP4 = 1,
+}

@@ -22,8 +22,8 @@ import ModalInput from "./ModalInput.vue";
 import ModalError from "./ModalError.vue";
 import AtSymbolIcon from "../icons/AtSymbolIcon.vue";
 import { ref, watch } from "vue";
-import { store, axios } from "../store";
-import { prettyError } from "../util";
+import { store } from "../global/store";
+import { axios, prettyError } from "../global/helpers";
 
 const props = defineProps({
   show: {
