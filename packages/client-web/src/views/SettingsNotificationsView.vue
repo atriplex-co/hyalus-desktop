@@ -19,9 +19,13 @@
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
 import { configToComputed } from "../util";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const notifySound = configToComputed<boolean>("notifySound");
 const notifySystem = configToComputed<boolean>("notifySystem");
+const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = "Hyalus \u2022 Notifications";
+
+store.state.value.sideBarOpen = false;
 </script>

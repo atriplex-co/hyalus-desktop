@@ -121,6 +121,7 @@ import InputBoolean from "../components/InputBoolean.vue";
 import { computed, onMounted, ref, Ref } from "vue";
 import { store } from "../store";
 import { configToComputed } from "../util";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const usableVideoModes = [
   "480p30",
@@ -134,6 +135,7 @@ const usableVideoModes = [
 const usableAudioOutputs: Ref<MediaDeviceInfo[]> = ref([]);
 const usableAudioInputs: Ref<MediaDeviceInfo[]> = ref([]);
 const usableVideoInputs: Ref<MediaDeviceInfo[]> = ref([]);
+const isMobile = navigator.userAgent.includes("Mobile");
 
 const audioOutput = computed({
   get() {
@@ -222,4 +224,6 @@ onMounted(async () => {
   usableAudioInputs.value = devices.filter((d) => d.kind === "audioinput");
   usableVideoInputs.value = devices.filter((d) => d.kind === "videoinput");
 });
+
+store.state.value.sideBarOpen = false;
 </script>

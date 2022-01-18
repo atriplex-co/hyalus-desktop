@@ -66,6 +66,9 @@ import AppDownloadModal from "../components/AppDownloadModal.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
 import InputKeys from "../components/InputKeys.vue";
 import { configToComputed } from "../util";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
+import { store } from "../store";
+
 
 const isDesktop = !!window.HyalusDesktop;
 const appDownloadModal = ref(false);
@@ -78,6 +81,9 @@ const joinCallKeys = configToComputed<string>("joinCallKeys");
 const leaveCallKeys = configToComputed<string>("leaveCallKeys");
 const openCurrentCallKeys = configToComputed<string>("openCurrentCallKeys");
 const uploadFileKeys = configToComputed<string>("uploadFileKeys");
+const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = `Hyalus \u2022 Keyboard Shortcuts`;
+
+store.state.value.sideBarOpen = false;
 </script>

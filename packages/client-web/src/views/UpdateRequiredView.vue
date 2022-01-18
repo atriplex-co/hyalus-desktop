@@ -25,4 +25,5 @@ const submit = () => {
     location.reload();
   }
 };
+
 </script>

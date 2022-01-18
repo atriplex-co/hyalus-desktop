@@ -85,6 +85,7 @@ import { computed } from "vue";
 import { axios, store } from "../store";
 import { ColorTheme } from "common";
 import { configToComputed } from "../util";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const usableColorThemes = [
   ColorTheme.Red,
@@ -113,6 +114,7 @@ const usableFontScales = [
 const adaptiveLayout = configToComputed<boolean>("adaptiveLayout");
 const fontScale = configToComputed<number>("fontScale");
 const grayscale = configToComputed<boolean>("grayscale");
+const isMobile = navigator.userAgent.includes("Mobile");
 
 const colorTheme = computed({
   get(): ColorTheme {
@@ -130,4 +132,6 @@ const formatColorTheme = (val: ColorTheme) => {
 };
 
 document.title = `Hyalus \u2022 Appearance`;
+
+store.state.value.sideBarOpen = false;
 </script>

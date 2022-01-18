@@ -23,8 +23,13 @@
 import InputBoolean from "../components/InputBoolean.vue";
 import { ref, onMounted } from "vue";
 import { configToComputed } from "../util";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
+import { store } from "../store";
+
+
 
 const openAtLogin = ref(false);
+const isMobile = navigator.userAgent.includes("Mobile");
 
 const setOpenAtLogin = async (val: boolean) => {
   window.HyalusDesktop?.setOpenAtLogin(val);
@@ -38,4 +43,6 @@ document.title = "Hyalus \u2022 Notifications";
 onMounted(async () => {
   openAtLogin.value = !!(await window.HyalusDesktop?.getOpenAtLogin());
 });
+
+store.state.value.sideBarOpen = false;
 </script>

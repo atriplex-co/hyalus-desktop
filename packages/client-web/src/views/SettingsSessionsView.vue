@@ -17,12 +17,16 @@
 import SessionItem from "../components/SessionItem.vue";
 import { computed } from "vue";
 import { store } from "../store";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const sessions = computed(() =>
   [...store.state.value.sessions].sort((a, b) =>
     a.self ? -1 : b.self ? 1 : a.lastStart > b.lastStart ? -1 : 1
   )
 );
+const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = "Hyalus \u2022 Sessions";
+
+store.state.value.sideBarOpen = false;
 </script>
