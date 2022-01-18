@@ -45,3 +45,9 @@ $ yarn test:common
 ```sh
 ./scripts/dev.sh
 ```
+
+- Generating VAPID keys (for push notifications) can be done like this.
+
+```sh
+yarn exec -- web-push generate-vapid-keys
+```
