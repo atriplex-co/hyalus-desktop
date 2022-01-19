@@ -1334,8 +1334,12 @@ export class Socket {
                 gain.gain.value =
                   store.state.value.config.audioOutputGain / 100;
                 el.srcObject = dest.stream;
-                el.setSinkId(store.state.value.config.audioOutput);
                 el.volume = !store.state.value.call?.deaf ? 1 : -1;
+
+                if (!navigator.userAgent.includes("Mobile")) {
+                  el.setSinkId(store.state.value.config.audioOutput);
+                }
+
                 el.play();
 
                 stream.config.el = el;
