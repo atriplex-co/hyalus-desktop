@@ -46,6 +46,8 @@ $ yarn test:common
 ./scripts/dev.sh
 ```
 
+## Optional
+
 - Generating VAPID keys (for push notifications) can be done like this.
 
 ```sh

@@ -26,18 +26,22 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
     transports: [new winston.transports.Console()],
   });
 
-  let { PORT, DB } = process.env;
+  let { PORT, DB, VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE } = process.env;
 
-  if (!PORT) {
-    PORT = "3000";
-  }
-
-  if (!DB) {
-    DB = "mongodb://db";
-  }
+  PORT ??= "3000";
+  DB ??= "mongodb://db";
 
   if (process.env.NODE_ENV === "development") {
     PORT = "3001";
+  }
+
+  if (!VAPID_SUBJECT || !VAPID_PUBLIC || !VAPID_PRIVATE) {
+    const { publicKey, privateKey } = webpush.generateVAPIDKeys();
+    VAPID_SUBJECT = "mailto:dev@hyalus.app";
+    VAPID_PUBLIC = publicKey;
+    VAPID_PRIVATE = privateKey;
+
+    log.warn("No configured VAPID keys (using random)");
   }
 
   userSchema.index({
@@ -100,11 +104,7 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
     });
   }
 
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:gido@gido.click",
-    process.env.VAPID_PUBLIC || "BHT0GkOoL5lxXuY9K_KUnLg7U2HXm71b1o6NDuEgtRTOr0DCN21SykQIO5H96Q9scfeD7Kyy6Jn_MmfrqqkweYc",
-    process.env.VAPID_PRIVATE || "G60iFIXL3f9UFWlyh2Z_8eglrsJyosnVSOQeGpQBXnQ"
-  );
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
   server.listen(PORT);
   log.info(`HTTP listening on :${PORT}`);

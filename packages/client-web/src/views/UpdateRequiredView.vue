@@ -18,7 +18,6 @@
 <script lang="ts" setup>
 import RefreshIcon from "../icons/RefreshIcon.vue";
 
-
 const submit = () => {
   if (window.HyalusDesktop) {
     window.HyalusDesktop.restart();
@@ -26,5 +25,4 @@ const submit = () => {
     location.reload();
   }
 };
-
 </script>
