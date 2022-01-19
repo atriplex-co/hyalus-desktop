@@ -1,6 +1,13 @@
 <template>
   <div class="flex-1 overflow-auto">
     <div class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold">
+      <router-link
+            v-if="isMobile"
+            class="ml-2 w-8 h-8 bg-gray-600 p-1.5 mr-4 rounded-full text-gray-300 hover:bg-gray-500 transition"
+            to="/settings"
+          >
+            <ArrowLeftIcon />
+      </router-link>
       <p>Notifications</p>
     </div>
     <div class="border-t border-b border-gray-700 divide-y divide-gray-700">
@@ -18,10 +25,16 @@
 
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 import { configToComputed } from "../global/helpers";
+import { store } from "../global/store";
+
 
 const notifySound = configToComputed<boolean>("notifySound");
 const notifySystem = configToComputed<boolean>("notifySystem");
+const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = "Hyalus \u2022 Notifications";
+
+store.state.value.sideBarOpen = false;
 </script>

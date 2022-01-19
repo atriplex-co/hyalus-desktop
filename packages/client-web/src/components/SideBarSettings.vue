@@ -1,6 +1,13 @@
 <template>
   <div class="w-full bg-gray-700 flex flex-col">
     <div class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold">
+      <router-link
+            v-if="isMobile"
+            class="ml-2 w-8 h-8 bg-gray-600 p-1.5 mr-4 rounded-full text-gray-300 hover:bg-gray-500 transition"
+            to="/app"
+          >
+            <ArrowLeftIcon />
+      </router-link>
       <p>Settings</p>
     </div>
     <div class="border-t border-b border-gray-600 divide-y divide-gray-600">
@@ -126,6 +133,8 @@ import DesktopIcon from "../icons/DesktopIcon.vue";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ChipIcon from "../icons/ChipIcon.vue";
+import { store } from "../global/store";
+
 
 const route = useRoute();
 const router = useRouter();
@@ -138,4 +147,6 @@ if (String(route.name).startsWith("settings")) {
 } else {
   router.push("/settings/account");
 }
+
+store.state.value.sideBarOpen = true;
 </script>

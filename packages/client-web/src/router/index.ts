@@ -51,6 +51,12 @@ export const router = createRouter({
       beforeEnter: requireNoAuth,
     },
     {
+      name: "settings",
+      path: "/settings",
+      component: () => import("../components/SideBarSettings.vue"),
+      beforeEnter: requireAuth,
+    },
+    {
       name: "settingsAccount",
       path: "/settings/account",
       component: () => import("../views/SettingsAccountView.vue"),

@@ -1,6 +1,13 @@
 <template>
   <div class="flex-1 overflow-auto">
     <div class="h-16 flex items-center px-4 text-gray-200 text-2xl font-bold">
+      <router-link
+            v-if="isMobile"
+            class="ml-2 w-8 h-8 bg-gray-600 p-1.5 mr-4 rounded-full text-gray-300 hover:bg-gray-500 transition"
+            to="/settings"
+          >
+            <ArrowLeftIcon />
+      </router-link>
       <p>Keyboard Shortcuts</p>
     </div>
     <div class="border-t border-b border-gray-700 divide-y divide-gray-700">
@@ -65,6 +72,8 @@ import { ref } from "vue";
 import AppDownloadModal from "../components/AppDownloadModal.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
 import InputKeys from "../components/InputKeys.vue";
+import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
+import { store } from "../global/store";
 import { configToComputed } from "../global/helpers";
 
 const isDesktop = !!window.HyalusDesktop;
@@ -78,6 +87,9 @@ const joinCallKeys = configToComputed<string>("joinCallKeys");
 const leaveCallKeys = configToComputed<string>("leaveCallKeys");
 const openCurrentCallKeys = configToComputed<string>("openCurrentCallKeys");
 const uploadFileKeys = configToComputed<string>("uploadFileKeys");
+const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = `Hyalus \u2022 Keyboard Shortcuts`;
+
+store.state.value.sideBarOpen = false;
 </script>
