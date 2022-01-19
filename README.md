@@ -24,9 +24,15 @@ Hyalus is currently in beta, please report bugs & issues.
 - iOS/Android PWA support.
 - Push notifications support.
 
-## Requirements
+## Requirements (Containers)
 
-- Node.js 14.\*
+- Docker
+- Docker Compose
+- Nginx (optional)
+
+## Requirements (Core)
+
+- Node.js 16.\*
 - MongoDB
 
 ## Hacking
