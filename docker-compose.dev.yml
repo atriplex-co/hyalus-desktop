@@ -9,10 +9,6 @@ services:
       - ${PORT}:3000
     volumes:
       - ".:/home/app/app"
-    environment:
-      - VAPID_SUBJECT=${VAPID_SUBJECT}
-      - VAPID_PUBLIC=${VAPID_PUBLIC}
-      - VAPID_PRIVATE=${VAPID_PRIVATE}
   db:
     image: mongo:latest
     restart: always

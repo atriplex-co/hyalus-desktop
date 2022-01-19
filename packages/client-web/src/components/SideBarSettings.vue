@@ -123,19 +123,37 @@ import LogoutIcon from "../icons/LogoutIcon.vue";
 import KeyboardIcon from "../icons/KeyboardIcon.vue";
 import EyeIcon from "../icons/EyeIcon.vue";
 import DesktopIcon from "../icons/DesktopIcon.vue";
-import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import ChipIcon from "../icons/ChipIcon.vue";
+import { store } from "../global/store";
 
-const route = useRoute();
 const router = useRouter();
-const active = ref("account");
+const active = ref("");
 const logoutModal = ref(false);
 const isDesktop = !!window.HyalusDesktop;
+const isMobile = navigator.userAgent.includes("Mobile");
 
-if (String(route.name).startsWith("settings")) {
-  active.value = String(route.name).replace("settings", "").toLowerCase();
-} else {
-  router.push("/settings/account");
-}
+const update = () => {
+  const routeName = String(router.currentRoute.value.name);
+
+  if (routeName.startsWith("settings")) {
+    active.value = routeName.replace("settings", "").toLowerCase();
+  } else {
+    if (!isMobile) {
+      router.push("/settings/account");
+    }
+  }
+};
+
+watch(
+  () => router.currentRoute.value,
+  () => {
+    update();
+  }
+);
+
+update();
+
+store.state.value.sideBarOpen = true;
 </script>
