@@ -33,7 +33,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-const username = ref(store.state.value.user?.username || "");
+const username = ref("");
 const error = ref("");
 
 const submit = async () => {
@@ -53,7 +53,7 @@ watch(
   () => props.show,
   () => {
     error.value = "";
-    username.value = "";
+    username.value = store.state.value.user?.username || "";
   }
 );
 </script>
