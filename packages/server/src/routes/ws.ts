@@ -656,6 +656,7 @@ export class Socket {
                   endpoint: data.endpoint,
                   p256dh: Buffer.from(sodium.from_base64(data.p256dh)),
                   auth: Buffer.from(sodium.from_base64(data.auth)),
+                  proto: data.proto,
                 },
               },
             }
