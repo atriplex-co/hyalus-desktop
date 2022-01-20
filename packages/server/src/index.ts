@@ -41,7 +41,7 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
     VAPID_PUBLIC = publicKey;
     VAPID_PRIVATE = privateKey;
 
-    log.warn("No configured VAPID keys (using random)");
+    log.warn("Unconfigured VAPID keys (using random)");
   }
 
   userSchema.index({
@@ -108,4 +108,8 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
 
   server.listen(PORT);
   log.info(`HTTP listening on :${PORT}`);
+
+  process.on("SIGTERM", () => {
+    server.close();
+  });
 })();
