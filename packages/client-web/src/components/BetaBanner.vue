@@ -27,8 +27,7 @@
 import CloseIcon from "../icons/CloseIcon.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
 import { store } from "../global/store";
-
-const isDesktop = !!window.HyalusDesktop;
+import { isDesktop } from "../global/helpers";
 
 const hide = async () => {
   await store.writeConfig("betaBanner", false);

@@ -27,6 +27,8 @@ import {
 import { store } from "./store";
 import {
   axios,
+  isDesktop,
+  isMobile,
   notifyGetAvatarUrl,
   notifySend,
   patchSdp,
@@ -291,14 +293,11 @@ export class Socket {
 
           if (window.Notification) {
             try {
-              if (!window.HyalusDesktop) {
+              if (!isDesktop) {
                 await Notification.requestPermission();
               }
 
-              if (
-                navigator.userAgent.includes("Mobile") ||
-                window.debugEnabled
-              ) {
+              if (isMobile || window.debugEnabled) {
                 const pushSubscription = JSON.parse(
                   JSON.stringify(
                     await (
@@ -327,7 +326,7 @@ export class Socket {
 
           if (window.IdleDetector) {
             try {
-              if (!window.HyalusDesktop) {
+              if (!isDesktop) {
                 await IdleDetector.requestPermission();
               }
 
@@ -366,7 +365,7 @@ export class Socket {
           }
         };
 
-        if (!window.HyalusDesktop) {
+        if (!isDesktop) {
           addEventListener("mousedown", initPermissions);
           addEventListener("keydown", initPermissions);
         } else {
@@ -375,7 +374,7 @@ export class Socket {
 
         // TODO: implement on web.
         if (
-          window.HyalusDesktop &&
+          isDesktop &&
           store.state.value.config.callPersist &&
           !store.state.value.call
         ) {
@@ -1336,7 +1335,7 @@ export class Socket {
                 el.srcObject = dest.stream;
                 el.volume = !store.state.value.call?.deaf ? 1 : -1;
 
-                if (!navigator.userAgent.includes("Mobile")) {
+                if (!isMobile) {
                   el.setSinkId(store.state.value.config.audioOutput);
                 }
 

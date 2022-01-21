@@ -19,8 +19,7 @@
 <script lang="ts" setup>
 import { store } from "../global/store";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
-
-const isMobile = navigator.userAgent.includes("Mobile");
+import { isMobile } from "../global/helpers";
 
 store.state.value.sideBarOpen = false;
 document.title = "Hyalus \u2022 Updates & Changelog";

@@ -16,11 +16,12 @@
 </template>
 
 <script lang="ts" setup>
+import { isDesktop } from "../global/helpers";
 import RefreshIcon from "../icons/RefreshIcon.vue";
 
 const submit = () => {
-  if (window.HyalusDesktop) {
-    window.HyalusDesktop.restart();
+  if (isDesktop) {
+    window.HyalusDesktop?.restart();
   } else {
     location.reload();
   }

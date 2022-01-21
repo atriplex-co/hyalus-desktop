@@ -127,12 +127,11 @@ import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import ChipIcon from "../icons/ChipIcon.vue";
 import { store } from "../global/store";
+import { isDesktop, isMobile } from "../global/helpers";
 
 const router = useRouter();
 const active = ref("");
 const logoutModal = ref(false);
-const isDesktop = !!window.HyalusDesktop;
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const update = () => {
   const routeName = String(router.currentRoute.value.name);

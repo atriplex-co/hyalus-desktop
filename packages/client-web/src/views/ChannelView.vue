@@ -175,7 +175,7 @@ import PencilIcon from "../icons/PencilIcon.vue";
 import ChannelInfo from "../components/ChannelInfo.vue";
 import { ref, computed, onMounted, onUnmounted, Ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { axios, processMessage } from "../global/helpers";
+import { axios, processMessage, isMobile } from "../global/helpers";
 import { store } from "../global/store";
 import { idbSet } from "../global/idb";
 import {
@@ -198,7 +198,6 @@ const messageList: Ref<HTMLDivElement | null> = ref(null);
 const messageListBefore: Ref<HTMLDivElement | null> = ref(null);
 const messageListAfter: Ref<HTMLDivElement | null> = ref(null);
 const typingStatus = ref("");
-const isMobile = navigator.userAgent.includes("Mobile");
 let lastTyping = 0;
 let updateInterval: number;
 let scrollUpdated = false; // make sure chat is scrolled down when initially loaded.

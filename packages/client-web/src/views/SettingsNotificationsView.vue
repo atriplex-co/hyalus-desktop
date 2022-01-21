@@ -26,12 +26,11 @@
 <script lang="ts" setup>
 import InputBoolean from "../components/InputBoolean.vue";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
-import { configToComputed } from "../global/helpers";
+import { configToComputed, isMobile } from "../global/helpers";
 import { store } from "../global/store";
 
 const notifySound = configToComputed<boolean>("notifySound");
 const notifySystem = configToComputed<boolean>("notifySystem");
-const isMobile = navigator.userAgent.includes("Mobile");
 
 document.title = "Hyalus \u2022 Notifications";
 

@@ -128,11 +128,11 @@ import { useRoute } from "vue-router";
 import { SideBarContent } from "../global/types";
 import { store } from "../global/store";
 import { ChannelType } from "common";
+import { isMobile } from "../global/helpers";
 
 const route = useRoute();
 const menu = ref("");
 const updateReloadModal = ref(false);
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const updateRoute = () => {
   if (route.name === "channel") {

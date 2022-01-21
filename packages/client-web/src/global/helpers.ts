@@ -324,3 +324,6 @@ export const callCheckStreams = async () => {
     }
   }
 };
+
+export const isDesktop = !!window.HyalusDesktop;
+export const isMobile = navigator.userAgent.includes("Mobile");

@@ -3,9 +3,9 @@ import App from "./App.vue";
 import { router } from "./router";
 import { store } from "./global/store";
 import _ServiceWorker from "./shared/serviceWorker?worker";
-import { getWorkerUrl } from "./global/helpers";
+import { getWorkerUrl, isDesktop } from "./global/helpers";
 
-if (!window.HyalusDesktop) {
+if (!isDesktop) {
   const ServiceWorker = getWorkerUrl(_ServiceWorker);
   const swReg = (await navigator.serviceWorker.getRegistrations())[0];
 

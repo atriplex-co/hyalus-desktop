@@ -127,7 +127,7 @@ import InputListItem from "../components/InputListItem.vue";
 import InputBoolean from "../components/InputBoolean.vue";
 import { computed, onMounted, ref, Ref } from "vue";
 import { store } from "../global/store";
-import { configToComputed } from "../global/helpers";
+import { configToComputed, isDesktop, isMobile } from "../global/helpers";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
 const usableVideoModes = [
@@ -142,7 +142,6 @@ const usableVideoModes = [
 const usableAudioOutputs: Ref<MediaDeviceInfo[]> = ref([]);
 const usableAudioInputs: Ref<MediaDeviceInfo[]> = ref([]);
 const usableVideoInputs: Ref<MediaDeviceInfo[]> = ref([]);
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const audioOutput = computed({
   get() {
@@ -207,7 +206,7 @@ const voiceRnnoise = configToComputed<boolean>("voiceRnnoise");
 document.title = "Hyalus \u2022 Audio & Video";
 
 onMounted(async () => {
-  if (!window.HyalusDesktop) {
+  if (!isDesktop) {
     for (const type of ["audio", "video"]) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({

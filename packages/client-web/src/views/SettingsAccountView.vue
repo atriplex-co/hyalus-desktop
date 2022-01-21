@@ -99,7 +99,7 @@ import TotpDisableModal from "../components/TotpDisableModal.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
 import moment from "moment";
 import { ref, computed } from "vue";
-import { axios } from "../global/helpers";
+import { axios, isMobile } from "../global/helpers";
 import { store } from "../global/store";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 
@@ -108,7 +108,6 @@ const setUsernameModal = ref(false);
 const setPasswordModal = ref(false);
 const totpEnableModal = ref(false);
 const totpDisableModal = ref(false);
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const authKeyUpdated = computed(() => {
   if (

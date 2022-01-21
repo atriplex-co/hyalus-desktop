@@ -30,11 +30,10 @@
 import InputBoolean from "../components/InputBoolean.vue";
 import { ref, onMounted } from "vue";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
-import { configToComputed } from "../global/helpers";
+import { configToComputed, isMobile } from "../global/helpers";
 import { store } from "../global/store";
 
 const openAtLogin = ref(false);
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const setOpenAtLogin = async (val: boolean) => {
   window.HyalusDesktop?.setOpenAtLogin(val);

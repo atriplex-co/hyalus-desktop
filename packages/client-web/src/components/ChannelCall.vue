@@ -97,8 +97,8 @@ import { ref, computed, onMounted, Ref } from "vue";
 import { ICallTile } from "../global/types";
 import { store } from "../global/store";
 import { CallStreamType, SocketMessageType } from "common";
+import { isDesktop } from "../global/helpers";
 
-const isDesktop = !!window.HyalusDesktop;
 const desktopCaptureModal = ref(false);
 const tileContainer: Ref<HTMLDivElement | null> = ref(null);
 const resizeHeight = ref(innerHeight * 0.45);
@@ -205,7 +205,7 @@ const toggleStream = (type: CallStreamType) => async (e: MouseEvent) => {
       await store.callSetDeaf(false);
     }
 
-    if (type === CallStreamType.DisplayVideo && window.HyalusDesktop) {
+    if (type === CallStreamType.DisplayVideo && isDesktop) {
       desktopCaptureModal.value = true;
       return;
     }

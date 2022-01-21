@@ -39,31 +39,31 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import AppIcon from "../icons/AppIcon.vue";
 import { onUnmounted, ref } from "vue";
 
 const title = ref("");
 
-let updateTitleInterval;
+let updateTitleInterval: number;
 
 const updateTitle = () => {
   title.value = document.title;
 };
 
 const close = () => {
-  window.HyalusDesktop.close();
+  window.HyalusDesktop?.close();
 };
 
 const maximize = () => {
-  window.HyalusDesktop.maximize();
+  window.HyalusDesktop?.maximize();
 };
 
 const minimize = () => {
-  window.HyalusDesktop.minimize();
+  window.HyalusDesktop?.minimize();
 };
 
-updateTitleInterval = setInterval(updateTitle, 100);
+updateTitleInterval = +setInterval(updateTitle, 100);
 
 onUnmounted(() => {
   clearInterval(updateTitleInterval);

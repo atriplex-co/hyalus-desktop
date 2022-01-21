@@ -89,7 +89,7 @@ import InputList from "../components/InputList.vue";
 import InputListItem from "../components/InputListItem.vue";
 import InputBoolean from "../components/InputBoolean.vue";
 import { computed } from "vue";
-import { axios, configToComputed } from "../global/helpers";
+import { axios, configToComputed, isMobile } from "../global/helpers";
 import { ColorTheme } from "common";
 import ArrowLeftIcon from "../icons/ArrowLeftIcon.vue";
 import { store } from "../global/store";
@@ -121,7 +121,6 @@ const usableFontScales = [
 const adaptiveLayout = configToComputed<boolean>("adaptiveLayout");
 const fontScale = configToComputed<number>("fontScale");
 const grayscale = configToComputed<boolean>("grayscale");
-const isMobile = navigator.userAgent.includes("Mobile");
 
 const colorTheme = computed({
   get(): ColorTheme {

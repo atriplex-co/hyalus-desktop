@@ -80,8 +80,7 @@ import { useRoute } from "vue-router";
 import { store } from "./global/store";
 import { ColorTheme } from "common";
 import UserInviteModal from "./components/UserInviteModal.vue";
-
-const isMobile = navigator.userAgent.includes("Mobile");
+import { isDesktop, isMobile } from "./global/helpers";
 
 const inAppRoutes = [
   "app",
@@ -105,8 +104,6 @@ const route = useRoute();
 const inApp = computed(() => {
   return inAppRoutes.indexOf(route.name as string) !== -1;
 });
-
-const isDesktop = !!window.HyalusDesktop;
 
 const showSideBar = computed(() => {
   if (inAppRoutes.indexOf(route.name as string) === -1) {
