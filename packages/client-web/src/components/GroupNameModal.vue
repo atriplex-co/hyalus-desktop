@@ -58,7 +58,7 @@ watch(
   () => props.show,
   () => {
     error.value = "";
-    name.value = "";
+    name.value = props.channel.name;
   }
 );
 </script>
