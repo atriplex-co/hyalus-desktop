@@ -15,7 +15,7 @@
     <EmptyAvatar v-else :name="name" class="w-8 h-8" />
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between w-full">
-        <p class="font-bold text-sm">{{ name }}</p>
+        <p class="font-bold text-sm truncate">{{ name }}</p>
         <p class="text-xs text-gray-400">{{ lastMessageTime }}</p>
       </div>
       <p class="text-gray-300 text-sm truncate pr-2">{{ lastMessage }}</p>
