@@ -15,6 +15,7 @@ if (!isDesktop) {
 
   await navigator.serviceWorker.register(ServiceWorker, {
     type: "module",
+    scope: "/",
   });
 }
 

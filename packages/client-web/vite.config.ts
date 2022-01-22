@@ -2,7 +2,18 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    {
+      name: "headers",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          res.setHeader("service-worker-allowed", "/");
+          next();
+        });
+      },
+    },
+  ],
   server: {
     port: 3000,
     host: true,

@@ -98,7 +98,15 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
   wss.on("connection", WsRoute);
 
   if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../../client-web/dist")));
+    app.use(
+      express.static(path.join(__dirname, "../../client-web/dist"), {
+        setHeaders(res) {
+          res.setHeader("cache-control", "public, max-age=31536000");
+          res.setHeader("service-worker-allowed", "/");
+        },
+      })
+    );
+
     app.use((req: express.Request, res: express.Response) => {
       res.sendFile(path.join(__dirname, "../../client-web/dist/index.html"));
     });

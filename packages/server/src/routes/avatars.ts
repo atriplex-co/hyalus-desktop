@@ -53,8 +53,8 @@ app.get(
       return;
     }
 
-    res.header("cache-control", "public, max-age=31536000");
-    res.header(
+    res.setHeader("cache-control", "public, max-age=31536000");
+    res.setHeader(
       "content-type",
       {
         [AvatarType.WEBP]: "image/webp",
