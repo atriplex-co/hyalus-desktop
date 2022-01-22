@@ -10,7 +10,7 @@
   >
     <div class="shadow-xl z-10 border-b border-gray-700">
       <div class="flex justify-between h-16">
-        <div class="flex items-center">
+        <div class="flex items-center min-w-0">
           <router-link
             v-if="isMobile"
             class="ml-2 w-8 h-8 bg-gray-600 p-1.5 rounded-full text-gray-300 hover:bg-gray-500 transition"
@@ -35,7 +35,7 @@
             />
             <EmptyAvatar v-else :name="name" class="w-10 h-10" />
           </div>
-          <div>
+          <div class="flex-1 min-w-0">
             <p
               class="font-bold text-lg truncate"
               :class="{ 'cursor-pointer': channel.owner }"
