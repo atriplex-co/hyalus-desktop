@@ -31,15 +31,19 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
   PORT ??= "3000";
   DB ??= "mongodb://db";
 
+  if (!process.env.NDOE_ENV) {
+    process.env.NODE_ENV = "development";
+  }
+
   if (process.env.NODE_ENV === "development") {
     PORT = "3001";
   }
 
   if (!VAPID_SUBJECT || !VAPID_PUBLIC || !VAPID_PRIVATE) {
     const { publicKey, privateKey } = webpush.generateVAPIDKeys();
-    VAPID_SUBJECT = "mailto:dev@hyalus.app";
-    VAPID_PUBLIC = publicKey;
-    VAPID_PRIVATE = privateKey;
+    process.env.VAPID_SUBJECT = VAPID_SUBJECT = "mailto:dev@hyalus.app";
+    process.env.VAPID_PUBLIC = VAPID_PUBLIC = publicKey;
+    process.env.VAPID_PRIVATE = VAPID_PRIVATE = privateKey;
 
     log.warn("Unconfigured VAPID keys (using random)");
   }
