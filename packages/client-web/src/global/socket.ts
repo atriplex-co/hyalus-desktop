@@ -291,77 +291,73 @@ export class Socket {
           removeEventListener("mousedown", initPermissions);
           removeEventListener("keydown", initPermissions);
 
-          if (window.Notification) {
-            try {
-              if (!isDesktop) {
-                await Notification.requestPermission();
+          try {
+            if (!isDesktop) {
+              await Notification.requestPermission();
+            }
+
+            if (isMobile || window.dev.enabled) {
+              const pushSubscription = JSON.parse(
+                JSON.stringify(
+                  await (
+                    await navigator.serviceWorker.getRegistrations()
+                  )[0].pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: this.meta.vapidPublic,
+                  })
+                )
+              );
+
+              this.send({
+                t: SocketMessageType.CSetPushSubscription,
+                d: {
+                  endpoint: pushSubscription.endpoint,
+                  p256dh: pushSubscription.keys.p256dh,
+                  auth: pushSubscription.keys.auth,
+                  proto: PushProtocol,
+                },
+              });
+            }
+          } catch (e) {
+            console.warn(e);
+          }
+
+          try {
+            if (!isDesktop) {
+              await IdleDetector.requestPermission();
+            }
+
+            const awayDetector = new IdleDetector();
+            awayController = new AbortController();
+
+            awayDetector.addEventListener("change", () => {
+              const away = !(
+                awayDetector.userState === "active" &&
+                awayDetector.screenState === "unlocked"
+              );
+
+              if (store.state.value.away === away) {
+                return;
               }
 
-              if (isMobile || window.debugEnabled) {
-                const pushSubscription = JSON.parse(
-                  JSON.stringify(
-                    await (
-                      await navigator.serviceWorker.getRegistrations()
-                    )[0].pushManager.subscribe({
-                      userVisibleOnly: true,
-                      applicationServerKey: this.meta.vapidPublic,
-                    })
-                  )
-                );
+              store.state.value.away = away;
 
-                this.send({
-                  t: SocketMessageType.CSetPushSubscription,
+              if (store.state.value.ready) {
+                store.state.value.socket?.send({
+                  t: SocketMessageType.CSetAway,
                   d: {
-                    endpoint: pushSubscription.endpoint,
-                    p256dh: pushSubscription.keys.p256dh,
-                    auth: pushSubscription.keys.auth,
-                    proto: PushProtocol,
+                    away,
                   },
                 });
               }
-            } catch (e) {
-              console.warn(e);
-            }
-          }
+            });
 
-          if (window.IdleDetector) {
-            try {
-              if (!isDesktop) {
-                await IdleDetector.requestPermission();
-              }
-
-              const awayDetector = new IdleDetector();
-              awayController = new AbortController();
-
-              awayDetector.addEventListener("change", () => {
-                const away = !(
-                  awayDetector.userState === "active" &&
-                  awayDetector.screenState === "unlocked"
-                );
-
-                if (store.state.value.away === away) {
-                  return;
-                }
-
-                store.state.value.away = away;
-
-                if (store.state.value.ready) {
-                  store.state.value.socket?.send({
-                    t: SocketMessageType.CSetAway,
-                    d: {
-                      away,
-                    },
-                  });
-                }
-              });
-
-              await awayDetector.start({
-                threshold: 1000 * 60 * 10,
-                signal: awayController.signal,
-              });
-            } catch (e) {
-              console.warn(e);
-            }
+            await awayDetector.start({
+              threshold: 1000 * 60 * 10,
+              signal: awayController.signal,
+            });
+          } catch (e) {
+            console.warn(e);
           }
         };
 

@@ -25,27 +25,23 @@ const app = createApp(App);
 app.use(router);
 app.mount("#app");
 
+window.dev = {
+  store,
+  enabled: location.hostname === "localhost",
+  start() {
+    this.enabled = true;
+  },
+  stop() {
+    this.enabled = false;
+    console.clear();
+  },
+};
+
 const _debug = console.debug.bind(console);
 console.debug = (...args) => {
-  if (!window.debugEnabled) {
+  if (!window.dev.enabled) {
     return;
   }
 
   _debug(...args);
 };
-
-window.debugStart = () => {
-  window.debugEnabled = true;
-  window.debugStore = store;
-};
-
-window.debugStop = () => {
-  window.debugEnabled = false;
-  delete window.debugStore;
-
-  console.clear();
-};
-
-if (location.hostname === "localhost") {
-  window.debugStart();
-}

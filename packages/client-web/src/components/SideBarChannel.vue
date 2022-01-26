@@ -118,7 +118,7 @@ const status = computed(() => {
 
 const updateLastMessageTime = () => {
   if (!props.channel.messages.length) {
-    return "";
+    return;
   }
 
   const date = props.channel.messages.at(-1)?.created || +props.channel.created;

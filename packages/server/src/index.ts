@@ -111,7 +111,7 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
       })
     );
 
-    app.use((req: express.Request, res: express.Response) => {
+    app.use((_req: express.Request, res: express.Response) => {
       res.sendFile(path.join(__dirname, "../../client-web/dist/index.html"));
     });
   }

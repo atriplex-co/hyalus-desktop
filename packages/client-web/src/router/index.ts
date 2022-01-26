@@ -7,8 +7,8 @@ import {
 import { store } from "../global/store";
 
 const requireAuth = (
-  to: RouteLocationNormalized,
-  from: RouteLocationNormalized,
+  _to: RouteLocationNormalized,
+  _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   if (!store.state.value.config.token) {
@@ -19,8 +19,8 @@ const requireAuth = (
 };
 
 const requireNoAuth = (
-  to: RouteLocationNormalized,
-  from: RouteLocationNormalized,
+  _to: RouteLocationNormalized,
+  _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   if (store.state.value.config.token) {
@@ -116,7 +116,7 @@ export const router = createRouter({
       component: () => import("../views/AppView.vue"),
       beforeEnter: (
         to: RouteLocationNormalized,
-        from: RouteLocationNormalized,
+        _from: RouteLocationNormalized,
         next: NavigationGuardNext
       ) => {
         store.state.value.invite = String(to.params.username);

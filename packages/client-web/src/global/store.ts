@@ -325,6 +325,12 @@ export const store = {
         }, // TS is stupid here and complains.
       });
 
+      // await this.callAddLocalStream({
+      //   type: opts.type,
+      //   track: stream.getTracks()[0],
+      // });
+      // return;
+
       const ctx = new AudioContext();
       const src = ctx.createMediaStreamSource(stream);
       const dest = ctx.createMediaStreamDestination();
@@ -370,12 +376,16 @@ export const store = {
         gain.gain.value = this.state.value.config.audioInputGain / 100;
       };
 
-      gain2.gain.value = 0;
+      // gain2.gain.value = 0;
+      gain2.gain.value = 1;
 
+      // src.connect(gain);
+      // gain.connect(worklet);
+      // worklet.connect(analy/ser);
+      // worklet.connect(gain2);
+      // gain2.connect(dest);
       src.connect(gain);
-      gain.connect(worklet);
-      worklet.connect(analyser);
-      worklet.connect(gain2);
+      gain.connect(gain2);
       gain2.connect(dest);
 
       opts.track = dest.stream.getTracks()[0];

@@ -108,7 +108,9 @@ app.delete("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  await session.delete();
+  await Session.deleteOne({
+    _id: session._id,
+  });
 
   await dispatchSocket({
     sessionId: session._id,

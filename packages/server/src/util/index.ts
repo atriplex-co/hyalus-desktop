@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import mongoose from "mongoose";
 import express from "express";
 import Joi from "joi";
 import sodium from "libsodium-wrappers";
@@ -455,7 +455,7 @@ export const validateRequest = (
 export const authRequest = async (
   req: express.Request,
   res: express.Response
-): Promise<(Document<ISession> & ISession) | undefined> => {
+): Promise<ISession | undefined> => {
   const token = req.headers["authorization"];
 
   if (tokenValidator.required().validate(token).error) {
