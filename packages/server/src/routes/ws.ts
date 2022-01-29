@@ -4,23 +4,19 @@ import WebSocket from "ws";
 import {
   awayValidator,
   binarySchema,
-  Channel,
   dispatchSocket,
   fileChunkHashValidator,
-  Friend,
   getStatus,
-  IChannel,
   idValidator,
-  IMessage,
-  ISession,
-  IUser,
-  Message,
   propagateStatusUpdate,
-  Session,
   tokenValidator,
-  User,
 } from "../util";
 import { SocketMessageType, SocketProtocol } from "common";
+import { ISession, SessionModel } from "../models/session";
+import { IUser, UserModel } from "../models/user";
+import { FriendModel } from "../models/friend";
+import { ChannelModel, IChannel } from "../models/channel";
+import { IMessage, MessageModel } from "../models/message";
 
 export interface ISocketMessage {
   t: SocketMessageType;
@@ -95,7 +91,7 @@ export class Socket {
             throw new Error(error.message);
           }
 
-          const reqSession = await Session.findOne({
+          const reqSession = await SessionModel.findOne({
             token: Buffer.from(sodium.from_base64(data.token)),
           });
 
@@ -111,7 +107,7 @@ export class Socket {
           this.away = data.away;
           this.fileChunks = data.fileChunks;
 
-          const reqUser = (await User.findOne({
+          const reqUser = (await UserModel.findOne({
             _id: reqSession.userId,
           })) as IUser;
 
@@ -119,7 +115,7 @@ export class Socket {
           const friends = [];
           const channels = [];
 
-          for (const session of await Session.find({
+          for (const session of await SessionModel.find({
             userId: reqUser._id,
           })) {
             sessions.push({
@@ -132,7 +128,7 @@ export class Socket {
             });
           }
 
-          for (const friend of await Friend.find({
+          for (const friend of await FriendModel.find({
             $or: [
               {
                 user1Id: reqUser._id,
@@ -142,7 +138,7 @@ export class Socket {
               },
             ],
           })) {
-            const user = (await User.findOne({
+            const user = (await UserModel.findOne({
               _id: !friend.user1Id.compare(reqUser._id)
                 ? friend.user2Id
                 : friend.user1Id,
@@ -161,7 +157,7 @@ export class Socket {
             });
           }
 
-          for (const channel of await Channel.find({
+          for (const channel of await ChannelModel.find({
             users: {
               $elemMatch: {
                 id: reqUser._id,
@@ -176,7 +172,7 @@ export class Socket {
                 continue;
               }
 
-              const user = (await User.findOne({
+              const user = (await UserModel.findOne({
                 _id: channelUser.id,
               })) as IUser;
               users.push({
@@ -200,7 +196,7 @@ export class Socket {
               });
             }
 
-            const lastMessage = (await Message.findOne(
+            const lastMessage = (await MessageModel.findOne(
               {
                 channelId: channel._id,
               },
@@ -313,7 +309,7 @@ export class Socket {
             return;
           }
 
-          const channel = await Channel.findOne({
+          const channel = await ChannelModel.findOne({
             _id: Buffer.from(sodium.from_base64(data.id)),
             users: {
               $elemMatch: {
@@ -396,7 +392,7 @@ export class Socket {
             return;
           }
 
-          const channel = await Channel.findOne({
+          const channel = await ChannelModel.findOne({
             _id: Buffer.from(sodium.from_base64(data.channelId)),
             users: {
               $elemMatch: {
@@ -503,7 +499,7 @@ export class Socket {
             return;
           }
 
-          const channel = await Channel.findOne({
+          const channel = await ChannelModel.findOne({
             _id: Buffer.from(sodium.from_base64(data.channelId)),
             users: {
               $elemMatch: {
@@ -646,7 +642,7 @@ export class Socket {
             return;
           }
 
-          await Session.findOneAndUpdate(
+          await SessionModel.findOneAndUpdate(
             {
               _id: this.session._id,
             },
@@ -731,7 +727,7 @@ export class Socket {
 
   async callReset() {
     if (this.session && this.callChannelId) {
-      const channel = (await Channel.findOne({
+      const channel = (await ChannelModel.findOne({
         _id: this.callChannelId,
       })) as IChannel;
 

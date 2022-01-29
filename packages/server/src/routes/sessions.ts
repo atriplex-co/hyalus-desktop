@@ -1,8 +1,6 @@
 import express, { Request, Response } from "express";
 import sodium from "libsodium-wrappers";
 import {
-  User,
-  Session,
   authKeyValidator,
   authRequest,
   idValidator,
@@ -13,6 +11,8 @@ import {
   dispatchSocket,
 } from "../util";
 import { SocketMessageType } from "common";
+import { UserModel } from "../models/user";
+import { SessionModel } from "../models/session";
 
 const app = express.Router();
 
@@ -29,7 +29,7 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const user = await User.findOne({
+  const user = await UserModel.findOne({
     username: req.body.username.toLowerCase(),
   });
 
@@ -75,7 +75,7 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
     }
   }
 
-  const session = await Session.create({
+  const session = await SessionModel.create({
     userId: user._id,
     ip: req.ip,
     agent: req.headers["user-agent"],
@@ -108,7 +108,7 @@ app.delete("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  await Session.deleteOne({
+  await SessionModel.deleteOne({
     _id: session._id,
   });
 
@@ -146,7 +146,7 @@ app.delete(
       return;
     }
 
-    const session = await Session.findOneAndDelete({
+    const session = await SessionModel.findOneAndDelete({
       _id: Buffer.from(sodium.from_base64(req.params.sessionId)),
       userId: reqSession.userId,
     });

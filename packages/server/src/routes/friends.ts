@@ -3,18 +3,17 @@ import {
   authRequest,
   validateRequest,
   usernameValidator,
-  User,
-  Friend,
   idValidator,
-  Channel,
-  IUser,
   getStatus,
   dispatchSocket,
-  Message,
 } from "../util";
 import sodium from "libsodium-wrappers";
 import Joi from "joi";
 import { ChannelType, MessageType, SocketMessageType, Status } from "common";
+import { IUser, UserModel } from "../models/user";
+import { FriendModel } from "../models/friend";
+import { ChannelModel } from "../models/channel";
+import { MessageModel } from "../models/message";
 
 const app = express.Router();
 
@@ -32,11 +31,11 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const reqUser = (await User.findOne({
+  const reqUser = (await UserModel.findOne({
     _id: session.userId,
   })) as IUser;
 
-  const targetUser = await User.findOne({
+  const targetUser = await UserModel.findOne({
     _id: {
       $ne: session.userId,
     },
@@ -52,7 +51,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
   }
 
   if (
-    await Friend.findOne({
+    await FriendModel.findOne({
       $or: [
         {
           user1Id: reqUser._id,
@@ -72,7 +71,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  await Friend.create({
+  await FriendModel.create({
     user1Id: reqUser._id,
     user2Id: targetUser._id,
   });
@@ -129,7 +128,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const friend = await Friend.findOne({
+  const friend = await FriendModel.findOne({
     $or: [
       {
         user1Id: session.userId,
@@ -208,7 +207,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
       },
     });
 
-    let channel = await Channel.findOne({
+    let channel = await ChannelModel.findOne({
       type: ChannelType.Private,
       $and: [
         {
@@ -230,7 +229,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     const channelSynced = !!channel;
 
     if (!channel) {
-      channel = await Channel.create({
+      channel = await ChannelModel.create({
         type: ChannelType.Private,
         users: [
           {
@@ -243,7 +242,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
       });
     }
 
-    const friendAcceptMessage = await Message.create({
+    const friendAcceptMessage = await MessageModel.create({
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.FriendAccept,
@@ -266,11 +265,11 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
         });
       }
     } else {
-      const user1 = (await User.findOne({
+      const user1 = (await UserModel.findOne({
         _id: friend.user1Id,
       })) as IUser;
 
-      const user2 = (await User.findOne({
+      const user2 = (await UserModel.findOne({
         _id: friend.user2Id,
       })) as IUser;
 

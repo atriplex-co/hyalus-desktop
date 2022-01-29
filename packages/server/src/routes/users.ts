@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
 import sodium from "libsodium-wrappers";
+import { SessionModel } from "../models/session";
+import { UserModel } from "../models/user";
 import {
   authKeyValidator,
   encryptedPrivateKeyValidator,
   publicKeyValidator,
   saltValidator,
-  Session,
-  User,
   usernameValidator,
   validateRequest,
 } from "../util";
@@ -31,7 +31,7 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
   req.body.username = req.body.username.toLowerCase();
 
   if (
-    await User.findOne({
+    await UserModel.findOne({
       username: req.body.username,
     })
   ) {
@@ -42,7 +42,7 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const user = await User.create({
+  const user = await UserModel.create({
     username: req.body.username,
     salt: Buffer.from(sodium.from_base64(req.body.salt)),
     authKey: Buffer.from(sodium.from_base64(req.body.authKey)),
@@ -52,7 +52,7 @@ app.post("/", async (req: Request, res: Response): Promise<void> => {
     ),
   });
 
-  const session = await Session.create({
+  const session = await SessionModel.create({
     userId: user._id,
     ip: req.ip,
     agent: req.headers["user-agent"],
@@ -74,7 +74,7 @@ app.get("/:username", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const user = await User.findOne({
+  const user = await UserModel.findOne({
     username: req.params.username,
   });
 

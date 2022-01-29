@@ -1,13 +1,9 @@
 import express from "express";
-import {
-  Avatar,
-  avatarIdValidator,
-  IAvatarVersion,
-  validateRequest,
-} from "../util";
+import { avatarIdValidator, validateRequest } from "../util";
 import sodium from "libsodium-wrappers";
 import Joi from "joi";
 import { AvatarType } from "common/src";
+import { AvatarModel, IAvatarVersion } from "../models/avatar";
 
 const app = express.Router();
 
@@ -25,7 +21,7 @@ app.get(
       return;
     }
 
-    const avatar = await Avatar.findOne({
+    const avatar = await AvatarModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.avatarId)),
     });
 

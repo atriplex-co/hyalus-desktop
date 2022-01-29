@@ -13,7 +13,10 @@ import SessionsRoute from "./routes/sessions";
 import UsersRoute from "./routes/users";
 import WsRoute from "./routes/ws";
 import webpush from "web-push";
-import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
+import { UserSchema } from "./models/user";
+import { SessionSchema } from "./models/session";
+import { FriendSchema } from "./models/friend";
+import { MessageSchema } from "./models/message";
 
 (async () => {
   const log = winston.createLogger({
@@ -26,47 +29,49 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
     transports: [new winston.transports.Console()],
   });
 
-  let { PORT, DB, VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE } = process.env;
+  process.env.NODE_ENV ??= "development";
+  process.env.PORT ??= "3000";
+  process.env.DB ??= "mongodb://db";
 
-  PORT ??= "3000";
-  DB ??= "mongodb://db";
-
-  if (!process.env.NDOE_ENV) {
-    process.env.NODE_ENV = "development";
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    PORT = "3001";
-  }
-
-  if (!VAPID_SUBJECT || !VAPID_PUBLIC || !VAPID_PRIVATE) {
+  if (
+    !process.env.VAPID_SUBJECT ||
+    !process.env.VAPID_PUBLIC ||
+    !process.env.VAPID_PRIVATE
+  ) {
     const { publicKey, privateKey } = webpush.generateVAPIDKeys();
-    process.env.VAPID_SUBJECT = VAPID_SUBJECT = "mailto:dev@hyalus.app";
-    process.env.VAPID_PUBLIC = VAPID_PUBLIC = publicKey;
-    process.env.VAPID_PRIVATE = VAPID_PRIVATE = privateKey;
+
+    process.env.VAPID_SUBJECT = "mailto:dev@hyalus.app";
+    process.env.VAPID_PUBLIC = publicKey;
+    process.env.VAPID_PRIVATE = privateKey;
 
     log.warn("Unconfigured VAPID keys (using random)");
   }
 
-  userSchema.index({
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT,
+    process.env.VAPID_PUBLIC,
+    process.env.VAPID_PRIVATE
+  );
+
+  UserSchema.index({
     username: 1,
   });
-  sessionSchema.index({
+  SessionSchema.index({
     token: 1,
   });
-  sessionSchema.index({
+  SessionSchema.index({
     userId: 1,
   });
-  friendSchema.index({
+  FriendSchema.index({
     user1Id: 1,
     user2Id: 1,
   });
-  messageSchema.index({
+  MessageSchema.index({
     channelId: 1,
     created: 1,
   });
 
-  await mongoose.connect(DB);
+  await mongoose.connect(process.env.DB);
 
   log.info("Connected to DB");
 
@@ -86,13 +91,15 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
   app.enable("trust proxy");
   app.disable("x-powered-by");
 
-  app.use(express.json());
-  app.use("/api/avatars", AvatarsRoute);
-  app.use("/api/channels", ChannelsRoute);
-  app.use("/api/friends", FriendsRoute);
-  app.use("/api/self", SelfRoute);
-  app.use("/api/sessions", SessionsRoute);
-  app.use("/api/users", UsersRoute);
+  const ApiRoute = express.Router();
+  ApiRoute.use(express.json());
+  ApiRoute.use("/api/avatars", AvatarsRoute);
+  ApiRoute.use("/api/channels", ChannelsRoute);
+  ApiRoute.use("/api/friends", FriendsRoute);
+  ApiRoute.use("/api/self", SelfRoute);
+  ApiRoute.use("/api/sessions", SessionsRoute);
+  ApiRoute.use("/api/users", UsersRoute);
+  app.use("api", ApiRoute);
 
   const wss = new WebSocketServer({
     server,
@@ -116,10 +123,8 @@ import { friendSchema, messageSchema, sessionSchema, userSchema } from "./util";
     });
   }
 
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
-
-  server.listen(PORT);
-  log.info(`HTTP listening on :${PORT}`);
+  server.listen(process.env.PORT);
+  log.info(`HTTP listening on :${process.env.PORT}`);
 
   process.on("SIGTERM", () => {
     server.close();

@@ -10,11 +10,9 @@ import {
   wantStatusValidator,
   processAvatar,
   saltValidator,
-  Session,
   totpCodeValidator,
   totpSecretValidator,
   typingEventsValidator,
-  User,
   usernameValidator,
   validateRequest,
   dispatchSocket,
@@ -23,6 +21,8 @@ import {
 } from "../util";
 import sodium from "libsodium-wrappers";
 import { SocketMessageType } from "common";
+import { UserModel } from "../models/user";
+import { SessionModel } from "../models/session";
 
 const app = express.Router();
 
@@ -57,7 +57,7 @@ app.post(
       return;
     }
 
-    const user = await User.findOne({
+    const user = await UserModel.findOne({
       _id: session.userId,
     });
 
@@ -69,7 +69,7 @@ app.post(
       req.body.username = req.body.username.toLowerCase();
 
       if (
-        await User.findOne({
+        await UserModel.findOne({
           username: req.body.username,
         })
       ) {
@@ -118,7 +118,7 @@ app.post(
         sodium.from_base64(req.body.authKey.encryptedPrivateKey)
       );
 
-      for (const session2 of await Session.find({
+      for (const session2 of await SessionModel.find({
         userId: user._id,
         _id: {
           $ne: session._id,
@@ -230,7 +230,7 @@ app.post(
       return;
     }
 
-    const user = await User.findOne({
+    const user = await UserModel.findOne({
       _id: session.userId,
     });
 

@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import express from "express";
 import Joi from "joi";
 import sodium from "libsodium-wrappers";
@@ -6,7 +5,6 @@ import fs from "fs";
 import crypto from "crypto";
 import {
   AvatarType,
-  ChannelType,
   ColorTheme,
   MaxAvatarDuration,
   MaxAvatarFPS,
@@ -20,405 +18,16 @@ import { ISocketMessage, sockets } from "../routes/ws";
 import multer from "multer";
 import webpush, { WebPushError } from "web-push";
 import { execSync } from "child_process";
-
-export interface IUser {
-  _id: Buffer;
-  created: Date;
-  username: string;
-  name: string;
-  salt: Buffer;
-  authKey: Buffer;
-  authKeyUpdated: Date;
-  publicKey: Buffer;
-  encryptedPrivateKey: Buffer;
-  avatarId?: Buffer;
-  typingEvents: boolean;
-  colorTheme: ColorTheme;
-  wantStatus: Status;
-  totpSecret?: Buffer;
-}
-
-export interface ISession {
-  _id: Buffer;
-  token: Buffer;
-  userId: Buffer;
-  created: Date;
-  lastStart: Date;
-  ip: string;
-  agent: string;
-  pushSubscription?: ISessionPushSubscription;
-}
-
-export interface ISessionPushSubscription {
-  endpoint: string;
-  p256dh: Buffer;
-  auth: Buffer;
-  proto: number;
-}
-
-export interface IAvatar {
-  _id: Buffer;
-  versions: IAvatarVersion[];
-}
-
-export interface IAvatarVersion {
-  type: AvatarType;
-  data: Buffer;
-}
-
-export interface IFriend {
-  _id: Buffer;
-  user1Id: Buffer;
-  user2Id: Buffer;
-  accepted: boolean;
-}
-
-export interface IChannel {
-  _id: Buffer;
-  type: ChannelType;
-  created: Date;
-  name?: string;
-  avatarId?: Buffer;
-  users: IChannelUser[];
-}
-
-export interface IChannelUser {
-  id: Buffer;
-  owner: boolean;
-  hidden: boolean;
-  added: Date;
-}
-
-export interface IMessage {
-  _id: Buffer;
-  channelId: Buffer;
-  userId: Buffer;
-  type: MessageType;
-  created: Date;
-  updated?: Date;
-  data?: Buffer;
-  keys: IMessageKey[];
-}
-
-export interface IMessageKey {
-  userId: Buffer;
-  data: Buffer;
-}
+import { ISession, SessionModel } from "../models/session";
+import { AvatarModel, IAvatarVersion } from "../models/avatar";
+import { FriendModel } from "../models/friend";
+import { IUser, UserModel } from "../models/user";
+import { ChannelModel } from "../models/channel";
 
 export interface IValidateOpts {
   body?: Record<string, Joi.Schema>;
   params?: Record<string, Joi.Schema>;
 }
-
-export const userSchema = new mongoose.Schema<IUser>({
-  _id: {
-    type: Buffer.alloc(0), //idk why tf we have to do this.
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  created: {
-    type: Date,
-    required: true,
-    default() {
-      return new Date();
-    },
-  },
-  username: {
-    type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-    default(): string {
-      return (this as unknown as IUser).username; //this is the IDE-recommended solution- no really, it is.
-    },
-  },
-  salt: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  authKey: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  authKeyUpdated: {
-    type: Date,
-    required: true,
-    default(): Date {
-      return (this as unknown as IUser).created;
-    },
-  },
-  publicKey: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  encryptedPrivateKey: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  avatarId: {
-    type: Buffer.alloc(0),
-  },
-  typingEvents: {
-    type: Boolean,
-    required: true,
-    default() {
-      return true;
-    },
-  },
-  colorTheme: {
-    type: Number,
-    required: true,
-    default() {
-      return ColorTheme.Green;
-    },
-  },
-  wantStatus: {
-    type: Number,
-    required: true,
-    default() {
-      return Status.Online;
-    },
-  },
-  totpSecret: {
-    type: Buffer.alloc(0),
-  },
-});
-
-export const User = mongoose.model<IUser>("User", userSchema);
-
-export const sessionSchema = new mongoose.Schema<ISession>({
-  _id: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  token: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateToken();
-    },
-  },
-  userId: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  created: {
-    type: Date,
-    required: true,
-    default() {
-      return new Date();
-    },
-  },
-  lastStart: {
-    type: Date,
-    required: true,
-    default() {
-      return new Date();
-    },
-  },
-  ip: {
-    type: String,
-    required: true,
-  },
-  agent: {
-    type: String,
-    required: true,
-  },
-  pushSubscription: {
-    type: new mongoose.Schema<ISessionPushSubscription>({
-      endpoint: {
-        type: String,
-        required: true,
-      },
-      p256dh: {
-        type: Buffer.alloc(0),
-        required: true,
-      },
-      auth: {
-        type: Buffer.alloc(0),
-        required: true,
-      },
-      proto: {
-        type: Number,
-        required: true,
-      },
-    }),
-  },
-});
-
-export const Session = mongoose.model<ISession>("Session", sessionSchema);
-
-export const avatarSchema = new mongoose.Schema<IAvatar>({
-  _id: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  versions: {
-    type: [
-      {
-        type: {
-          type: Number,
-          required: true,
-        },
-        data: {
-          type: Buffer.alloc(0),
-          required: true,
-        },
-      },
-    ],
-    required: true,
-  },
-});
-
-export const Avatar = mongoose.model<IAvatar>("Avatar", avatarSchema);
-
-export const friendSchema = new mongoose.Schema<IFriend>({
-  _id: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  user1Id: {
-    type: Buffer.alloc(0),
-    required: true,
-    ref: "User",
-  },
-  user2Id: {
-    type: Buffer.alloc(0),
-    required: true,
-    ref: "User",
-  },
-  accepted: {
-    type: Boolean,
-    required: true,
-    default() {
-      return false;
-    },
-  },
-});
-
-export const Friend = mongoose.model<IFriend>("Friend", friendSchema);
-
-export const channelSchema = new mongoose.Schema<IChannel>({
-  _id: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  type: {
-    type: Number,
-    required: true,
-  },
-  created: {
-    type: Date,
-    required: true,
-    default() {
-      return new Date();
-    },
-  },
-  name: {
-    type: String,
-  },
-  avatarId: {
-    type: Buffer.alloc(0),
-  },
-  users: [
-    new mongoose.Schema<IChannelUser>({
-      id: {
-        type: Buffer.alloc(0),
-        required: true,
-      },
-      owner: {
-        type: Boolean,
-        required: true,
-        default() {
-          return false;
-        },
-      },
-      hidden: {
-        type: Boolean,
-        required: true,
-        default() {
-          return false;
-        },
-      },
-      added: {
-        type: Date,
-        required: true,
-        default() {
-          return new Date();
-        },
-      },
-    }),
-  ],
-});
-
-export const Channel = mongoose.model<IChannel>("Channel", channelSchema);
-
-export const messageSchema = new mongoose.Schema<IMessage>({
-  _id: {
-    type: Buffer.alloc(0),
-    required: true,
-    default() {
-      return generateId();
-    },
-  },
-  channelId: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  userId: {
-    type: Buffer.alloc(0),
-    required: true,
-  },
-  type: {
-    type: Number,
-    required: true,
-  },
-  created: {
-    type: Date,
-    default() {
-      return new Date();
-    },
-  },
-  updated: {
-    type: Date,
-  },
-  data: {
-    type: Buffer.alloc(0),
-  },
-  keys: {
-    type: [
-      new mongoose.Schema<IMessageKey>({
-        userId: {
-          type: Buffer.alloc(0),
-          required: true,
-        },
-        data: {
-          type: Buffer.alloc(0),
-          required: true,
-        },
-      }),
-    ],
-    default: undefined,
-  },
-});
-
-export const Message = mongoose.model<IMessage>("Message", messageSchema);
 
 export const generateId = (): Buffer => {
   return Buffer.from(sodium.randombytes_buf(16));
@@ -466,7 +75,7 @@ export const authRequest = async (
     return;
   }
 
-  const session = await Session.findOne({
+  const session = await SessionModel.findOne({
     token: Buffer.from(sodium.from_base64(token + "")),
   });
 
@@ -614,7 +223,7 @@ export const processAvatar = (
         .digest();
 
       if (
-        await Avatar.findOne({
+        await AvatarModel.findOne({
           _id: hash,
         })
       ) {
@@ -777,7 +386,7 @@ export const processAvatar = (
         }
       }
 
-      await Avatar.create({
+      await AvatarModel.create({
         _id: hash,
         versions,
       });
@@ -838,7 +447,7 @@ export const getStatus = async (
 
   if (
     povUserId &&
-    !(await Friend.findOne({
+    !(await FriendModel.findOne({
       $or: [
         {
           user1Id: povUserId,
@@ -855,7 +464,7 @@ export const getStatus = async (
     return Status.Offline;
   }
 
-  const targetUser = (await User.findOne({
+  const targetUser = (await UserModel.findOne({
     _id: targetUserId,
   })) as IUser;
 
@@ -889,7 +498,7 @@ export const dispatchSocket = async (opts: {
 
   if (opts.related) {
     if (opts.related.friends) {
-      for (const friend of await Friend.find({
+      for (const friend of await FriendModel.find({
         $or: [
           {
             user1Id: opts.related.userId,
@@ -913,7 +522,7 @@ export const dispatchSocket = async (opts: {
     }
 
     if (opts.related.channels) {
-      for (const channel of await Channel.find({
+      for (const channel of await ChannelModel.find({
         users: {
           $elemMatch: {
             id: opts.related.userId,
@@ -963,7 +572,7 @@ export const dispatchSocket = async (opts: {
 
       const sessions: ISession[] = [];
 
-      for (const session of await Session.find({
+      for (const session of await SessionModel.find({
         userId: opts.userId,
       })) {
         if (
@@ -989,11 +598,11 @@ export const dispatchSocket = async (opts: {
           continue;
         }
 
-        const channel = await Channel.findOne({
+        const channel = await ChannelModel.findOne({
           _id: Buffer.from(sodium.from_base64(data.channelId)),
         });
 
-        const user = await User.findOne({
+        const user = await UserModel.findOne({
           _id: Buffer.from(sodium.from_base64(data.userId)),
         });
 
@@ -1032,7 +641,7 @@ export const dispatchSocket = async (opts: {
           }
 
           if (e instanceof WebPushError && e.statusCode === 410) {
-            await Session.findOneAndUpdate(
+            await SessionModel.findOneAndUpdate(
               {
                 _id: session._id,
               },

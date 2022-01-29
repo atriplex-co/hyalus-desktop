@@ -1,28 +1,26 @@
 import express from "express";
 import {
   authRequest,
-  Channel,
   channelNameValidator,
   cleanObject,
   dispatchSocket,
-  Friend,
   getStatus,
-  IChannelUser,
   idValidator,
-  IMessage,
-  IUser,
-  Message,
   messageDataValidator,
   messageKeysValidator,
   messageTypeValidator,
   processAvatar,
-  User,
   validateRequest,
 } from "../util";
 import sodium from "libsodium-wrappers";
 import { ChannelType, MessageType, SocketMessageType } from "common";
 import Joi from "joi";
 import { sockets } from "./ws";
+import { ChannelModel, IChannelUser } from "../models/channel";
+import { IMessage, MessageModel } from "../models/message";
+import { FriendModel } from "../models/friend";
+import { IUser, UserModel } from "../models/user";
+import { Model } from "mongoose";
 
 const app = express.Router();
 
@@ -42,7 +40,7 @@ app.get(
       return;
     }
 
-    const channel = await Channel.findOne({
+    const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.id)),
       users: {
         $elemMatch: {
@@ -66,7 +64,7 @@ app.get(
 
     const messages = [];
 
-    for (const message of await Message.find({
+    for (const message of await MessageModel.find({
       channelId: channel._id,
       created: {
         $lte: new Date(Number(req.query.before) || 1e8 * 24 * 60 * 60 * 1e3), //apparently, this is the max safe JS date.
@@ -117,7 +115,7 @@ app.post(
       return;
     }
 
-    const channel = await Channel.findOne({
+    const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.id)),
       users: {
         $elemMatch: {
@@ -168,7 +166,7 @@ app.post(
       }
     }
 
-    const message = await Message.create({
+    const message = await MessageModel.create({
       channelId: channel._id,
       userId: session.userId,
       type: req.body.type,
@@ -217,7 +215,7 @@ app.delete(
       return;
     }
 
-    const channel = await Channel.findOne({
+    const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.channelId)),
       users: {
         $elemMatch: {
@@ -235,7 +233,7 @@ app.delete(
       return;
     }
 
-    const message = await Message.findOne({
+    const message = await MessageModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.messageId)),
       channelId: channel._id,
       userId: session.userId,
@@ -255,7 +253,7 @@ app.delete(
     await message.delete();
     res.end();
 
-    const lastMessage = (await Message.findOne({
+    const lastMessage = (await MessageModel.findOne({
       channelId: channel._id,
     }).sort({
       created: -1,
@@ -314,7 +312,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     }
 
     if (
-      !(await Friend.findOne({
+      !(await FriendModel.findOne({
         $or: [
           {
             user1Id: session.userId,
@@ -336,19 +334,19 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     }
 
     users.push(
-      (await User.findOne({
+      (await UserModel.findOne({
         _id: userId,
       })) as IUser
     );
   }
 
   users.push(
-    (await User.findOne({
+    (await UserModel.findOne({
       _id: session.userId,
     })) as IUser
   );
 
-  const channel = await Channel.create({
+  const channel = await ChannelModel.create({
     type: ChannelType.Group,
     name: req.body.name,
     users: users.map((user) => ({
@@ -357,7 +355,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
     })),
   });
 
-  const groupCreateMessage = await Message.create({
+  const groupCreateMessage = await MessageModel.create({
     channelId: channel._id,
     userId: session.userId,
     type: MessageType.GroupCreate,
@@ -400,7 +398,7 @@ app.post("/", async (req: express.Request, res: express.Response) => {
   }
 
   for (const user of users.slice(0, -1)) {
-    const groupAddMessage = await Message.create({
+    const groupAddMessage = await MessageModel.create({
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupAdd,
@@ -445,7 +443,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const channel = await Channel.findOne({
+  const channel = await ChannelModel.findOne({
     _id: Buffer.from(sodium.from_base64(req.params.id)),
     type: ChannelType.Group,
     users: {
@@ -469,7 +467,7 @@ app.post("/:id", async (req: express.Request, res: express.Response) => {
     channel.name = req.body.name;
     await channel.save();
 
-    const groupNameMessage = await Message.create({
+    const groupNameMessage = await MessageModel.create({
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupName,
@@ -530,7 +528,7 @@ app.post("/:id/avatar", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const channel = await Channel.findOne({
+  const channel = await ChannelModel.findOne({
     _id: Buffer.from(sodium.from_base64(req.params.id)),
     type: ChannelType.Group,
     users: {
@@ -558,7 +556,7 @@ app.post("/:id/avatar", async (req: express.Request, res: express.Response) => {
 
   await channel.save();
 
-  const groupAvatarMessage = await Message.create({
+  const groupAvatarMessage = await MessageModel.create({
     channelId: channel._id,
     userId: session.userId,
     type: MessageType.GroupAvatar,
@@ -609,7 +607,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const channel = await Channel.findOne({
+  const channel = await ChannelModel.findOne({
     _id: Buffer.from(sodium.from_base64(req.params.id)),
     type: ChannelType.Group,
     users: {
@@ -632,7 +630,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
 
   if (
     channel.users.find((user) => !user.id.compare(userId) && !user.hidden) ||
-    !(await Friend.findOne({
+    !(await FriendModel.findOne({
       $or: [
         {
           user1Id: session.userId,
@@ -686,7 +684,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
 
     await channel.save();
 
-    const reqUser = (await User.findOne({
+    const reqUser = (await UserModel.findOne({
       _id: session.userId,
     })) as IUser;
 
@@ -714,7 +712,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     }
   }
 
-  const groupAddMessage = await Message.create({
+  const groupAddMessage = await MessageModel.create({
     channelId: channel._id,
     userId: session.userId,
     type: MessageType.GroupAdd,
@@ -745,7 +743,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
   for (const channelUser of channel.users.filter((user) =>
     user.id.compare(userId)
   )) {
-    const user = (await User.findOne({
+    const user = (await UserModel.findOne({
       _id: channelUser.id,
     })) as IUser;
 
@@ -811,7 +809,7 @@ app.delete(
       return;
     }
 
-    const channel = await Channel.findOne({
+    const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.channelId)),
       type: ChannelType.Group,
       users: {
@@ -848,7 +846,7 @@ app.delete(
     channelUser.hidden = true;
     await channel.save();
 
-    const groupRemoveMessage = await Message.create({
+    const groupRemoveMessage = await Model.create({
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupRemove,
@@ -926,7 +924,7 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const channel = await Channel.findOne({
+  const channel = await ChannelModel.findOne({
     _id: Buffer.from(sodium.from_base64(req.params.id)),
     type: ChannelType.Group,
     users: {
@@ -977,7 +975,7 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
   });
 
   if (channel.users.find((user) => !user.hidden)) {
-    const groupLeaveMessage = await Message.create({
+    const groupLeaveMessage = await MessageModel.create({
       channelId: channel._id,
       userId: channelUser.id,
       type: MessageType.GroupLeave,
@@ -1032,7 +1030,7 @@ app.delete("/:id", async (req: express.Request, res: express.Response) => {
     }
   } else {
     await channel.delete();
-    await Message.deleteMany({
+    await MessageModel.deleteMany({
       channelId: channel._id,
     });
   }
@@ -1061,7 +1059,7 @@ app.post(
       return;
     }
 
-    const channel = await Channel.findOne({
+    const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.channelId)),
       users: {
         $elemMatch: {
@@ -1079,7 +1077,7 @@ app.post(
       return;
     }
 
-    const message = await Message.findOne({
+    const message = await MessageModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.messageId)),
       userId: session.userId,
       channelId: channel._id,
