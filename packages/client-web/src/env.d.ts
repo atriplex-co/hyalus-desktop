@@ -1,12 +1,16 @@
 /// <reference types="vite/client" />
 /// <reference types="emscripten" />
 
+// Vite
+
 declare module "*.vue" {
   import { DefineComponent } from "vue";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+
+// App stuff
 
 declare interface HyalusDev {
   store?: unknown;
@@ -58,9 +62,100 @@ declare class IdleDetector {
 
 // WebCodecs support
 
+declare interface MediaStreamTrackProcessorInit {
+  track: MediaStreamTrack;
+}
+
+declare interface MediaStreamTrackGeneratorInit {
+  kind: "video" | "audio";
+}
+
+declare interface EncodedVideoChunk {
+  close(): void;
+  type: "key" | "delta";
+  timestamp: number;
+  duration: number;
+  byteLength: number;
+  copyTo(buf: Uint8Array): void;
+}
+
+declare interface EncodedAudioChunk {
+  close(): void;
+  type: "key" | "delta";
+  timestamp: number;
+  duration: number;
+  byteLength: number;
+  copyTo(buf: Uint8Array): void;
+}
+
+declare interface VideoEncoderInit {
+  output(frame: EncodedVideoChunk, info: VideoEncoderOutputInfo): void;
+  error(): void;
+}
+
+declare interface VideoDecoderInit {
+  output(frame: VideoFrame): void;
+  error(): void;
+}
+
+declare interface AudioEncoderInit {
+  output(frame: EncodedAudioChunk, info: AudioEncoderOutputInfo): void;
+  error(): void;
+}
+
+declare interface AudioDecoderInit {
+  output(frame: AudioData): void;
+  error(): void;
+}
+
+declare interface VideoEncoderConfig {
+  codec: string;
+  width: number;
+  height: number;
+  framerate: number;
+  bitrate: number;
+}
+
+declare interface VideoDecoderConfig {
+  codec: string;
+  width: number;
+  height: number;
+  framerate: number;
+}
+
+declare interface AudioEncoderConfig {
+  codec: string;
+  sampleRate: number;
+  numberOfChannels: number;
+  bitrate: number;
+}
+
+declare interface AudioDecoderConfig {
+  codec: string;
+  sampleRate: number;
+  numberOfChannels: number;
+  description?: Uint8Array;
+}
+
+declare interface VideoEncoderOutputInfo {
+  decoderConfig?: VideoDecoderConfig;
+}
+
+declare interface AudioEncoderOutputInfo {
+  decoderConfig?: AudioDecoderConfig;
+}
+
+declare interface VideoFrame {
+  close(): void;
+}
+
+declare interface AudioData {
+  close(): void;
+}
+
 declare class MediaStreamTrackProcessor {
   constructor(init: MediaStreamTrackProcessorInit);
-  readable: ReadableStream<VideoFrame>;
+  readable: ReadableStream<VideoFrame | AudioData>;
 }
 
 declare class MediaStreamTrackGenerator extends MediaStreamTrack {
@@ -80,55 +175,18 @@ declare class VideoDecoder {
   decode(chunk: EncodedVideoChunk): void;
 }
 
-declare interface MediaStreamTrackProcessorInit {
-  track: MediaStreamTrack;
+declare class AudioEncoder {
+  constructor(init: AudioEncoderInit);
+  configure(config: AudioEncoderConfig): void;
+  decode(chunk: EncodedAudioChunk): void;
 }
 
-declare interface MediaStreamTrackGeneratorInit {
-  kind: "audio" | "video";
+declare class AudioDecoder {
+  constructor(init: AudioDecoderInit);
+  configure(config: AudioDecoderConfig): void;
+  decode(chunk: AudioData): void;
 }
 
-declare interface VideoEncoderInit {
-  output(frame: EncodedVideoChunk, info: VideoEncoderOutputInfo): void;
-  error(): void;
-}
-
-declare interface VideoDecoderInit {
-  output(frame: VideoFrame): void;
-  error(): void;
-}
-
-declare interface VideoEncoderConfig {
-  codec: string;
-  width: number;
-  height: number;
-  framerate: number;
-  bitrate: number;
-}
-
-declare interface VideoDecoderConfig {
-  codec: string;
-  width: number;
-  height: number;
-  framerate: number;
-  bitrate: number;
-}
-
-declare interface VideoEncoderOutputInfo {
-  decoderConfig?: VideoDecoderConfig;
-}
-
-declare interface VideoFrame {
-  close(): void;
-}
-
-declare interface EncodedVideoChunk {
-  close(): void;
-  type: "key" | "delta";
-  timestamp: number;
-  duration: number;
-  byteLength: number;
-  copyTo(buf: Uint8Array): void;
-}
+// AudioWorklet support
 
 declare function registerProcessor(name: string, proc: unknown): void;

@@ -376,16 +376,12 @@ export const store = {
         gain.gain.value = this.state.value.config.audioInputGain / 100;
       };
 
-      // gain2.gain.value = 0;
-      gain2.gain.value = 1;
+      gain2.gain.value = 0;
 
-      // src.connect(gain);
-      // gain.connect(worklet);
-      // worklet.connect(analy/ser);
-      // worklet.connect(gain2);
-      // gain2.connect(dest);
       src.connect(gain);
-      gain.connect(gain2);
+      gain.connect(worklet);
+      worklet.connect(analyser);
+      worklet.connect(gain2);
       gain2.connect(dest);
 
       opts.track = dest.stream.getTracks()[0];
