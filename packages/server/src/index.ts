@@ -93,13 +93,13 @@ import { MessageSchema } from "./models/message";
 
   const ApiRoute = express.Router();
   ApiRoute.use(express.json());
-  ApiRoute.use("/api/avatars", AvatarsRoute);
-  ApiRoute.use("/api/channels", ChannelsRoute);
-  ApiRoute.use("/api/friends", FriendsRoute);
-  ApiRoute.use("/api/self", SelfRoute);
-  ApiRoute.use("/api/sessions", SessionsRoute);
-  ApiRoute.use("/api/users", UsersRoute);
-  app.use("api", ApiRoute);
+  ApiRoute.use("/avatars", AvatarsRoute);
+  ApiRoute.use("/channels", ChannelsRoute);
+  ApiRoute.use("/friends", FriendsRoute);
+  ApiRoute.use("/self", SelfRoute);
+  ApiRoute.use("/sessions", SessionsRoute);
+  ApiRoute.use("/users", UsersRoute);
+  app.use("/api", ApiRoute);
 
   const wss = new WebSocketServer({
     server,

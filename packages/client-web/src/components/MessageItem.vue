@@ -215,15 +215,7 @@ import LoadingIcon from "../icons/LoadingIcon.vue";
 import PencilIcon from "../icons/PencilIcon.vue";
 import PhotographIcon from "../icons/PhotographIcon.vue";
 import moment from "moment";
-import {
-  ref,
-  computed,
-  defineProps,
-  onBeforeUnmount,
-  onMounted,
-  PropType,
-  Ref,
-} from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, PropType, Ref } from "vue";
 import { axios } from "../global/helpers";
 import { store } from "../global/store";
 import { IChannel, IMessage, ISocketMessage } from "../global/types";

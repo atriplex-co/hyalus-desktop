@@ -22,7 +22,6 @@
 <script lang="ts" setup>
 import {
   defineEmits,
-  defineProps,
   onMounted,
   ref,
   watch,

@@ -288,6 +288,7 @@ const submit = async () => {
       await router.push("/app");
     }
   } catch (e) {
+    console.debug(e);
     error.value = prettyError(e);
   }
 };

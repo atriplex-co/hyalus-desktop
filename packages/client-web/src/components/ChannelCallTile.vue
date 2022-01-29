@@ -81,7 +81,6 @@ import DisplayIcon from "../icons/DisplayIcon.vue";
 import MicOffIcon from "../icons/MicOffIcon.vue";
 import {
   ref,
-  defineProps,
   onMounted,
   onBeforeUnmount,
   watch,
