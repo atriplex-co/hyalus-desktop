@@ -111,14 +111,20 @@ import { MessageSchema } from "./models/message";
   if (process.env.NODE_ENV === "production") {
     app.use(
       express.static(path.join(__dirname, "../../client-web/dist"), {
-        setHeaders(res) {
-          res.setHeader("cache-control", "public, max-age=31536000");
+        setHeaders(res, path) {
+          if (path.includes("assets/")) {
+            res.setHeader("cache-control", "public, max-age=31536000");
+          } else {
+            res.setHeader("cache-control", "no-cache");
+          }
+
           res.setHeader("service-worker-allowed", "/");
         },
       })
     );
 
     app.use((_req: express.Request, res: express.Response) => {
+      res.setHeader("cache-control", "no-cache");
       res.sendFile(path.join(__dirname, "../../client-web/dist/index.html"));
     });
   }
