@@ -11,4 +11,4 @@ trap die INT
 
 rm -rf ~/.docker
 docker-compose -f docker-compose.dev.yml up -d --build --force-recreate --remove-orphans
-docker-compose -f docker-compose.dev.yml logs -f --tail 100
+docker-compose -f docker-compose.dev.yml logs -f --tail 100 web
