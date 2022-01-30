@@ -67,126 +67,127 @@ declare interface MediaStreamTrackProcessorInit {
 }
 
 declare interface MediaStreamTrackGeneratorInit {
-  kind: "video" | "audio";
+  kind: string;
 }
 
-declare interface EncodedVideoChunk {
-  close(): void;
-  type: "key" | "delta";
-  timestamp: number;
-  duration: number;
-  byteLength: number;
-  copyTo(buf: Uint8Array): void;
-}
-
-declare interface EncodedAudioChunk {
-  close(): void;
-  type: "key" | "delta";
-  timestamp: number;
-  duration: number;
-  byteLength: number;
-  copyTo(buf: Uint8Array): void;
-}
-
-declare interface VideoEncoderInit {
-  output(frame: EncodedVideoChunk, info: VideoEncoderOutputInfo): void;
+declare interface MediaEncoderInit {
+  output(frame: EncodedMediaChunk, info: MediaEncoderOutputInfo): void;
   error(): void;
 }
 
-declare interface VideoDecoderInit {
-  output(frame: VideoFrame): void;
+declare interface MediaDecoderInit {
+  output(frame: MediaData): void;
   error(): void;
 }
 
-declare interface AudioEncoderInit {
-  output(frame: EncodedAudioChunk, info: AudioEncoderOutputInfo): void;
-  error(): void;
+declare interface MediaEncoderConfig {
+  codec?: string;
+  sampleRate?: number;
+  numberOfChannels?: number;
+  bitrate?: number;
+  width?: number;
+  height?: number;
+  displayWidth?: number;
+  displayHeight?: number;
+  hardwareAcceleration?: string;
+  framerate?: number;
+  alpha?: string;
+  scalabilityMode?: string;
+  bitrateMode?: string;
+  latencyMode?: string;
 }
 
-declare interface AudioDecoderInit {
-  output(frame: AudioData): void;
-  error(): void;
-}
-
-declare interface VideoEncoderConfig {
-  codec: string;
-  width: number;
-  height: number;
-  framerate: number;
-  bitrate: number;
-}
-
-declare interface VideoDecoderConfig {
-  codec: string;
-  width: number;
-  height: number;
-  framerate: number;
-}
-
-declare interface AudioEncoderConfig {
-  codec: string;
-  sampleRate: number;
-  numberOfChannels: number;
-  bitrate: number;
-}
-
-declare interface AudioDecoderConfig {
-  codec: string;
-  sampleRate: number;
-  numberOfChannels: number;
+declare interface MediaDecoderConfig {
+  codec?: string;
+  sampleRate?: number;
+  numberOfChannels?: number;
   description?: Uint8Array;
+  codecWidth?: number;
+  codedHeight?: number;
+  displayAspectWidth?: number;
+  displayAspectHeight?: number;
+  colorSpace?: {
+    primaries: string;
+    transfer: string;
+    matrix: string;
+  };
+  hardwareAcceleration?: string;
+  optimizeForLatency?: boolean;
 }
 
-declare interface VideoEncoderOutputInfo {
-  decoderConfig?: VideoDecoderConfig;
+declare interface MediaEncoderOutputInfo {
+  decoderConfig?: MediaDecoderConfig;
 }
 
-declare interface AudioEncoderOutputInfo {
-  decoderConfig?: AudioDecoderConfig;
-}
-
-declare interface VideoFrame {
+declare interface MediaData {
   close(): void;
 }
 
-declare interface AudioData {
-  close(): void;
+declare interface MediaEncoderEncodeOpts {
+  keyFrame?: boolean;
+}
+
+declare interface EncodedMediaChunkInit {
+  type: string;
+  timestamp: number;
+  duration: number;
+  data: Uint8Array;
 }
 
 declare class MediaStreamTrackProcessor {
   constructor(init: MediaStreamTrackProcessorInit);
-  readable: ReadableStream<VideoFrame | AudioData>;
+  readable: ReadableStream<MediaData>;
 }
 
 declare class MediaStreamTrackGenerator extends MediaStreamTrack {
   constructor(init: MediaStreamTrackGeneratorInit);
-  writable: WritableStream<VideoFrame>;
+  writable: WritableStream<MediaData>;
 }
 
-declare class VideoEncoder {
-  constructor(init: VideoEncoderInit);
-  configure(config: VideoEncoderConfig): void;
-  encode(frame: VideoFrame): void;
+declare class MediaEncoder {
+  constructor(init: MediaEncoderInit);
+  configure(config: MediaEncoderConfig): void;
+  encode(frame: MediaData, opts?: MediaEncoderEncodeOpts): void;
 }
 
-declare class VideoDecoder {
-  constructor(init: VideoDecoderInit);
-  configure(config: VideoDecoderConfig): void;
-  decode(chunk: EncodedVideoChunk): void;
+declare class MediaDecoder {
+  constructor(init: MediaDecoderInit);
+  configure(config: MediaDecoderConfig): void;
+  decode(chunk: EncodedMediaChunk): void;
+  state: string;
 }
 
-declare class AudioEncoder {
-  constructor(init: AudioEncoderInit);
-  configure(config: AudioEncoderConfig): void;
-  decode(chunk: EncodedAudioChunk): void;
+declare class EncodedMediaChunk {
+  constructor(init: EncodedMediaChunkInit);
+  type: string;
+  timestamp: number;
+  duration: number;
+  byteLength: number;
+  copyTo(buf: Uint8Array): void;
 }
 
-declare class AudioDecoder {
-  constructor(init: AudioDecoderInit);
-  configure(config: AudioDecoderConfig): void;
-  decode(chunk: AudioData): void;
-}
+declare class VideoEncoder extends MediaEncoder {}
+declare class AudioEncoder extends MediaEncoder {}
+declare class VideoDecoder extends MediaDecoder {}
+declare class AudioDecoder extends MediaDecoder {}
+
+declare class EncodedAudioChunk extends EncodedMediaChunk {}
+declare class EncodedVideoChunk extends EncodedMediaChunk {}
 
 // AudioWorklet support
+
+declare interface AudioWorkletProcessorInit {
+  processorOptions: {
+    wasm?: Uint8Array;
+  };
+}
+
+declare class AudioWorkletProcessor {
+  constructor(init: AudioWorkletProcessorInit);
+  port: {
+    postMessage(data: unknown): void;
+    onmessage: (e: { data: unknown }) => void;
+  };
+}
 
 declare function registerProcessor(name: string, proc: unknown): void;

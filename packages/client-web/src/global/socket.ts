@@ -3,7 +3,7 @@ import { iceServers } from "../global/config";
 import sodium from "libsodium-wrappers";
 import { router } from "../router";
 import {
-  CallRTCType,
+  CallRTCDataType,
   CallStreamType,
   ChannelType,
   ColorTheme,
@@ -17,6 +17,7 @@ import {
 import {
   ICallPersist,
   ICallRemoteStream,
+  ICallRTCData,
   IChannel,
   IChannelUser,
   IFriend,
@@ -31,9 +32,9 @@ import {
   isMobile,
   notifyGetAvatarUrl,
   notifySend,
-  patchSdp,
   processMessage,
 } from "./helpers";
+import { CallStreamData, CallStreamDecoderConfig } from "./messages";
 
 let updateCheck: string;
 let awayController: AbortController;
@@ -1223,11 +1224,7 @@ export class Socket {
         }
 
         const dataBytes = sodium.from_base64(data.data);
-        const dataDecrypted: {
-          mt: CallRTCType;
-          st: CallStreamType;
-          d: string;
-        } = JSON.parse(
+        const dataDecrypted: ICallRTCData = JSON.parse(
           sodium.to_string(
             sodium.crypto_box_open_easy(
               dataBytes.slice(sodium.crypto_box_NONCEBYTES),
@@ -1240,11 +1237,11 @@ export class Socket {
 
         console.debug("c_rtc/rx: %o", {
           ...dataDecrypted,
-          mt: CallRTCType[dataDecrypted.mt],
+          mt: CallRTCDataType[dataDecrypted.mt],
           st: CallStreamType[dataDecrypted.st],
         });
 
-        if (dataDecrypted.mt === CallRTCType.RemoteTrackOffer) {
+        if (dataDecrypted.mt === CallRTCDataType.RemoteTrackOffer) {
           const pc = new RTCPeerConnection({ iceServers });
           let ctx: AudioContext;
 
@@ -1261,7 +1258,7 @@ export class Socket {
             const json = JSON.parse(jsonRaw);
             console.debug("c_rtc/tx: %o", {
               ...json,
-              mt: CallRTCType[json.mt],
+              mt: CallRTCDataType[json.mt],
               st: CallStreamType[json.st],
             }); // yes, there's a reason for this.
             const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
@@ -1292,16 +1289,118 @@ export class Socket {
             }
 
             sendPayload({
-              mt: CallRTCType.LocalTrackICECandidate,
+              mt: CallRTCDataType.LocalTrackICECandidate,
               st: dataDecrypted.st,
               d: JSON.stringify(candidate),
             });
           });
 
-          pc.addEventListener("track", ({ track }) => {
-            if (!store.state.value.call) {
-              return;
+          pc.addEventListener("datachannel", ({ channel: dc }) => {
+            const track = new MediaStreamTrackGenerator({
+              kind: {
+                [CallStreamType.Audio]: "audio",
+                [CallStreamType.Video]: "video",
+                [CallStreamType.DisplayVideo]: "video",
+                [CallStreamType.DisplayAudio]: "audio",
+              }[dataDecrypted.st],
+            });
+
+            const writer = track.writable.getWriter();
+
+            const decoderInit = {
+              async output(data: MediaData) {
+                await writer.write(data);
+              },
+              error() {
+                //
+              },
+            };
+
+            let decoder!: MediaDecoder;
+
+            if (track.kind === "video") {
+              decoder = new VideoDecoder(decoderInit);
             }
+
+            if (track.kind === "audio") {
+              decoder = new AudioDecoder(decoderInit);
+            }
+
+            let packets: Uint8Array[] = [];
+
+            dc.addEventListener("message", async ({ data }) => {
+              const packetData = new Uint8Array(data);
+
+              if (packetData.length) {
+                packets.push(packetData);
+                return;
+              }
+
+              let combinedLength = 0;
+              for (let i = 0; i < packets.length; ++i) {
+                combinedLength += packets[i].length;
+              }
+              const combined = new Uint8Array(combinedLength);
+              for (let i = 0; i < packets.length; ++i) {
+                combined.set(packets[i], i * 16384);
+              }
+              packets = [];
+
+              const msg = CallStreamData.decode(combined);
+
+              if (decoder.state !== "configured" || msg.decoderConfigUpdate) {
+                decoder.configure({
+                  ...CallStreamDecoderConfig.decode(msg.decoderConfig),
+                  hardwareAcceleration: "prefer-hardware",
+                  optimizeForLatency: true,
+                });
+              }
+
+              if (decoder.state !== "configured") {
+                return;
+              }
+
+              const chunkInit: EncodedMediaChunkInit = {
+                data: msg.data,
+                type: msg.type,
+                timestamp: msg.timestamp,
+                duration: msg.duration,
+              };
+
+              let chunk!: EncodedMediaChunk;
+
+              if (track.kind === "audio") {
+                chunk = new EncodedAudioChunk(chunkInit);
+              }
+
+              if (track.kind === "video") {
+                chunk = new EncodedVideoChunk(chunkInit);
+              }
+
+              try {
+                decoder.decode(chunk);
+              } catch {
+                //
+              }
+            });
+
+            dc.addEventListener("close", () => {
+              console.debug("c_rtc/dc: remoteStream close");
+              pc.close();
+
+              if (ctx) {
+                ctx.close();
+              }
+
+              if (!store.state.value.call) {
+                return;
+              }
+
+              store.state.value.call.remoteStreams =
+                store.state.value.call.remoteStreams.filter(
+                  (stream) => stream.pc !== pc
+                );
+            });
 
             const stream: ICallRemoteStream = {
               userId: data.userId,
@@ -1311,13 +1410,12 @@ export class Socket {
               config: {},
             };
 
-            store.state.value.call.remoteStreams.push(stream);
+            store.state.value.call?.remoteStreams.push(stream);
 
             if (ctx) {
               const el2 = document.createElement("audio");
 
               el2.onloadedmetadata = () => {
-                ctx = new AudioContext();
                 const gain = ctx.createGain();
                 const dest = ctx.createMediaStreamDestination();
                 const el = document.createElement("audio") as IHTMLAudioElement;
@@ -1347,26 +1445,6 @@ export class Socket {
             }
           });
 
-          pc.addEventListener("datachannel", ({ channel: dc }) => {
-            dc.addEventListener("close", () => {
-              console.debug("c_rtc/dc: remoteStream close");
-              pc.close();
-
-              if (ctx) {
-                ctx.close();
-              }
-
-              if (!store.state.value.call) {
-                return;
-              }
-
-              store.state.value.call.remoteStreams =
-                store.state.value.call.remoteStreams.filter(
-                  (stream) => stream.pc !== pc
-                );
-            });
-          });
-
           pc.addEventListener("connectionstatechange", () => {
             console.debug(`c_rtc/peer: ${pc.connectionState}`);
           });
@@ -1377,16 +1455,16 @@ export class Socket {
               sdp: dataDecrypted.d,
             })
           );
-          await pc.setLocalDescription(patchSdp(await pc.createAnswer()));
+          await pc.setLocalDescription(await pc.createAnswer());
 
           sendPayload({
-            mt: CallRTCType.LocalTrackAnswer,
+            mt: CallRTCDataType.LocalTrackAnswer,
             st: dataDecrypted.st,
             d: pc.localDescription?.sdp,
           });
         }
 
-        if (dataDecrypted.mt === CallRTCType.RemoteTrackICECandidate) {
+        if (dataDecrypted.mt === CallRTCDataType.RemoteTrackICECandidate) {
           let stream: ICallRemoteStream | undefined;
 
           for (let i = 0; i < 10; ++i) {
@@ -1417,8 +1495,8 @@ export class Socket {
 
         if (
           [
-            CallRTCType.LocalTrackAnswer,
-            CallRTCType.LocalTrackICECandidate,
+            CallRTCDataType.LocalTrackAnswer,
+            CallRTCDataType.LocalTrackICECandidate,
           ].indexOf(dataDecrypted.mt) !== -1
         ) {
           const stream = store.state.value.call.localStreams.find(
@@ -1439,7 +1517,7 @@ export class Socket {
             return;
           }
 
-          if (dataDecrypted.mt === CallRTCType.LocalTrackAnswer) {
+          if (dataDecrypted.mt === CallRTCDataType.LocalTrackAnswer) {
             await peer.setRemoteDescription(
               new RTCSessionDescription({
                 type: "answer",
@@ -1448,7 +1526,7 @@ export class Socket {
             );
           }
 
-          if (dataDecrypted.mt === CallRTCType.LocalTrackICECandidate) {
+          if (dataDecrypted.mt === CallRTCDataType.LocalTrackICECandidate) {
             await peer.addIceCandidate(
               new RTCIceCandidate(JSON.parse(dataDecrypted.d))
             );

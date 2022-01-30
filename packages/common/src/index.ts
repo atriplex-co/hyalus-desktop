@@ -1,4 +1,4 @@
-export const SocketProtocol = 5;
+export const SocketProtocol = 6;
 export const PushProtocol = 1;
 export const MaxAvatarWidth = 256;
 export const MaxAvatarFPS = 30;
@@ -91,7 +91,7 @@ export enum FileChunkRTCType {
   ICECandidate = 1,
 }
 
-export enum CallRTCType {
+export enum CallRTCDataType {
   RemoteTrackOffer = 0,
   RemoteTrackICECandidate = 1, // (for tx's localTrack, rx's remoteTrack)
   LocalTrackAnswer = 2,

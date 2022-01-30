@@ -3,7 +3,7 @@ import { idbGet, idbSet } from "./idb";
 import { iceServers } from "./config";
 import sodium from "libsodium-wrappers";
 import {
-  CallRTCType,
+  CallRTCDataType,
   CallStreamType,
   ColorTheme,
   SocketMessageType,
@@ -20,18 +20,15 @@ import {
   ICallLocalStream,
   ICallLocalStreamConfig,
   ICallLocalStreamPeer,
+  ICallRTCData,
   IConfig,
   IHTMLAudioElement,
   IState,
   SideBarContent,
 } from "./types";
-import {
-  axios,
-  callCheckStreams,
-  callUpdatePersist,
-  patchSdp,
-} from "./helpers";
+import { axios, callCheckStreams, callUpdatePersist } from "./helpers";
 import { Socket } from "./socket";
+import { CallStreamData, CallStreamDecoderConfig } from "./messages";
 
 export const store = {
   state: ref<IState>({
@@ -210,10 +207,10 @@ export const store = {
 
     const sendPayload = (val: unknown) => {
       const jsonRaw = JSON.stringify(val);
-      const json = JSON.parse(jsonRaw);
+      const json = JSON.parse(jsonRaw) as ICallRTCData;
       console.debug("c_rtc/tx: %o", {
         ...json,
-        mt: CallRTCType[json.mt],
+        mt: CallRTCDataType[json.mt],
         st: CallStreamType[json.st],
       }); // yes, there's a reason for this.
       const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
@@ -238,10 +235,11 @@ export const store = {
     };
 
     const pc = new RTCPeerConnection({ iceServers });
-    const dc = pc.createDataChannel(""); // allows us to detect when the peer gets closed much quicker.
+    const dc = pc.createDataChannel("");
     const peer: ICallLocalStreamPeer = {
       userId,
       pc,
+      dc,
     };
 
     stream.peers.push(peer);
@@ -252,7 +250,7 @@ export const store = {
       }
 
       sendPayload({
-        mt: CallRTCType.RemoteTrackICECandidate,
+        mt: CallRTCDataType.RemoteTrackICECandidate,
         st: stream.type,
         d: JSON.stringify(candidate),
       });
@@ -260,6 +258,10 @@ export const store = {
 
     pc.addEventListener("connectionstatechange", () => {
       console.debug(`c_rtc/peer: ${pc.connectionState}`);
+    });
+
+    dc.addEventListener("open", () => {
+      stream.config.requestKeyFrame = true;
     });
 
     dc.addEventListener("close", async () => {
@@ -285,11 +287,10 @@ export const store = {
       }
     });
 
-    pc.addTrack(stream.track);
-    await pc.setLocalDescription(patchSdp(await pc.createOffer()));
+    await pc.setLocalDescription(await pc.createOffer());
 
     sendPayload({
-      mt: CallRTCType.RemoteTrackOffer,
+      mt: CallRTCDataType.RemoteTrackOffer,
       st: stream.type,
       d: pc.localDescription?.sdp,
     });
@@ -324,12 +325,6 @@ export const store = {
             this.state.value.config.voiceRtcEcho,
         }, // TS is stupid here and complains.
       });
-
-      // await this.callAddLocalStream({
-      //   type: opts.type,
-      //   track: stream.getTracks()[0],
-      // });
-      // return;
 
       const ctx = new AudioContext();
       const src = ctx.createMediaStreamSource(stream);
@@ -370,7 +365,7 @@ export const store = {
 
           closeTimeout = +setTimeout(() => {
             gain2.gain.value = 0;
-          }, 100);
+          }, 200);
         }
 
         gain.gain.value = this.state.value.config.audioInputGain / 100;
@@ -484,6 +479,106 @@ export const store = {
     }
 
     await callUpdatePersist();
+
+    (async () => {
+      const track = opts.track as MediaStreamTrack;
+      const settings = track.getSettings() as {
+        width: number;
+        height: number;
+        frameRate: number;
+        sampleRate: number;
+        channelCount: number;
+      };
+
+      let lastDecoderConfig: Uint8Array;
+
+      const encoderInit = {
+        output(chunk: EncodedMediaChunk, info: MediaEncoderOutputInfo) {
+          if (info.decoderConfig) {
+            lastDecoderConfig = CallStreamDecoderConfig.encode({
+              codec: info.decoderConfig.codec,
+              description:
+                info.decoderConfig.description &&
+                new Uint8Array(info.decoderConfig.description),
+              sampleRate: info.decoderConfig.sampleRate,
+              numberOfChannels: info.decoderConfig.numberOfChannels,
+            }).finish();
+          }
+
+          const data = new Uint8Array(chunk.byteLength);
+          chunk.copyTo(data);
+
+          const msg = CallStreamData.encode({
+            data,
+            type: chunk.type,
+            timestamp: chunk.timestamp,
+            duration: chunk.duration,
+            decoderConfig: lastDecoderConfig,
+            decoderConfigUpdate: !!info.decoderConfig,
+          }).finish();
+
+          for (const peer of stream.peers) {
+            if (peer.dc.readyState !== "open") {
+              continue;
+            }
+
+            for (let i = 0; i < msg.length; i += 16384) {
+              peer.dc.send(msg.slice(i).slice(0, 16384));
+            }
+
+            peer.dc.send(new Uint8Array(0));
+          }
+        },
+        error() {
+          //
+        },
+      };
+
+      let encoder!: MediaEncoder;
+
+      if (track.kind === "audio") {
+        encoder = new AudioEncoder(encoderInit);
+        encoder.configure({
+          codec: "opus",
+          bitrate: 256e3,
+          sampleRate: settings.sampleRate,
+          numberOfChannels: settings.channelCount,
+        });
+      }
+
+      if (track.kind === "video") {
+        encoder = new VideoEncoder(encoderInit);
+        encoder.configure({
+          codec: "avc1.42001e",
+          bitrate: 20e6,
+          width: settings.width,
+          height: settings.height,
+          hardwareAcceleration: "prefer-hardware",
+          latencyMode: "realtime",
+        });
+      }
+
+      const reader = new MediaStreamTrackProcessor({
+        track,
+      }).readable.getReader();
+
+      for (;;) {
+        const { value } = await reader.read();
+
+        if (!value) {
+          break;
+        }
+
+        encoder.encode(value, {
+          keyFrame: stream.config.requestKeyFrame,
+        });
+        value.close();
+
+        if (stream.config.requestKeyFrame) {
+          stream.config.requestKeyFrame = false;
+        }
+      }
+    })();
   },
   async callRemoveLocalStream(opts: {
     type: CallStreamType;

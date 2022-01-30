@@ -9,6 +9,7 @@ services:
       - ${PORT}:3001
     volumes:
       - ".:/home/app/app"
+      - "$HOME/.cache:/home/app/.cache"
   db:
     image: mongo:latest
     restart: always

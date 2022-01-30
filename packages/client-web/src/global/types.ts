@@ -1,4 +1,5 @@
 import {
+  CallRTCDataType,
   CallStreamType,
   ChannelType,
   ColorTheme,
@@ -87,17 +88,19 @@ export interface ICallLocalStream {
 export interface ICallLocalStreamPeer {
   userId: string;
   pc: RTCPeerConnection;
+  dc: RTCDataChannel;
 }
 
 export interface ICallLocalStreamConfig {
   gain?: GainNode;
+  requestKeyFrame?: boolean;
 }
 
 export interface ICallRemoteStream {
   userId: string;
   type: CallStreamType;
   pc: RTCPeerConnection;
-  track: MediaStreamTrack;
+  track: MediaStreamTrackGenerator;
   config: ICallRemoteStreamConfig;
 }
 
@@ -109,6 +112,12 @@ export interface ICallRemoteStreamConfig {
 export interface ICallTile {
   user: IChannelUser | IUser;
   stream?: ICallLocalStream | ICallRemoteStream;
+}
+
+export interface ICallRTCData {
+  mt: CallRTCDataType;
+  st: CallStreamType;
+  d: string;
 }
 
 export interface IVoicePeer {

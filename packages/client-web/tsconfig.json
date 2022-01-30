@@ -12,13 +12,14 @@
     "lib": [
       "ESNext",
       "DOM",
-      "WebWorker",
+      "WebWorker"
     ],
     "noEmit": true,
     "skipLibCheck": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
+    "experimentalDecorators": true
   },
   "include": [
     "src/**/*.ts",
