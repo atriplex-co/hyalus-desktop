@@ -118,7 +118,7 @@ const messageBoxSubmit = async () => {
       });
 
       await axios.post(
-        `/api/channels/${props.channel.id}/messages/${props.message.id}/edit`,
+        `/api/channels/${props.channel.id}/messages/${props.message.id}/data`,
         {
           data: sodium.to_base64(
             new Uint8Array([
