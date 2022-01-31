@@ -378,7 +378,7 @@ const fileDownload = async (save: boolean) => {
 
     if (!chunk) {
       const pc = new RTCPeerConnection({ iceServers });
-      const parts: Uint8Array[] = [];
+      const packets: Uint8Array[] = [];
       const tag = to_base64(randombytes_buf(16));
       let publicKey: Uint8Array | undefined;
 
@@ -438,28 +438,30 @@ const fileDownload = async (save: boolean) => {
 
           dc.addEventListener("message", async ({ data }) => {
             if (data) {
-              parts.push(new Uint8Array(data));
-            } else {
-              chunk = new Uint8Array(
-                parts.map((p) => p.length).reduce((a, b) => a + b)
-              );
-
-              for (let i = 0; i < parts.length; i++) {
-                chunk.set(parts[i], i * parts[0].length);
-              }
-
-              if (hash !== to_base64(crypto_hash(chunk))) {
-                console.warn(`invalid data for file chunk: ${hash}`);
-                chunk = undefined;
-              }
-
-              if (chunk) {
-                await idbSet(`file:${hash}`, chunk);
-              }
-
-              pc.close();
-              resolve(undefined);
+              packets.push(new Uint8Array(data));
+              return;
             }
+
+            chunk = new Uint8Array(
+              packets.map((p) => p.length).reduce((a, b) => a + b)
+            );
+
+            for (let i = 0, j = 0; i < packets.length; i++) {
+              chunk.set(packets[i], j);
+              j += packets[i].length;
+            }
+
+            if (hash !== to_base64(crypto_hash(chunk))) {
+              console.warn(`invalid data for file chunk: ${hash}`);
+              chunk = undefined;
+            }
+
+            if (chunk) {
+              await idbSet(`file:${hash}`, chunk);
+            }
+
+            pc.close();
+            resolve(undefined);
           });
         });
 

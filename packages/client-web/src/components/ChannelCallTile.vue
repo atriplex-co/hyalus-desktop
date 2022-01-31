@@ -40,6 +40,7 @@
         :srcObject.prop="srcObject"
         autoplay
         muted
+        controls
       />
       <UserAvatar
         v-else

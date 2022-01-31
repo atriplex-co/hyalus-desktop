@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { idbGet, idbSet } from "./idb";
-import { iceServers } from "./config";
+import { iceServers, RTCMaxMessageSize } from "./config";
 import sodium from "libsodium-wrappers";
 import {
   CallRTCDataType,
@@ -522,11 +522,11 @@ export const store = {
               continue;
             }
 
-            for (let i = 0; i < msg.length; i += 16384) {
-              peer.dc.send(msg.slice(i).slice(0, 16384));
+            for (let i = 0; i < msg.length; i += RTCMaxMessageSize) {
+              peer.dc.send(msg.slice(i).slice(0, RTCMaxMessageSize));
             }
 
-            peer.dc.send(new Uint8Array(0));
+            peer.dc.send(""); // EOF
           }
         },
         error() {
@@ -550,7 +550,7 @@ export const store = {
         encoder = new VideoEncoder(encoderInit);
         encoder.configure({
           codec: "avc1.42001e",
-          bitrate: 20e6,
+          bitrate: 6e6,
           width: settings.width,
           height: settings.height,
           hardwareAcceleration: "prefer-hardware",
@@ -567,6 +567,10 @@ export const store = {
 
         if (!value) {
           break;
+        }
+
+        if (encoder.encodeQueueSize) {
+          continue;
         }
 
         encoder.encode(value, {

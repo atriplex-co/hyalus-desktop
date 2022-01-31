@@ -1,5 +1,5 @@
 import { idbGet, idbKeys } from "../global/idb";
-import { iceServers } from "../global/config";
+import { iceServers, RTCMaxMessageSize } from "../global/config";
 import sodium from "libsodium-wrappers";
 import { router } from "../router";
 import {
@@ -1173,13 +1173,11 @@ export class Socket {
         dc.addEventListener("open", () => {
           console.debug("f_rtc/dc: open");
 
-          const msgSize = 1024 * 16;
-
-          for (let i = 0; i < Math.ceil(chunk.length / msgSize); i++) {
-            dc.send(chunk.slice(i * msgSize, i * msgSize + msgSize).buffer);
+          for (let i = 0; i < chunk.length; i += RTCMaxMessageSize) {
+            dc.send(chunk.slice(i).slice(0, RTCMaxMessageSize));
           }
 
-          dc.send(""); //basically EOF.
+          dc.send(""); // EOF
 
           setTimeout(() => {
             pc.close();
@@ -1296,6 +1294,8 @@ export class Socket {
           });
 
           pc.addEventListener("datachannel", ({ channel: dc }) => {
+            console.log(dc);
+
             const track = new MediaStreamTrackGenerator({
               kind: {
                 [CallStreamType.Audio]: "audio",
@@ -1329,24 +1329,29 @@ export class Socket {
             let packets: Uint8Array[] = [];
 
             dc.addEventListener("message", async ({ data }) => {
-              const packetData = new Uint8Array(data);
-
-              if (packetData.length) {
-                packets.push(packetData);
+              if (data) {
+                packets.push(new Uint8Array(data));
                 return;
               }
 
-              let combinedLength = 0;
-              for (let i = 0; i < packets.length; ++i) {
-                combinedLength += packets[i].length;
+              const combined = new Uint8Array(
+                packets.map((p) => p.length).reduce((a, b) => a + b)
+              );
+
+              for (let i = 0, j = 0; i < packets.length; ++i) {
+                combined.set(packets[i], j);
+                j += packets[i].length;
               }
-              const combined = new Uint8Array(combinedLength);
-              for (let i = 0; i < packets.length; ++i) {
-                combined.set(packets[i], i * 16384);
-              }
+
               packets = [];
 
-              const msg = CallStreamData.decode(combined);
+              let msg!: CallStreamData;
+
+              try {
+                msg = CallStreamData.decode(combined);
+              } catch {
+                return;
+              }
 
               if (decoder.state !== "configured" || msg.decoderConfigUpdate) {
                 decoder.configure({
@@ -1376,6 +1381,10 @@ export class Socket {
               if (track.kind === "video") {
                 chunk = new EncodedVideoChunk(chunkInit);
               }
+
+              // if (decoder.decodeQueueSize && chunk.type !== "key") {
+              //   return;
+              // }
 
               try {
                 decoder.decode(chunk);
