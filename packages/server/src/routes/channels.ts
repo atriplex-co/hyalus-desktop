@@ -20,7 +20,6 @@ import { ChannelModel, IChannelUser } from "../models/channel";
 import { IMessage, MessageModel } from "../models/message";
 import { FriendModel } from "../models/friend";
 import { IUser, UserModel } from "../models/user";
-import { Model } from "mongoose";
 
 const app = express.Router();
 
@@ -626,18 +625,23 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const userId = Buffer.from(sodium.from_base64(req.body.id));
+  const targetUser = await UserModel.findOne({
+    _id: Buffer.from(sodium.from_base64(req.body.id)),
+  });
 
   if (
-    channel.users.find((user) => !user.id.compare(userId) && !user.hidden) ||
+    !targetUser ||
+    channel.users.find(
+      (user) => !user.id.compare(targetUser._id) && !user.hidden
+    ) ||
     !(await FriendModel.findOne({
       $or: [
         {
           user1Id: session.userId,
-          user2Id: userId,
+          user2Id: targetUser._id,
         },
         {
-          user1Id: userId,
+          user1Id: targetUser._id,
           user2Id: session.userId,
         },
       ],
@@ -651,7 +655,9 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const oldChannelUser = channel.users.find((user) => !user.id.compare(userId));
+  const oldChannelUser = channel.users.find(
+    (user) => !user.id.compare(targetUser._id)
+  );
 
   if (oldChannelUser) {
     oldChannelUser.hidden = false;
@@ -660,7 +666,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     await channel.save();
 
     for (const channelUser of channel.users.filter(
-      (user) => !user.hidden && user.id.compare(userId)
+      (user) => !user.hidden && user.id.compare(targetUser._id)
     )) {
       await dispatchSocket({
         userId: channelUser.id,
@@ -676,7 +682,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     }
   } else {
     channel.users.push({
-      id: userId,
+      id: targetUser._id,
       hidden: false,
       owner: false,
       added: new Date(),
@@ -684,25 +690,22 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
 
     await channel.save();
 
-    const reqUser = (await UserModel.findOne({
-      _id: session.userId,
-    })) as IUser;
-
     for (const channelUser of channel.users.filter(
-      (user) => !user.hidden && user.id.compare(userId)
+      (user) => !user.hidden && user.id.compare(targetUser._id)
     )) {
       await dispatchSocket({
         userId: channelUser.id,
         message: {
           t: SocketMessageType.SChannelUserCreate,
           d: {
-            id: sodium.to_base64(reqUser._id),
+            id: sodium.to_base64(targetUser._id),
             channelId: sodium.to_base64(channel._id),
-            username: reqUser.username,
-            name: reqUser.name,
-            avatarId: reqUser.avatarId && sodium.to_base64(reqUser.avatarId),
-            status: await getStatus(reqUser._id, channelUser.id),
-            publicKey: sodium.to_base64(reqUser.publicKey),
+            username: targetUser.username,
+            name: targetUser.name,
+            avatarId:
+              targetUser.avatarId && sodium.to_base64(targetUser.avatarId),
+            status: await getStatus(targetUser._id, channelUser.id),
+            publicKey: sodium.to_base64(targetUser.publicKey),
             hidden: false,
             lastTyping: 0,
             inCall: false,
@@ -716,11 +719,11 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
     channelId: channel._id,
     userId: session.userId,
     type: MessageType.GroupAdd,
-    data: userId,
+    data: targetUser._id,
   });
 
   for (const channelUser of channel.users.filter(
-    (user) => !user.hidden && user.id.compare(userId)
+    (user) => !user.hidden && user.id.compare(targetUser._id)
   )) {
     await dispatchSocket({
       userId: channelUser.id,
@@ -741,7 +744,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
   const channelUsers = [];
 
   for (const channelUser of channel.users.filter((user) =>
-    user.id.compare(userId)
+    user.id.compare(targetUser._id)
   )) {
     const user = (await UserModel.findOne({
       _id: channelUser.id,
@@ -753,7 +756,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
       name: user.name,
       avatarId: user.avatarId && sodium.to_base64(user.avatarId),
       publicKey: sodium.to_base64(user.publicKey),
-      status: await getStatus(user._id, userId),
+      status: await getStatus(user._id, targetUser._id),
       hidden: channelUser.hidden,
       inCall:
         !channelUser.hidden &&
@@ -768,7 +771,7 @@ app.post("/:id/users", async (req: express.Request, res: express.Response) => {
   }
 
   await dispatchSocket({
-    userId,
+    userId: targetUser._id,
     message: {
       t: SocketMessageType.SChannelCreate,
       d: {
@@ -846,7 +849,7 @@ app.delete(
     channelUser.hidden = true;
     await channel.save();
 
-    const groupRemoveMessage = await Model.create({
+    const groupRemoveMessage = await MessageModel.create({
       channelId: channel._id,
       userId: session.userId,
       type: MessageType.GroupRemove,

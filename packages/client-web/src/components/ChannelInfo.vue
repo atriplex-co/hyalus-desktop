@@ -28,7 +28,7 @@
     />
     <GroupCreateModal
       :show="channel.type === ChannelType.Private && inviteModal"
-      :selected="channel.users[0].id"
+      :selected="channel.users[0]?.id"
       @close="$emit('close')"
     />
     <GroupAddModal

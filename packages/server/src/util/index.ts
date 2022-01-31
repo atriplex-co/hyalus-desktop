@@ -559,14 +559,18 @@ export const dispatchSocket = async (opts: {
   }
 
   // so this doesn't cause any lag in groups.
-  setTimeout(async () => {
+  (async () => {
     if (opts.userId && opts.message.t === SocketMessageType.SMessageCreate) {
       const data = opts.message.d as {
+        type: MessageType;
         channelId: string;
         userId: string;
       };
 
-      if (!opts.userId.compare(Buffer.from(sodium.from_base64(data.userId)))) {
+      if (
+        data.type !== MessageType.Text ||
+        !opts.userId.compare(Buffer.from(sodium.from_base64(data.userId)))
+      ) {
         return;
       }
 
@@ -655,7 +659,7 @@ export const dispatchSocket = async (opts: {
         }
       }
     }
-  });
+  })();
 };
 
 export const cleanObject = <T>(val: T): T => {
