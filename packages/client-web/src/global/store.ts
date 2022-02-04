@@ -574,13 +574,12 @@ export const store = {
           break;
         }
 
-        if (encoder.encodeQueueSize) {
-          continue;
+        if (!encoder.encodeQueueSize) {
+          encoder.encode(value, {
+            keyFrame: stream.config.requestKeyFrame,
+          });
         }
 
-        encoder.encode(value, {
-          keyFrame: stream.config.requestKeyFrame,
-        });
         value.close();
 
         if (stream.config.requestKeyFrame) {
