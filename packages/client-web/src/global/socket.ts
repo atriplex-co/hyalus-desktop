@@ -312,11 +312,14 @@ export class Socket {
                 );
                 const remoteKey = sodium.from_base64(this.meta.vapidPublic);
 
-                for (let i = 0; i < localKey.length; ++i) {
-                  if (localKey[i] !== remoteKey[i]) {
-                    console.log("a");
-                    subOk = false;
-                    break;
+                if (localKey.length !== remoteKey.length) {
+                  subOk = false;
+                } else {
+                  for (let i = 0; i < localKey.length; ++i) {
+                    if (localKey[i] !== remoteKey[i]) {
+                      subOk = false;
+                      break;
+                    }
                   }
                 }
 
