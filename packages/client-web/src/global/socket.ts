@@ -297,24 +297,50 @@ export class Socket {
               await Notification.requestPermission();
             }
 
-            if (isMobile || window.dev.enabled) {
-              const pushSubscription = JSON.parse(
-                JSON.stringify(
-                  await (
-                    await navigator.serviceWorker.getRegistrations()
-                  )[0].pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: this.meta.vapidPublic,
-                  })
-                )
-              );
+            if ((isMobile || window.dev.enabled) && this.meta.vapidPublic) {
+              const { pushManager } = (
+                await navigator.serviceWorker.getRegistrations()
+              )[0];
+
+              let sub = await pushManager.getSubscription();
+
+              if (sub?.options.applicationServerKey) {
+                let subOk = true;
+
+                const localKey = new Uint8Array(
+                  sub.options.applicationServerKey
+                );
+                const remoteKey = sodium.from_base64(this.meta.vapidPublic);
+
+                for (let i = 0; i < localKey.length; ++i) {
+                  if (localKey[i] !== remoteKey[i]) {
+                    console.log("a");
+                    subOk = false;
+                    break;
+                  }
+                }
+
+                if (!subOk) {
+                  await sub.unsubscribe();
+                  sub = null;
+                }
+              }
+
+              if (!sub) {
+                sub = await pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: this.meta.vapidPublic,
+                });
+              }
+
+              const subJson = JSON.parse(JSON.stringify(sub)); // i forget why we do this.
 
               this.send({
                 t: SocketMessageType.CSetPushSubscription,
                 d: {
-                  endpoint: pushSubscription.endpoint,
-                  p256dh: pushSubscription.keys.p256dh,
-                  auth: pushSubscription.keys.auth,
+                  endpoint: subJson.endpoint,
+                  p256dh: subJson.keys.p256dh,
+                  auth: subJson.keys.auth,
                   proto: PushProtocol,
                 },
               });
