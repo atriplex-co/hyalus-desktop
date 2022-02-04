@@ -9,7 +9,7 @@ import {
   SocketMessageType,
 } from "common";
 import RnnoiseWasm from "@hyalusapp/rnnoise/rnnoise.wasm?url";
-import RnnoiseWorker from "../shared/rnnoiseWorker?url";
+import RnnoiseWorker from "../shared/rnnoiseWorker?worker";
 import SoundStateUp from "../assets/sounds/state-change_confirm-up.ogg";
 import SoundStateDown from "../assets/sounds/state-change_confirm-down.ogg";
 import SoundNavigateBackward from "../assets/sounds/navigation_backward-selection.ogg";
@@ -26,7 +26,12 @@ import {
   IState,
   SideBarContent,
 } from "./types";
-import { axios, callCheckStreams, callUpdatePersist } from "./helpers";
+import {
+  axios,
+  callCheckStreams,
+  callUpdatePersist,
+  getWorkerUrl,
+} from "./helpers";
 import { Socket } from "./socket";
 import { CallStreamData, CallStreamDecoderConfig } from "./messages";
 
@@ -335,7 +340,7 @@ export const store = {
       const analyserData = new Uint8Array(analyser.frequencyBinCount);
       let closeTimeout: number;
 
-      await ctx.audioWorklet.addModule(RnnoiseWorker);
+      await ctx.audioWorklet.addModule(getWorkerUrl(RnnoiseWorker));
       const worklet = new AudioWorkletNode(ctx, "rnnoise-processor", {
         processorOptions: {
           wasm: this.state.value.config.voiceRnnoise

@@ -33,7 +33,7 @@ export const configToComputed = <T>(k: string) => {
 };
 
 export const getWorkerUrl = (val: new () => Worker) => {
-  return String(val).split('("')[1].split('"')[0];
+  return String(val).split('("')[1].split('"')[0].replace("?worker_file", "");
 };
 
 export const processMessage = (opts: {

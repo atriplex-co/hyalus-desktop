@@ -38,6 +38,8 @@
     "vite": "^2.6.7",
     "vue": "^3.2.6",
     "vue-router": "^4.0.12",
-    "vue-tsc": "^0.29.8"
+    "vue-tsc": "^0.29.8",
+    "workbox-build": "^6.4.2",
+    "workbox-precaching": "^6.4.2"
   }
 }

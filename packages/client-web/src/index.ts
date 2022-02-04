@@ -2,22 +2,8 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { router } from "./router";
 import { store } from "./global/store";
-import _ServiceWorker from "./shared/serviceWorker?worker";
-import { getWorkerUrl, isDesktop } from "./global/helpers";
-
-if (!isDesktop) {
-  const ServiceWorker = getWorkerUrl(_ServiceWorker);
-  const swReg = (await navigator.serviceWorker.getRegistrations())[0];
-
-  if (swReg && swReg.active?.scriptURL !== ServiceWorker) {
-    await swReg.unregister();
-  }
-
-  await navigator.serviceWorker.register(ServiceWorker, {
-    type: "module",
-    scope: "/",
-  });
-}
+import ServiceWorker from "./shared/serviceWorker?worker";
+import { getWorkerUrl } from "./global/helpers";
 
 await store.start();
 
@@ -27,7 +13,7 @@ app.mount("#app");
 
 window.dev = {
   store,
-  enabled: location.hostname === "localhost",
+  enabled: import.meta.env.DEV,
   start() {
     this.enabled = true;
   },
@@ -45,3 +31,13 @@ console.debug = (...args) => {
 
   _debug(...args);
 };
+
+try {
+  await navigator.serviceWorker.register(getWorkerUrl(ServiceWorker), {
+    type: "module",
+    scope: "/",
+  });
+} catch (e) {
+  console.warn("error registering service worker");
+  console.warn(e);
+}

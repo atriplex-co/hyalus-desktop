@@ -9,14 +9,22 @@ import { idbGet } from "../global/idb";
 import { IConfig } from "../global/types";
 import sodium from "libsodium-wrappers";
 import ImageIcon from "../assets/images/icon-background.png";
+import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 
-const _self = self as unknown as ServiceWorkerGlobalScope;
+declare const self: ServiceWorkerGlobalScope;
 
-_self.addEventListener("fetch", () => {
-  //
-});
+self.skipWaiting();
 
-_self.addEventListener("push", (e: PushEvent) => {
+if (import.meta.env.PROD) {
+  cleanupOutdatedCaches();
+  precacheAndRoute(self.__WB_MANIFEST);
+} else {
+  self.addEventListener("fetch", () => {
+    //
+  });
+}
+
+self.addEventListener("push", (e: PushEvent) => {
   const main = async () => {
     const msg = e.data?.json() as {
       t: number;
@@ -87,7 +95,7 @@ _self.addEventListener("push", (e: PushEvent) => {
         icon = `/api/avatars/${extra.user.avatarId}/${AvatarType.WEBP}`;
       }
 
-      await _self.registration.showNotification(title, {
+      await self.registration.showNotification(title, {
         icon,
         body: messageDataDecrypted,
         silent: !config.notifySound,
