@@ -2,6 +2,17 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { getManifest } from "workbox-build";
 import fs from "fs";
+import winston from "winston";
+
+const log = winston.createLogger({
+  level: process.env.node_ENV !== "production" ? "debug" : "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.colorize(),
+    winston.format.printf((i) => `${i.timestamp} ${i.level}: ${i.message}`)
+  ),
+  transports: [new winston.transports.Console()],
+});
 
 export default defineConfig({
   plugins: [
@@ -59,6 +70,37 @@ export default defineConfig({
   resolve: {
     alias: {
       protobufjs: "protobufjs/dist/light/protobuf.min.js", // https://github.com/protobufjs/protobuf.js/issues/1662
+    },
+  },
+  customLogger: {
+    info: (s) =>
+      s
+        .trim()
+        .split("\n")
+        .map((s2) => log.info(s2)),
+    warn: (s) =>
+      s
+        .trim()
+        .split("\n")
+        .map((s2) => log.warn(s2)),
+    warnOnce: (s) =>
+      s
+        .trim()
+        .split("\n")
+        .map((s2) => log.warn(s2)),
+    error(s) {
+      if (s.includes("proxy")) {
+        return;
+      }
+
+      s.trim()
+        .split("\n")
+        .map((s2) => log.error(s2));
+    },
+    hasWarned: false,
+    hasErrorLogged: () => false,
+    clearScreen: () => {
+      //
     },
   },
 });
