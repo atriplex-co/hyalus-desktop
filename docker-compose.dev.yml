@@ -10,6 +10,10 @@ services:
     volumes:
       - ".:/home/app/app"
       - "$HOME/.cache:/home/app/.cache"
+    environment:
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
+      - VAPID_PUBLIC=${VAPID_PUBLIC}
+      - VAPID_PRIVATE=${VAPID_PRIVATE}
   db:
     image: mongo:latest
     restart: always
