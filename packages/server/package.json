@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon -w src -w ../common/src -e ts -x 'yarn build && yarn start'",
     "build": "esbuild --bundle src/index.ts --platform=node --minify --sourcemap --outdir=dist",
-    "start": "node --enable-source-maps --stack_trace_limit=200 dist",
+    "start": "node --enable-source-maps --stack_trace_limit=200 --no-deprecation dist",
     "test": "tsc"
   },
   "devDependencies": {
