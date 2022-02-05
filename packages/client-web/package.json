@@ -39,7 +39,6 @@
     "vue": "^3.2.6",
     "vue-router": "^4.0.12",
     "vue-tsc": "^0.29.8",
-    "winston": "^3.5.1",
     "workbox-build": "^6.4.2",
     "workbox-precaching": "^6.4.2"
   }
