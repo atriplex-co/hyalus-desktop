@@ -1575,6 +1575,35 @@ export class Socket {
       if (msg.t === SocketMessageType.SCallReset) {
         await store.callReset();
       }
+
+      // Handle CReset to dump cache of channel and pull from server
+      if (msg.t === SocketMessageType.CReset) {
+        // Dump data to variable
+        const data = msg.d as {
+          channelId: string;
+        };
+
+        // Find channel
+        const channel = store.state.value.channels.find(
+          (channel) => channel.id === data.channelId
+        );
+        // Error if channel does not exist
+        if (!channel) {
+          console.warn(`SMessageDelete for invalid channel: ${data.channelId}`);
+          return;
+        }
+
+        // Create channelObj to reference the channel from
+        const channelObj = store.state.value.channels.find(data.channelId);
+
+        // Clear all messages in store for specific channel
+        channelObj.messages = [];
+
+        // Send request to server to pull messages from server
+        //TODO
+        // Just reload the page instead for now
+        window.location.reload();
+      }
     });
 
     this.ws.addEventListener("close", () => {

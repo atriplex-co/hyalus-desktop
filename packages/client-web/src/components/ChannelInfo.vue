@@ -36,6 +36,16 @@
       :channel="channel"
       @close="$emit('close')"
     />
+    <!--Purge chat button-->
+    <div>
+      <div
+        class="flex items-center space-x-2 text-gray-300 transition cursor-pointer hover:text-white"
+        @click="purge"
+      >
+        <TrashIcon class="w-8 h-8 p-2 transition bg-gray-600 rounded-full" />
+        <p>Purge chat</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -46,10 +56,11 @@ import GroupAddModal from "./GroupAddModal.vue";
 import TrashIcon from "../icons/TrashIcon.vue";
 import GroupCreateModal from "./GroupCreateModal.vue";
 import { ref, computed, PropType } from "vue";
-import { axios } from "../global/helpers";
 import { IChannel } from "../global/types";
 import { store } from "../global/store";
 import { ChannelType } from "common";
+import { axios, prettyError } from "../global/helpers";
+
 
 defineEmits(["close"]);
 
@@ -74,5 +85,17 @@ const users = computed(() => {
 
 const leave = async () => {
   await axios.delete(`/api/channels/${props.channel.id}`);
+};
+
+const purge = async () => {
+  try {
+    await axios.delete(
+      `/api/channels/${props.channel.id}/messages/all`
+    );
+  } catch (e) {
+    console.error(prettyError(e));
+    return;
+  }
+  location.reload()
 };
 </script>

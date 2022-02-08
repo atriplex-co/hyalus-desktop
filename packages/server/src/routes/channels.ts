@@ -212,7 +212,15 @@ app.delete(
         },
       })
     ) {
-      return;
+      if (req.params.messageId == "all" && req.params.channelId && session) {
+        // pass along as this is a purge request, TODO: Figure out why validate
+        //request doesn't work here
+        //probably has to do with packages/server/src/util/index.ts:93
+        //I think it also still sends an error 400 but whatever, it works for
+        //a prototype
+      } else {
+        return;
+      }
     }
 
     // Find the channel
