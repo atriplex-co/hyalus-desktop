@@ -202,6 +202,7 @@ app.delete(
   async (req: express.Request, res: express.Response) => {
     const session = await authRequest(req, res);
 
+    // Validate the request parameters and the session
     if (
       !session ||
       !validateRequest(req, res, {
@@ -214,6 +215,7 @@ app.delete(
       return;
     }
 
+    // Find the channel
     const channel = await ChannelModel.findOne({
       _id: Buffer.from(sodium.from_base64(req.params.channelId)),
       users: {
@@ -224,6 +226,7 @@ app.delete(
       },
     });
 
+    // Send error if channel is not found
     if (!channel) {
       res.status(400).json({
         error: "Invalid channel",
@@ -232,56 +235,89 @@ app.delete(
       return;
     }
 
-    const message = await MessageModel.findOne({
-      _id: Buffer.from(sodium.from_base64(req.params.messageId)),
-      channelId: channel._id,
-      userId: session.userId,
-      type: {
-        $in: [MessageType.Text, MessageType.Attachment],
-      },
-    });
-
-    if (!message) {
-      res.status(400).json({
-        error: "Invalid message",
+    // Check if message is "all" which means delete all messages by that user
+    if (req.params.messageId === "all") {
+      // Delete all messages in the channel by the user
+      await MessageModel.deleteMany({
+        channelId: channel._id,
+        userId: session.userId,
       });
 
-      return;
-    }
+      // Close Response to prevent client timeout
+      res.end();
 
-    await message.delete();
-    res.end();
-
-    const lastMessage = (await MessageModel.findOne({
-      channelId: channel._id,
-    }).sort({
-      created: -1,
-    })) as IMessage;
-
-    for (const user of channel.users.filter((u) => !u.hidden)) {
-      const key =
-        lastMessage.keys &&
-        lastMessage.keys.find((key) => !key.userId.compare(user.id))?.data;
-
-      await dispatchSocket({
-        userId: user.id,
-        message: {
-          t: SocketMessageType.SMessageDelete,
-          d: {
-            id: sodium.to_base64(message._id),
-            channelId: sodium.to_base64(message.channelId),
-            lastMessage: {
-              id: sodium.to_base64(lastMessage._id),
-              userId: sodium.to_base64(lastMessage.userId),
-              type: lastMessage.type,
-              created: +lastMessage.created,
-              updated: lastMessage.updated && +lastMessage.updated,
-              data: lastMessage.data && sodium.to_base64(lastMessage.data),
-              key: key && sodium.to_base64(key),
-            },
+      // Send channel reset message (CReset) to all sockets as it's more
+      //efficient to do this than to recursively send a message for every
+      //affected message (as then the server would need to recursively
+      //collect the message IDs it deletes)
+      for (const user of channel.users.filter((u) => !u.hidden)) {
+        await dispatchSocket({
+          userId: user.id,
+          message: {
+            t: SocketMessageType.CReset,
           },
+        });
+      }
+
+      // Delete specific message instead
+    } else {
+      // Find the message
+      const message = await MessageModel.findOne({
+        _id: Buffer.from(sodium.from_base64(req.params.messageId)),
+        channelId: channel._id,
+        userId: session.userId,
+        type: {
+          $in: [MessageType.Text, MessageType.Attachment],
         },
       });
+
+      // Send error if message is not found
+      if (!message) {
+        res.status(400).json({
+          error: "Invalid message",
+        });
+
+        return;
+      }
+
+      // Delete the message from the database
+      await message.delete();
+      // Close Response to prevent client timeout
+      res.end();
+
+      // set lastMessage to a message that exists
+      const lastMessage = (await MessageModel.findOne({
+        channelId: channel._id,
+      }).sort({
+        created: -1,
+      })) as IMessage;
+
+      // Send message delete event to all users in the channel to register on the client
+      for (const user of channel.users.filter((u) => !u.hidden)) {
+        const key =
+          lastMessage.keys &&
+          lastMessage.keys.find((key) => !key.userId.compare(user.id))?.data;
+
+        await dispatchSocket({
+          userId: user.id,
+          message: {
+            t: SocketMessageType.SMessageDelete,
+            d: {
+              id: sodium.to_base64(message._id),
+              channelId: sodium.to_base64(message.channelId),
+              lastMessage: {
+                id: sodium.to_base64(lastMessage._id),
+                userId: sodium.to_base64(lastMessage.userId),
+                type: lastMessage.type,
+                created: +lastMessage.created,
+                updated: lastMessage.updated && +lastMessage.updated,
+                data: lastMessage.data && sodium.to_base64(lastMessage.data),
+                key: key && sodium.to_base64(key),
+              },
+            },
+          },
+        });
+      }
     }
   }
 );

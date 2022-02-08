@@ -57,6 +57,7 @@ export enum SocketMessageType {
   SFileChunkRTC = 31,
   SCallReset = 32,
   SCallRTC = 33,
+  CReset = 34,
 }
 
 export enum ColorTheme {
