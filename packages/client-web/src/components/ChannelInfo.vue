@@ -61,7 +61,6 @@ import { store } from "../global/store";
 import { ChannelType } from "common";
 import { axios, prettyError } from "../global/helpers";
 
-
 defineEmits(["close"]);
 
 const props = defineProps({
@@ -89,13 +88,11 @@ const leave = async () => {
 
 const purge = async () => {
   try {
-    await axios.delete(
-      `/api/channels/${props.channel.id}/messages/all`
-    );
+    await axios.delete(`/api/channels/${props.channel.id}/messages/all`);
   } catch (e) {
     console.error(prettyError(e));
     return;
   }
-  location.reload()
+  location.reload();
 };
 </script>
