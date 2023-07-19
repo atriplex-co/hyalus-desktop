@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hyalus &bull; Offline</title>
+  </head>
+  <body>
+    <!-- TODO: make this screen less shitty. -->
+    <h1>Hyalus is offline</h1>
+    <button id="restart">Restart</button>
+    <button id="quit">Quit</button>
+    <script>
+      document.querySelector("#restart").addEventListener("click", () => {
+        HyalusDesktop.restart();
+      });
+
+      document.querySelector("#quit").addEventListener("click", () => {
+        HyalusDesktop.quit();
+      });
+    </script>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #121212;
+        color: #fff;
+      }
+    </style>
+  </body>
+</html>

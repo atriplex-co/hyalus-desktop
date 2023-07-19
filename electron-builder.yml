@@ -1,0 +1,35 @@
+---
+appId: app.hyalus
+productName: Hyalus
+extraMetadata:
+  name: Hyalus
+  homepage: https://hyalus.app
+  author: https://hyalus.app
+win:
+  target:
+    - target: nsis
+      arch: x64
+  artifactName: HyalusDesktop-win32.exe
+linux:
+  target:
+    - target: AppImage
+      arch: x64
+  artifactName: HyalusDesktop-linux.AppImage
+mac:
+  target:
+    - target: zip
+      arch: x64
+  artifactName: HyalusDesktop-osx.zip
+  category: public.app-category.social-networking
+publish:
+  provider: github
+  repo: hyalus
+  owner: atriplex-co
+  vPrefixedTagName: false
+  releaseType: release
+files:
+  - dist/app
+  - public
+  - build
+directories:
+  output: dist/packaged

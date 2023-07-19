@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "Node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node16",
+    "incremental": true
+  },
+  "include": ["src/**/*.ts"]
+}

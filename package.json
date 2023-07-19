@@ -1,0 +1,27 @@
+{
+  "name": "hyalus-desktop",
+  "version": "0.0.63-alpha.1",
+  "license": "AGPL-3.0-only",
+  "main": "dist/app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "yarn build:main && yarn build:preload && yarn build:packaged",
+    "build:main": "esbuild --bundle src/main.ts --outdir=dist/app --platform=node --minify --external:electron",
+    "build:preload": "esbuild --bundle src/preload.ts --outdir=dist/app --platform=node --minify --external:electron",
+    "build:packaged": "electron-builder -wml",
+    "release": "yarn build -p always",
+    "test": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "@types/winreg": "^1.2.31",
+    "electron": "25.3.0",
+    "electron-builder": "^24.4.0",
+    "electron-context-menu": "^3.6.1",
+    "electron-updater": "^6.1.1",
+    "esbuild": "^0.18.12",
+    "typescript": "^5.1.6",
+    "v8-compile-cache": "^2.3.0",
+    "winreg": "^1.2.4"
+  }
+}
