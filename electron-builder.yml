@@ -3,8 +3,8 @@ appId: app.hyalus
 productName: Hyalus
 extraMetadata:
   name: Hyalus
-  homepage: https://hyalus.app
-  author: https://hyalus.app
+  description: Hyalus
+  author: Atriplex LLC
 win:
   target:
     - target: nsis
@@ -23,8 +23,8 @@ mac:
   category: public.app-category.social-networking
 publish:
   provider: github
-  repo: hyalus
   owner: atriplex-co
+  repo: hyalus-desktop
   vPrefixedTagName: false
   releaseType: release
 files:
