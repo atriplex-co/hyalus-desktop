@@ -75,15 +75,20 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   checkForUpdates: () => ipcRenderer.invoke("checkForUpdates"),
   getBoostrapConfig() {
     // TODO: remove @ August 2023
-    if (os.platform() !== "win32") {
-      return "";
+    try {
+      if (
+        os.platform() === "win32" &&
+        fs.existsSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)
+      ) {
+        const config = fs
+          .readFileSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)
+          .toString();
+        fs.rmSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`);
+        return config;
+      }
+    } catch {
+      //
     }
-    if (fs.existsSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)) {
-      const config = fs
-        .readFileSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)
-        .toString();
-      fs.rmSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`);
-      return config;
-    }
+    return "";
   },
 });

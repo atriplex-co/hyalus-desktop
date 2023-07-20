@@ -52,10 +52,18 @@ if (
   os.platform() === "win32" &&
   fs.existsSync(`${process.env.LOCALAPPDATA}\\Programs\\HyalusDev`)
 ) {
-  child_process.execSync("taskkill -im HyalusDev.exe -f");
-  child_process.execSync(
-    `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe /S"`,
-  );
+  try {
+    child_process.execSync("taskkill -im HyalusDev.exe -f");
+  } catch {
+    //
+  }
+  try {
+    child_process.execSync(
+      `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe /S"`,
+    );
+  } catch {
+    //
+  }
 }
 
 const updatePromise = new Promise((resolve) => {
