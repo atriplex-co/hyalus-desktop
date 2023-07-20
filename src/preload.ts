@@ -78,12 +78,12 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
     try {
       if (
         os.platform() === "win32" &&
-        fs.existsSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)
+        fs.existsSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`)
       ) {
         const config = fs
-          .readFileSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`)
+          .readFileSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`)
           .toString();
-        fs.rmSync(`${process.env.APPDATA}\\hyalus_bootstrap.dat`);
+        fs.rmSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`);
         return config;
       }
     } catch {
