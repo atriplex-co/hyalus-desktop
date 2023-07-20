@@ -17,6 +17,7 @@ import { autoUpdater } from "electron-updater";
 import fs from "fs";
 import contextMenu from "electron-context-menu";
 import Registry from "winreg";
+import child_process from "child_process";
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -45,6 +46,16 @@ app.setAppUserModelId("app.hyalus");
 
 if (!app.requestSingleInstanceLock() && !process.argv.includes("--dupe")) {
   app.exit();
+}
+
+if (
+  os.platform() === "win32" &&
+  fs.existsSync(`${process.env.LOCALAPPDATA}\\Programs\\HyalusDev`)
+) {
+  child_process.execSync("taskkill -im HyalusDev.exe -f");
+  child_process.execSync(
+    `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe /S"`,
+  );
 }
 
 const updatePromise = new Promise((resolve) => {
