@@ -59,7 +59,7 @@ if (
   }
   try {
     child_process.execSync(
-      `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe /S"`,
+      `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe" /S"`,
     );
   } catch {
     //
