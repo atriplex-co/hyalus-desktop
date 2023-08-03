@@ -5,21 +5,21 @@
   "main": "dist/app/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "yarn build:main && yarn build:preload && yarn build:packaged",
+    "build": "pnpm build:main && pnpm build:preload && pnpm build:packaged",
     "build:main": "esbuild --bundle src/main.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:preload": "esbuild --bundle src/preload.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:packaged": "electron-builder -wml",
-    "release": "yarn build -p always",
+    "release": "pnpm build -p always",
     "test": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^18",
-    "@types/winreg": "^1.2.31",
+    "@types/node": "^18.17.1",
+    "@types/winreg": "^1.2.32",
     "electron": "25.3.0",
-    "electron-builder": "^24.4.0",
+    "electron-builder": "^24.6.3",
     "electron-context-menu": "^3.6.1",
     "electron-updater": "^6.1.1",
-    "esbuild": "^0.18.12",
+    "esbuild": "^0.18.17",
     "typescript": "^5.1.6",
     "v8-compile-cache": "^2.3.0",
     "winreg": "^1.2.4"
