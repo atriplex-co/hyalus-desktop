@@ -12,9 +12,7 @@ const win32: {
   startEvents(...args: unknown[]): void;
   stopEvents(...args: unknown[]): void;
 } | null =
-  os.platform() === "win32"
-    ? require(path.join(__dirname, "../../build/addon.node"))
-    : null;
+  os.platform() === "win32" ? require(path.join(__dirname, "../../build/addon.node")) : null;
 
 let keybinds: {
   keys: string;
@@ -65,8 +63,7 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   quit: () => ipcRenderer.invoke("quit"),
   getSources: () => ipcRenderer.invoke("getSources"),
   getStartupSettings: () => ipcRenderer.invoke("getStartupSettings"),
-  setStartupSettings: (val: unknown) =>
-    ipcRenderer.invoke("setStartupSettings", val),
+  setStartupSettings: (val: unknown) => ipcRenderer.invoke("setStartupSettings", val),
   resetKeybinds,
   setKeybinds,
   osPlatform: os.platform(),
@@ -80,9 +77,7 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
         os.platform() === "win32" &&
         fs.existsSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`)
       ) {
-        const config = fs
-          .readFileSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`)
-          .toString();
+        const config = fs.readFileSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`).toString();
         fs.rmSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`);
         return config;
       }

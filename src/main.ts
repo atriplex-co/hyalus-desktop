@@ -22,14 +22,8 @@ import child_process from "child_process";
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 
-app.commandLine.appendSwitch(
-  "disable-features",
-  "HardwareMediaKeyHandling,MediaSessionService",
-);
-app.commandLine.appendSwitch(
-  "enable-features",
-  "TurnOffStreamingMediaCachingOnBattery",
-);
+app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+app.commandLine.appendSwitch("enable-features", "TurnOffStreamingMediaCachingOnBattery");
 app.commandLine.appendSwitch(
   "enable-hardware-overlays",
   "single-fullscreen,single-on-top,underlay",
@@ -116,10 +110,7 @@ const getStartupSettings = async () => {
   };
 };
 
-const setStartupSettings = async (opts: {
-  enabled: boolean;
-  minimized: boolean;
-}) => {
+const setStartupSettings = async (opts: { enabled: boolean; minimized: boolean }) => {
   app.setLoginItemSettings({
     openAtLogin: os.platform() === "win32" ? true : opts.enabled,
     openAsHidden: opts.minimized,
@@ -176,9 +167,7 @@ const saveState = async () => {
   let state: Record<string, unknown> = {};
 
   try {
-    state = JSON.parse(
-      fs.readFileSync(path.join(app.getPath("userData"), "state.json")) + "",
-    );
+    state = JSON.parse(fs.readFileSync(path.join(app.getPath("userData"), "state.json")) + "");
   } catch {
     //
   }
@@ -193,10 +182,7 @@ const saveState = async () => {
     state.height = bounds.height;
   }
 
-  fs.writeFileSync(
-    path.join(app.getPath("userData"), "state.json"),
-    JSON.stringify(state),
-  );
+  fs.writeFileSync(path.join(app.getPath("userData"), "state.json"), JSON.stringify(state));
 };
 
 app.on("ready", async () => {
@@ -280,9 +266,7 @@ app.on("ready", async () => {
       width: number;
       height: number;
       maximized: boolean;
-    } = JSON.parse(
-      fs.readFileSync(path.join(app.getPath("userData"), "state.json")) + "",
-    );
+    } = JSON.parse(fs.readFileSync(path.join(app.getPath("userData"), "state.json")) + "");
 
     mainWindowOpts.x = state.x;
     mainWindowOpts.y = state.y;
@@ -355,10 +339,7 @@ app.on("ready", async () => {
     }
   });
 
-  if (
-    app.getLoginItemSettings().wasOpenedAsHidden ||
-    process.argv.includes("--minimized")
-  ) {
+  if (app.getLoginItemSettings().wasOpenedAsHidden || process.argv.includes("--minimized")) {
     mainWindow.hide();
   }
 
