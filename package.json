@@ -15,7 +15,7 @@
   "devDependencies": {
     "@types/node": "^18.17.1",
     "@types/winreg": "^1.2.32",
-    "electron": "25.3.0",
+    "electron": "25.4.0",
     "electron-builder": "^24.6.3",
     "electron-context-menu": "^3.6.1",
     "electron-updater": "^6.1.1",

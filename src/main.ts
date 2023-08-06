@@ -21,18 +21,19 @@ import child_process from "child_process";
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
+const devmode = fs.existsSync(path.join(app.getPath("userData"), ".devmode"));
 
-app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-app.commandLine.appendSwitch("enable-features", "TurnOffStreamingMediaCachingOnBattery");
-app.commandLine.appendSwitch(
-  "enable-hardware-overlays",
-  "single-fullscreen,single-on-top,underlay",
-);
-app.commandLine.appendSwitch("enable-gpu-rasterization");
-app.commandLine.appendSwitch("enable-zero-copy");
-app.commandLine.appendSwitch("enable-accelerated-video-decode");
-app.commandLine.appendSwitch("enable-accelerated-video-encode");
-app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
+// app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
+// app.commandLine.appendSwitch("enable-features", "TurnOffStreamingMediaCachingOnBattery");
+// app.commandLine.appendSwitch(
+//   "enable-hardware-overlays",
+//   "single-fullscreen,single-on-top,underlay",
+// );
+// app.commandLine.appendSwitch("enable-gpu-rasterization");
+// app.commandLine.appendSwitch("enable-zero-copy");
+// app.commandLine.appendSwitch("enable-accelerated-video-decode");
+// app.commandLine.appendSwitch("enable-accelerated-video-encode");
+// app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
 nativeTheme.themeSource = "dark";
 Menu.setApplicationMenu(null);
 
@@ -370,7 +371,7 @@ app.on("web-contents-created", (e, contents) => {
   contents.on("will-navigate", (e, url) => {
     const parsedURL = new URL(url);
 
-    if (parsedURL.origin !== "https://hyalus.app") {
+    if (parsedURL.origin !== "https://hyalus.app" && !devmode) {
       e.preventDefault();
     }
   });
@@ -442,4 +443,12 @@ ipcMain.handle("setKeybinds", (e, val) => {
 
 ipcMain.handle("checkForUpdates", async () => {
   await updatePromise;
+});
+
+ipcMain.handle("setContentProtection", (e, val: boolean) => {
+  if (!mainWindow) {
+    return;
+  }
+
+  mainWindow.setContentProtection(val);
 });
