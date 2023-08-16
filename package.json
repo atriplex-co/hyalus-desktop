@@ -13,15 +13,15 @@
     "test": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^18.17.1",
+    "@types/node": "^18.17.5",
     "@types/winreg": "^1.2.32",
-    "electron": "25.4.0",
+    "electron": "26.0.0",
     "electron-builder": "^24.6.3",
     "electron-context-menu": "^3.6.1",
     "electron-updater": "^6.1.1",
-    "esbuild": "^0.18.17",
+    "esbuild": "^0.19.2",
     "typescript": "^5.1.6",
-    "v8-compile-cache": "^2.3.0",
+    "v8-compile-cache": "^2.4.0",
     "winreg": "^1.2.4"
   }
 }
