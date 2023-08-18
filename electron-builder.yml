@@ -8,7 +8,7 @@ extraMetadata:
 win:
   target:
     - target: nsis
-      arch: x64
+      arch: ia32
   artifactName: HyalusDesktop-win32.exe
 linux:
   target:
