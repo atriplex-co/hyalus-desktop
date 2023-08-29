@@ -23,16 +23,25 @@ let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 const devmode = fs.existsSync(path.join(app.getPath("userData"), ".devmode"));
 
-app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling,MediaSessionService");
-app.commandLine.appendSwitch("enable-features", "TurnOffStreamingMediaCachingOnBattery");
 app.commandLine.appendSwitch(
-  "enable-hardware-overlays",
-  "single-fullscreen,single-on-top,underlay",
+  "disable-features",
+  [
+    // disabled features list:
+    "HardwareMediaKeyHandling",
+    "MediaCapabilitiesQueryGpuFactories",
+  ].join(","),
 );
-app.commandLine.appendSwitch("enable-gpu-rasterization");
-app.commandLine.appendSwitch("enable-zero-copy");
-app.commandLine.appendSwitch("enable-accelerated-video-decode");
-app.commandLine.appendSwitch("enable-accelerated-video-encode");
+app.commandLine.appendSwitch(
+  "enable-features",
+  [
+    // enabled features list:
+    "TurnOffStreamingMediaCachingOnBattery",
+    "MediaFoundationD3D11VideoCapture",
+    "MediaFoundationD3D11VideoCaptureZeroCopy",
+    "PlatformHEVCDecoderSupport",
+    "PlatformHEVCEncoderSupport",
+  ].join(","),
+);
 app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
 nativeTheme.themeSource = "dark";
 Menu.setApplicationMenu(null);
