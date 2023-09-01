@@ -43,6 +43,8 @@ app.commandLine.appendSwitch(
     // disabled features list:
     "HardwareMediaKeyHandling",
     "MediaCapabilitiesQueryGpuFactories",
+    "SpareRendererForSitePerProcess",
+    "WebRtcHideLocalIpsWithMdns",
   ].join(","),
 );
 app.commandLine.appendSwitch(
