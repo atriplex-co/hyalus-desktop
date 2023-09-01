@@ -9,6 +9,8 @@
     "build:main": "esbuild --bundle src/main.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:preload": "esbuild --bundle src/preload.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:packaged": "electron-builder -wml",
+    "build:staging": "pnpm build:main && pnpm build:preload && pnpm build:staging:packaged",
+    "build:staging:packaged": "electron-builder -c electron-builder.staging.yml -wml",
     "release": "pnpm build -p always",
     "lint": "eslint . --ext .ts --fix --ignore-path .gitignore",
     "format": "prettier --write src"

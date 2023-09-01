@@ -10,6 +10,7 @@ import {
   shell,
   desktopCapturer,
   globalShortcut,
+  nativeImage,
 } from "electron";
 import path from "path";
 import os from "os";
@@ -17,11 +18,24 @@ import { autoUpdater } from "electron-updater";
 import fs from "fs";
 import contextMenu from "electron-context-menu";
 import Registry from "winreg";
-import child_process from "child_process";
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
-const devmode = fs.existsSync(path.join(app.getPath("userData"), ".devmode"));
+let baseUrl = "";
+let appId = "";
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
+
+if (pkg.name === "Hyalus") {
+  baseUrl = "http://hyalus.app";
+  appId = "app.hyalus";
+}
+
+if (pkg.name === "HyalusStaging") {
+  baseUrl = "https://staging.atriplex.co";
+  appId = "app.hyalus.dev";
+}
+
+app.setAppUserModelId(appId);
 
 app.commandLine.appendSwitch(
   "disable-features",
@@ -46,28 +60,8 @@ app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
 nativeTheme.themeSource = "dark";
 Menu.setApplicationMenu(null);
 
-app.setAppUserModelId("app.hyalus");
-
 if (!app.requestSingleInstanceLock() && !process.argv.includes("--dupe")) {
   app.exit();
-}
-
-if (
-  os.platform() === "win32" &&
-  fs.existsSync(`${process.env.LOCALAPPDATA}\\Programs\\HyalusDev`)
-) {
-  try {
-    child_process.execSync("taskkill -im HyalusDev.exe -f");
-  } catch {
-    //
-  }
-  try {
-    child_process.execSync(
-      `"${process.env.LOCALAPPDATA}\\Programs\\HyalusDev\\Uninstall HyalusDev.exe" /S`,
-    );
-  } catch {
-    //
-  }
 }
 
 const updatePromise = new Promise((resolve) => {
@@ -102,7 +96,7 @@ const getStartupSettings = async () => {
     });
 
     await new Promise((resolve) => {
-      reg.get(`app.hyalus`, (err, v) => {
+      reg.get(appId, (err, v) => {
         if (err) {
           minimized = false;
         } else {
@@ -135,7 +129,7 @@ const setStartupSettings = async (opts: { enabled: boolean; minimized: boolean }
 
     await new Promise((resolve) => {
       reg.set(
-        `app.hyalus`,
+        appId,
         Registry.REG_SZ,
         `"${process.execPath}"${opts.minimized ? " --minimized" : ""}`,
         resolve,
@@ -196,17 +190,11 @@ const saveState = async () => {
 };
 
 app.on("ready", async () => {
-  tray = new Tray(path.join(__dirname, "../../build/icon.png"));
-
-  // const trayBounds = tray.getBounds();
-  // const trayDefaultIcon = nativeImage
-  //   .createFromPath(path.join(__dirname, "../../../build/icon.png"))
-  //   .resize({
-  //     width: trayBounds.width,
-  //     height: trayBounds.height,
-  //     quality: "best",
-  //   });
-  // tray.setImage(trayDefaultIcon);
+  let trayIcon = path.join(__dirname, "../../build/resources/icon.png");
+  if (os.platform() === "darwin") {
+    trayIcon = path.join(__dirname, "../../build/resources/trayTemplate.png"); // use template icon for macOS
+  }
+  tray = new Tray(nativeImage.createFromPath(trayIcon));
 
   tray.setToolTip(`${app.getName()} ${app.getVersion()}`);
   tray.setContextMenu(
@@ -335,6 +323,10 @@ app.on("ready", async () => {
     if (input.type === "keyDown" && input.key === "F6") {
       restart();
     }
+
+    if (input.type === "keyDown" && input.key === "F3" && input.alt) {
+      new BrowserWindow().loadURL("chrome://webrtc-internals");
+    }
   });
 
   mainWindow.webContents.on("did-fail-load", () => {
@@ -355,10 +347,10 @@ app.on("ready", async () => {
 
   const resumeArg = process.argv.find((arg) => arg.startsWith("--resume="));
 
-  if (resumeArg && resumeArg.startsWith("https://hyalus.app")) {
+  if (resumeArg && resumeArg.startsWith(baseUrl)) {
     mainWindow.loadURL(resumeArg.split("--resume=")[1]);
   } else {
-    mainWindow.loadURL("https://hyalus.app/app");
+    mainWindow.loadURL(`${baseUrl}/app`);
   }
 });
 
@@ -380,7 +372,7 @@ app.on("web-contents-created", (e, contents) => {
   contents.on("will-navigate", (e, url) => {
     const parsedURL = new URL(url);
 
-    if (parsedURL.origin !== "https://hyalus.app" && !devmode) {
+    if (parsedURL.origin !== baseUrl && pkg.name === "Hyalus") {
       e.preventDefault();
     }
   });

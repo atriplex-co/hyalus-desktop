@@ -12,7 +12,9 @@ const win32: {
   startEvents(...args: unknown[]): void;
   stopEvents(...args: unknown[]): void;
 } | null =
-  os.platform() === "win32" ? require(path.join(__dirname, "../../build/addon.node")) : null;
+  os.platform() === "win32"
+    ? require(path.join(__dirname, "../../build/platform/addon.node"))
+    : null;
 
 let keybinds: {
   keys: string;

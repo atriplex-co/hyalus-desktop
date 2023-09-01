@@ -1,15 +1,15 @@
 ---
-appId: app.hyalus
-productName: Hyalus
+appId: app.hyalus.staging
+productName: Hyalus Staging
 extraMetadata:
-  name: Hyalus
-  description: Hyalus
+  name: HyalusStaging
+  description: Hyalus Staging
   author: Atriplex Co.
 win:
   target:
     - target: nsis
       arch: ia32
-  artifactName: HyalusDesktop-win32.exe
+  artifactName: HyalusDesktopStaging-win32.exe
   files:
     - from: build/platform-win32
       to: build/platform
@@ -17,24 +17,19 @@ linux:
   target:
     - target: AppImage
       arch: x64
-  artifactName: HyalusDesktop-linux.AppImage
+  artifactName: HyalusDesktopStaging-linux.AppImage
 mac:
   target:
     - target: zip
       arch: x64
-  artifactName: HyalusDesktop-osx.zip
+  artifactName: HyalusDesktopStaging-osx.zip
   category: public.app-category.social-networking
-publish:
-  provider: github
-  owner: atriplex-co
-  repo: hyalus-desktop
-  vPrefixedTagName: false
-  releaseType: release
+publish: false
 files:
   - dist/app
   - public
-  - from: build/resources-main
+  - from: build/resources-staging
     to: build/resources
 directories:
   output: dist/packaged
-  buildResources: build/resources-main
+  buildResources: build/resources-staging
