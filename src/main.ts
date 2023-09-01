@@ -324,7 +324,7 @@ app.on("ready", async () => {
       restart();
     }
 
-    if (input.type === "keyDown" && input.key === "F3" && input.alt) {
+    if (input.type === "keyDown" && input.key === "F3" && input.shift) {
       new BrowserWindow().loadURL("chrome://webrtc-internals");
     }
   });

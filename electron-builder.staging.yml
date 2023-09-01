@@ -24,6 +24,9 @@ mac:
       arch: x64
   artifactName: HyalusDesktopStaging-osx.zip
   category: public.app-category.social-networking
+  hardenedRuntime: true
+  entitlements: build/resources-staging/entitlements.mac.plist
+  entitlementsInherit: build/resources-staging/entitlements.mac.plist
 publish: false
 files:
   - dist/app

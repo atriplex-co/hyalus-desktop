@@ -24,6 +24,9 @@ mac:
       arch: x64
   artifactName: HyalusDesktop-osx.zip
   category: public.app-category.social-networking
+  hardenedRuntime: true
+  entitlements: build/resources-main/entitlements.mac.plist
+  entitlementsInherit: build/resources-main/entitlements.mac.plist
 publish:
   provider: github
   owner: atriplex-co
