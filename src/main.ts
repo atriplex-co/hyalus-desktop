@@ -45,6 +45,8 @@ app.commandLine.appendSwitch(
     "MediaCapabilitiesQueryGpuFactories",
     "SpareRendererForSitePerProcess",
     "WebRtcHideLocalIpsWithMdns",
+    "AllowDxgiGdiZeroHz",
+    "AllowWgcZeroHz",
   ].join(","),
 );
 app.commandLine.appendSwitch(
@@ -56,6 +58,10 @@ app.commandLine.appendSwitch(
     "MediaFoundationD3D11VideoCaptureZeroCopy",
     "PlatformHEVCDecoderSupport",
     "PlatformHEVCEncoderSupport",
+    "AllowWgcScreenCapturer",
+    "AllowWgcWindowCapturer",
+    "VaapiVideoDecoder",
+    "VaapiVideoEncoder",
   ].join(","),
 );
 app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
@@ -252,8 +258,8 @@ app.on("ready", async () => {
     titleBarStyle: "hidden",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      backgroundThrottling: false,
       sandbox: false, // we know what we're doing, it's fine.
+      v8CacheOptions: "bypassHeatCheck",
     },
     show: false,
     backgroundColor: "#121212",
