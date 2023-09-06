@@ -89,4 +89,5 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
     return "";
   },
   setContentProtection: (val: boolean) => ipcRenderer.invoke("setContentProtection", val),
+  setExperiments: (val: Record<string, string>) => ipcRenderer.invoke("setExperiments", val),
 });

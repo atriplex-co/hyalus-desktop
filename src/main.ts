@@ -12,18 +12,32 @@ import {
   globalShortcut,
   nativeImage,
 } from "electron";
-import path from "path";
-import os from "os";
+import path from "node:path";
+import os from "node:os";
 import { autoUpdater } from "electron-updater";
-import fs from "fs";
+import fs from "node:fs";
 import contextMenu from "electron-context-menu";
 import Registry from "winreg";
+import child_process from "node:child_process";
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 let baseUrl = "";
 let appId = "";
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
+let experiments: Record<string, string> = {};
+
+const reloadExperiments = () => {
+  experiments = {};
+  try {
+    experiments = JSON.parse(
+      fs.readFileSync(path.join(app.getPath("userData"), "experiments.json")).toString(),
+    );
+  } catch {
+    //
+  }
+};
+reloadExperiments();
 
 if (pkg.name === "Hyalus") {
   baseUrl = "http://hyalus.app";
@@ -37,32 +51,46 @@ if (pkg.name === "HyalusStaging") {
 
 app.setAppUserModelId(appId);
 
-app.commandLine.appendSwitch(
-  "disable-features",
-  [
-    // disabled features list:
-    "HardwareMediaKeyHandling",
-    "MediaCapabilitiesQueryGpuFactories",
-    "SpareRendererForSitePerProcess",
-    "WebRtcHideLocalIpsWithMdns",
-  ].join(","),
-);
-app.commandLine.appendSwitch(
-  "enable-features",
-  [
-    // enabled features list:
-    "TurnOffStreamingMediaCachingOnBattery",
-    "MediaFoundationD3D11VideoCapture",
-    "MediaFoundationD3D11VideoCaptureZeroCopy",
-    "PlatformHEVCDecoderSupport",
-    "PlatformHEVCEncoderSupport",
-    "AllowWgcScreenCapturer",
-    "AllowWgcWindowCapturer",
-    "AllowWgcZeroHz",
-    "VaapiVideoDecoder",
-    "VaapiVideoEncoder",
-  ].join(","),
-);
+const disableFeatures = [
+  // disabled features list:
+  "HardwareMediaKeyHandling",
+  "MediaCapabilitiesQueryGpuFactories",
+  "SpareRendererForSitePerProcess",
+  "WebRtcHideLocalIpsWithMdns",
+];
+const enableFeatures = [
+  // enabled features list:
+  "TurnOffStreamingMediaCachingOnBattery",
+];
+
+if (experiments["enable_wgc_screen_capture"] === "on") {
+  enableFeatures.push("AllowWgcScreenCapturer");
+}
+if (experiments["enable_wgc_window_capture"] === "on") {
+  enableFeatures.push("AllowWgcWindowCapturer");
+}
+if (experiments["enable_wgc_zero_hz"] === "on") {
+  enableFeatures.push("AllowWgcZeroHz");
+}
+if (experiments["linux_enable_vaapi"] !== "off") {
+  enableFeatures.push("VaapiVideoDecoder");
+  enableFeatures.push("VaapiVideoEncoder");
+}
+if (experiments["platform_hevc_decoder"] !== "off") {
+  enableFeatures.push("PlatformHEVCDecoderSupport");
+}
+if (experiments["platform_hevc_encoder"] !== "off") {
+  enableFeatures.push("PlatformHEVCEncoderSupport");
+}
+if (experiments["mf_d3d11_video_capture"] !== "off") {
+  enableFeatures.push("MediaFoundationD3D11VideoCapture");
+}
+if (experiments["mf_d3d11_video_capture_zero_copy"] !== "off") {
+  enableFeatures.push("MediaFoundationD3D11VideoCaptureZeroCopy");
+}
+
+app.commandLine.appendSwitch("disable-features", disableFeatures.join(","));
+app.commandLine.appendSwitch("enable-features", enableFeatures.join(","));
 app.commandLine.appendSwitch("video-capture-use-gpu-memory-buffer");
 nativeTheme.themeSource = "dark";
 Menu.setApplicationMenu(null);
@@ -259,6 +287,11 @@ app.on("ready", async () => {
       preload: path.join(__dirname, "preload.js"),
       sandbox: false, // we know what we're doing, it's fine.
       v8CacheOptions: "bypassHeatCheck",
+      ...(experiments["disable_background_throttling"] === "on"
+        ? {
+            backgroundThrottling: false,
+          }
+        : {}),
     },
     show: false,
     backgroundColor: "#121212",
@@ -459,4 +492,32 @@ ipcMain.handle("setContentProtection", (e, val: boolean) => {
   }
 
   mainWindow.setContentProtection(val);
+});
+
+ipcMain.handle("setExperiments", (e, val: Record<string, string>) => {
+  if (!val) {
+    return;
+  }
+  fs.writeFileSync(path.join(app.getPath("userData"), "experiments.json"), JSON.stringify(val));
+  if (
+    os.platform() === "win32" &&
+    val["win32_enable_segment_heap"] !== experiments["win32_enable_segment_heap"]
+  ) {
+    if (val["win32_enable_segment_heap"] === "on") {
+      const tmp = path.resolve(os.tmpdir(), "HyalusSegmentHeapEnable.reg");
+      fs.writeFileSync(
+        tmp,
+        fs.readFileSync(path.resolve(__dirname, "../../build/resources/SegmentHeapEnable.reg")),
+      );
+      child_process.exec(`c:\\windows\\regedit.exe "${tmp}"`);
+    } else {
+      const tmp = path.resolve(os.tmpdir(), "HyalusSegmentHeapDisable.reg");
+      fs.writeFileSync(
+        tmp,
+        fs.readFileSync(path.resolve(__dirname, "../../build/resources/SegmentHeapDisable.reg")),
+      );
+      child_process.exec(`c:\\windows\\regedit.exe "${tmp}"`);
+    }
+  }
+  reloadExperiments();
 });
