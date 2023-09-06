@@ -45,8 +45,6 @@ app.commandLine.appendSwitch(
     "MediaCapabilitiesQueryGpuFactories",
     "SpareRendererForSitePerProcess",
     "WebRtcHideLocalIpsWithMdns",
-    "AllowDxgiGdiZeroHz",
-    "AllowWgcZeroHz",
   ].join(","),
 );
 app.commandLine.appendSwitch(
@@ -60,6 +58,7 @@ app.commandLine.appendSwitch(
     "PlatformHEVCEncoderSupport",
     "AllowWgcScreenCapturer",
     "AllowWgcWindowCapturer",
+    "AllowWgcZeroHz",
     "VaapiVideoDecoder",
     "VaapiVideoEncoder",
   ].join(","),
