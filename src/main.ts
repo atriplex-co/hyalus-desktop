@@ -24,6 +24,7 @@ let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 let baseUrl = "";
 let appId = "";
+let quitting = false;
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
 let experiments: Record<string, string> = {};
 
@@ -69,7 +70,7 @@ if (experiments["enable_wgc_screen_capture"] === "on") {
 if (experiments["enable_wgc_window_capture"] === "on") {
   enableFeatures.push("AllowWgcWindowCapturer");
 }
-if (experiments["enable_wgc_zero_hz"] === "on") {
+if (experiments["enable_wgc_zero_hz"] !== "off") {
   enableFeatures.push("AllowWgcZeroHz");
 }
 if (experiments["linux_enable_vaapi"] !== "off") {
@@ -113,7 +114,11 @@ const updatePromise = new Promise((resolve) => {
 contextMenu({
   showSaveImage: true,
   showSaveImageAs: true,
+  showSaveVideo: true,
+  showSaveVideoAs: true,
   showCopyImageAddress: true,
+  showCopyVideoAddress: true,
+  showCopyLink: true,
 });
 
 const getStartupSettings = async () => {
@@ -173,19 +178,6 @@ const setStartupSettings = async (opts: { enabled: boolean; minimized: boolean }
   }
 };
 
-const exit = () => {
-  if (tray) {
-    tray.destroy();
-  }
-
-  if (mainWindow) {
-    //mainWindow.webContents.forcefullyCrashRenderer();
-    mainWindow.destroy();
-  }
-
-  app.exit();
-};
-
 const restart = () => {
   app.relaunch(
     mainWindow
@@ -194,8 +186,7 @@ const restart = () => {
         }
       : {},
   );
-
-  exit();
+  app.quit();
 };
 
 const saveState = async () => {
@@ -249,7 +240,7 @@ app.on("ready", async () => {
       {
         label: "Quit",
         click() {
-          exit();
+          app.quit();
         },
       },
     ]),
@@ -333,11 +324,10 @@ app.on("ready", async () => {
   });
 
   mainWindow.on("close", (e) => {
-    e.preventDefault();
-    saveState();
-
-    if (mainWindow) {
-      mainWindow.hide();
+    if (!quitting) {
+      e.preventDefault();
+      saveState();
+      mainWindow?.hide();
     }
   });
 
@@ -418,6 +408,10 @@ app.on("web-contents-created", (e, contents) => {
   });
 });
 
+app.on("before-quit", () => {
+  quitting = true;
+});
+
 ipcMain.handle("close", () => {
   if (mainWindow) {
     mainWindow.close();
@@ -445,7 +439,7 @@ ipcMain.handle("restart", () => {
 });
 
 ipcMain.handle("quit", () => {
-  exit();
+  app.quit();
 });
 
 ipcMain.handle("getSources", async () => {
