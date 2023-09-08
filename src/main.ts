@@ -47,7 +47,7 @@ if (pkg.name === "Hyalus") {
 
 if (pkg.name === "HyalusStaging") {
   baseUrl = "https://staging.atriplex.co";
-  appId = "app.hyalus.dev";
+  appId = "app.hyalus.staging";
 }
 
 app.setAppUserModelId(appId);
@@ -481,11 +481,15 @@ ipcMain.handle("checkForUpdates", async () => {
 });
 
 ipcMain.handle("setContentProtection", (e, val: boolean) => {
-  if (!mainWindow) {
-    return;
-  }
+  mainWindow?.setContentProtection(val);
+});
 
-  mainWindow.setContentProtection(val);
+ipcMain.handle("moveTop", () => {
+  if (mainWindow?.isMinimized()) {
+    mainWindow?.restore();
+  }
+  mainWindow?.focus();
+  mainWindow?.moveTop();
 });
 
 ipcMain.handle("setExperiments", (e, val: Record<string, string>) => {
