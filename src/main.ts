@@ -89,6 +89,9 @@ if (experiments["mf_d3d11_video_capture"] !== "off") {
 if (experiments["mf_d3d11_video_capture_zero_copy"] !== "off") {
   enableFeatures.push("MediaFoundationD3D11VideoCaptureZeroCopy");
 }
+if (experiments["windows_scrolling_personality"] === "on") {
+  enableFeatures.push("WindowsScrollingPersonality");
+}
 
 app.commandLine.appendSwitch("disable-features", disableFeatures.join(","));
 app.commandLine.appendSwitch("enable-features", enableFeatures.join(","));
