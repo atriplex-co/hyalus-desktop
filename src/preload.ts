@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import os from "os";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 
 declare const addEventListener: (arg0: string, arg1: () => void) => void; // gets TS to shut up.
 
