@@ -1,6 +1,6 @@
 {
   "name": "hyalus-desktop",
-  "version": "0.0.75",
+  "version": "0.0.76",
   "license": "AGPL-3.0-only",
   "main": "dist/app/main.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
     "dotenv": "^16.3.1",
-    "electron": "27.0.0-beta.4",
+    "electron": "27.0.0-beta.8",
     "electron-builder": "^24.6.4",
     "electron-context-menu": "^3.6.1",
     "electron-updater": "^6.1.4",
