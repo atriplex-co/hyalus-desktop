@@ -1,6 +1,7 @@
 ---
 appId: app.hyalus
 productName: Hyalus
+copyright: "Copyright © 2023 Atriplex Co."
 extraMetadata:
   name: Hyalus
   description: Hyalus
@@ -20,9 +21,9 @@ linux:
   artifactName: HyalusDesktop-linux.AppImage
 mac:
   target:
-    - target: zip
+    - target: dmg
       arch: x64
-  artifactName: HyalusDesktop-osx.zip
+  artifactName: HyalusDesktop-osx.dmg
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-main/entitlements.mac.plist
@@ -41,3 +42,4 @@ files:
 directories:
   output: dist/packaged
   buildResources: build/resources-main
+afterSign: ./scripts/afterSign.js

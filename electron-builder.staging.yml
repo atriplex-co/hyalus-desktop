@@ -1,6 +1,7 @@
 ---
 appId: app.hyalus.staging
 productName: Hyalus Staging
+copyright: "Copyright © 2023 Atriplex Co."
 extraMetadata:
   name: HyalusStaging
   description: Hyalus Staging
@@ -20,9 +21,9 @@ linux:
   artifactName: HyalusDesktopStaging-linux.AppImage
 mac:
   target:
-    - target: zip
+    - target: dmg
       arch: x64
-  artifactName: HyalusDesktopStaging-osx.zip
+  artifactName: HyalusDesktopStaging-osx.dmg
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-staging/entitlements.mac.plist
@@ -36,3 +37,4 @@ files:
 directories:
   output: dist/packaged
   buildResources: build/resources-staging
+afterSign: ./scripts/afterSign.js

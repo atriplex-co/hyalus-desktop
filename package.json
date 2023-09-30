@@ -16,10 +16,12 @@
     "format": "prettier --write src"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.1.0",
     "@types/node": "^18.17.18",
     "@types/winreg": "^1.2.32",
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
+    "dotenv": "^16.3.1",
     "electron": "27.0.0-beta.4",
     "electron-builder": "^24.6.4",
     "electron-context-menu": "^3.6.1",
