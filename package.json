@@ -13,7 +13,8 @@
     "build:staging:packaged": "electron-builder -c electron-builder.staging.yml -wml",
     "release": "pnpm build -p always",
     "lint": "eslint . --ext .ts --fix --ignore-path .gitignore",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
