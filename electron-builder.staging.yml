@@ -22,12 +22,13 @@ linux:
 mac:
   target:
     - target: dmg
-      arch: x64
+      arch: universal
   artifactName: HyalusDesktopStaging-osx.dmg
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-staging/entitlements.mac.plist
   entitlementsInherit: build/resources-staging/entitlements.mac.plist
+  identity: asdf
 publish: false
 files:
   - dist/app
@@ -37,4 +38,4 @@ files:
 directories:
   output: dist/packaged
   buildResources: build/resources-staging
-afterSign: ./scripts/afterSign.js
+#afterSign: ./scripts/afterSign.js
