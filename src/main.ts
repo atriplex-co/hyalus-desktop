@@ -64,16 +64,16 @@ const enableFeatures = [
   "TurnOffStreamingMediaCachingOnBattery",
 ];
 
-if (experiments["enable_wgc_screen_capture"] === "on") {
+if (os.platform() === "win32" && experiments["enable_wgc_screen_capture"] === "on") {
   enableFeatures.push("AllowWgcScreenCapturer");
 }
-if (experiments["enable_wgc_window_capture"] === "on") {
+if (os.platform() === "win32" && experiments["enable_wgc_window_capture"] === "on") {
   enableFeatures.push("AllowWgcWindowCapturer");
 }
-if (experiments["enable_wgc_zero_hz"] !== "off") {
+if (os.platform() === "win32" && experiments["enable_wgc_zero_hz"] !== "off") {
   enableFeatures.push("AllowWgcZeroHz");
 }
-if (experiments["linux_enable_vaapi"] !== "off") {
+if (os.platform() === "linux" && experiments["linux_enable_vaapi"] !== "off") {
   enableFeatures.push("VaapiVideoDecoder");
   enableFeatures.push("VaapiVideoEncoder");
 }
@@ -83,13 +83,13 @@ if (experiments["platform_hevc_decoder"] !== "off") {
 if (experiments["platform_hevc_encoder"] !== "off") {
   enableFeatures.push("PlatformHEVCEncoderSupport");
 }
-if (experiments["mf_d3d11_video_capture"] !== "off") {
+if (os.platform() === "win32" && experiments["mf_d3d11_video_capture"] !== "off") {
   enableFeatures.push("MediaFoundationD3D11VideoCapture");
 }
-if (experiments["mf_d3d11_video_capture_zero_copy"] !== "off") {
+if (os.platform() === "win32" && experiments["mf_d3d11_video_capture_zero_copy"] !== "off") {
   enableFeatures.push("MediaFoundationD3D11VideoCaptureZeroCopy");
 }
-if (experiments["windows_scrolling_personality"] === "on") {
+if (os.platform() === "win32" && experiments["windows_scrolling_personality"] === "on") {
   enableFeatures.push("WindowsScrollingPersonality");
 }
 
