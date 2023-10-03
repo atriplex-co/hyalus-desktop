@@ -23,10 +23,8 @@ mac:
   target:
     - target: dmg
       arch: universal
-      artifactName: HyalusDesktop-osx.dmg
     - target: zip
       arch: universal
-      artifactName: HyalusDesktop-osx.zip
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-main/entitlements.mac.plist
@@ -46,3 +44,7 @@ directories:
   output: dist/packaged
   buildResources: build/resources-main
 afterSign: ./scripts/afterSign.js
+dmg:
+  artifactName: HyalusDesktop-osx.dmg
+zip:
+  artifactName: HyalusDesktop-osx.zip
