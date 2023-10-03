@@ -25,6 +25,7 @@ mac:
       arch: universal
     - target: zip
       arch: universal
+  artifactName: HyalusDesktopStaging-osx.zip
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-staging/entitlements.mac.plist
@@ -42,5 +43,3 @@ directories:
 #afterSign: ./scripts/afterSign.js
 dmg:
   artifactName: HyalusDesktopStaging-osx.dmg
-zip:
-  artifactName: HyalusDesktopStaging-osx.zip
