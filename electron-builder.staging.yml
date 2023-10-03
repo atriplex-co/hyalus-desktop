@@ -23,9 +23,10 @@ mac:
   target:
     - target: dmg
       arch: universal
+      artifactName: HyalusDesktopStaging-osx.dmg
     - target: zip
       arch: universal
-  artifactName: HyalusDesktopStaging-osx.dmg
+      artifactName: HyalusDesktopStaging-osx.zip
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-staging/entitlements.mac.plist
