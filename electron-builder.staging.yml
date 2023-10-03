@@ -10,7 +10,8 @@ win:
   target:
     - target: nsis
       arch: ia32
-  artifactName: HyalusDesktopStaging-win32.exe
+    - target: nsis
+      arch: arm64
   files:
     - from: build/platform-win32
       to: build/platform
@@ -18,14 +19,14 @@ linux:
   target:
     - target: AppImage
       arch: x64
-  artifactName: HyalusDesktopStaging-linux.AppImage
+    - target: AppImage
+      arch: arm64
 mac:
   target:
     - target: dmg
       arch: universal
     - target: zip
       arch: universal
-  artifactName: HyalusDesktopStaging-osx.zip
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-staging/entitlements.mac.plist
@@ -41,5 +42,4 @@ directories:
   output: dist/packaged
   buildResources: build/resources-staging
 #afterSign: ./scripts/afterSign.js
-dmg:
-  artifactName: HyalusDesktopStaging-osx.dmg
+artifactName: HyalusDesktopStaging-${os}-${arch}.${ext}
