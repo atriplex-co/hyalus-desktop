@@ -109,7 +109,10 @@ const updatePromise = new Promise((resolve) => {
   }
 
   autoUpdater.on("update-not-available", () => resolve(0));
-  autoUpdater.on("update-downloaded", () => autoUpdater.quitAndInstall());
+  autoUpdater.on("update-downloaded", () => {
+    quitting = true;
+    autoUpdater.quitAndInstall();
+  });
   autoUpdater.on("error", () => resolve(0));
   autoUpdater.checkForUpdates();
 });
