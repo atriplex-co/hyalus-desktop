@@ -23,6 +23,8 @@ mac:
   target:
     - target: dmg
       arch: universal
+    - target: zip
+      arch: universal
   artifactName: HyalusDesktop-osx.dmg
   category: public.app-category.social-networking
   hardenedRuntime: true
