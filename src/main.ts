@@ -64,10 +64,10 @@ const enableFeatures = [
   "TurnOffStreamingMediaCachingOnBattery",
 ];
 
-if (os.platform() === "win32" && experiments["enable_wgc_screen_capture"] === "on") {
+if (os.platform() === "win32" && experiments["enable_wgc_screen_capture"] !== "off") {
   enableFeatures.push("AllowWgcScreenCapturer");
 }
-if (os.platform() === "win32" && experiments["enable_wgc_window_capture"] === "on") {
+if (os.platform() === "win32" && experiments["enable_wgc_window_capture"] !== "off") {
   enableFeatures.push("AllowWgcWindowCapturer");
 }
 if (os.platform() === "win32" && experiments["enable_wgc_zero_hz"] !== "off") {
