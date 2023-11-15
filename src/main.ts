@@ -525,3 +525,7 @@ ipcMain.handle("setExperiments", (e, val: Record<string, string>) => {
   }
   reloadExperiments();
 });
+
+ipcMain.handle("flushStorageData", () => {
+  mainWindow?.webContents.session.flushStorageData();
+});
