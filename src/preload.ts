@@ -8,7 +8,6 @@ declare const addEventListener: (arg0: string, arg1: () => void) => void; // get
 const win32: {
   startCapture(...args: unknown[]): void;
   stopCapture(...args: unknown[]): void;
-  msgCapture(...args: unknown[]): void;
   startEvents(...args: unknown[]): void;
   stopEvents(...args: unknown[]): void;
 } | null =
