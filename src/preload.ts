@@ -5,15 +5,21 @@ import fs from "node:fs";
 
 declare const addEventListener: (arg0: string, arg1: () => void) => void; // gets TS to shut up.
 
-const win32: {
+interface Win32Utils {
   startCapture(...args: unknown[]): void;
   stopCapture(...args: unknown[]): void;
   startEvents(...args: unknown[]): void;
   stopEvents(...args: unknown[]): void;
-} | null =
-  os.platform() === "win32"
-    ? require(path.join(__dirname, "../../build/platform/addon.node"))
-    : null;
+}
+
+let win32Utils: Win32Utils | null = null;
+try {
+  win32Utils = require(
+    path.join(__dirname, `../../build/platform/addon-${os.platform()}-${os.arch()}.node`),
+  );
+} catch {
+  //
+}
 
 let keybinds: {
   keys: string;
@@ -51,8 +57,8 @@ ipcRenderer.on("keybind", (e, keys) => {
 });
 
 addEventListener("beforeunload", () => {
-  win32?.stopEvents();
-  win32?.stopCapture();
+  win32Utils?.stopEvents();
+  win32Utils?.stopCapture();
   resetKeybinds();
 });
 
@@ -69,7 +75,7 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   setKeybinds,
   osPlatform: os.platform(),
   osRelease: os.release(),
-  win32,
+  win32: win32Utils,
   checkForUpdates: () => ipcRenderer.invoke("checkForUpdates"),
   getBoostrapConfig() {
     // TODO: remove @ August 2023
