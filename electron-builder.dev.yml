@@ -1,15 +1,17 @@
 ---
-appId: app.hyalus.staging
-productName: Hyalus Staging
+appId: app.hyalus.dev
+productName: HyalusDev
 copyright: "Copyright © 2023 Atriplex Co."
 extraMetadata:
-  name: HyalusStaging
-  description: Hyalus Staging
+  name: HyalusDev
+  description: HyalusDev
   author: Atriplex Co.
 win:
   target:
     - target: nsis
       arch: ia32
+    - target: nsis
+      arch: x64
     - target: nsis
       arch: arm64
   files:
@@ -29,17 +31,17 @@ mac:
       arch: universal
   category: public.app-category.social-networking
   hardenedRuntime: true
-  entitlements: build/resources-staging/entitlements.mac.plist
-  entitlementsInherit: build/resources-staging/entitlements.mac.plist
+  entitlements: build/resources-dev/entitlements.mac.plist
+  entitlementsInherit: build/resources-dev/entitlements.mac.plist
   identity: asdf
 publish: false
 files:
   - dist/app
   - public
-  - from: build/resources-staging
+  - from: build/resources-dev
     to: build/resources
 directories:
   output: dist/packaged
-  buildResources: build/resources-staging
+  buildResources: build/resources-dev
 #afterSign: ./scripts/afterSign.js
-artifactName: HyalusDesktopStaging-${os}-${arch}.${ext}
+artifactName: HyalusDesktopDev-${os}-${arch}.${ext}

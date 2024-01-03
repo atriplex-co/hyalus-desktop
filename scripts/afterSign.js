@@ -7,13 +7,13 @@ dotenv.config();
 module.exports = async (context) => {
   if (context.electronPlatformName === "darwin") {
     console.log("notarizing macOS app");
-    
+
     let appBundleId = "";
     if (context.packager.appInfo.productName === "Hyalus") {
       appBundleId = "app.hyalus";
     }
-    if (context.packager.appInfo.productName === "Hyalus Staging") {
-      appBundleId = "app.hyalus.staging";
+    if (context.packager.appInfo.productName === "HyalusDev") {
+      appBundleId = "app.hyalus.dev";
     }
 
     await notarize({

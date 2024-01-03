@@ -9,8 +9,8 @@
     "build:main": "esbuild --bundle src/main.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:preload": "esbuild --bundle src/preload.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:packaged": "electron-builder -wml",
-    "build:staging": "pnpm build:main && pnpm build:preload && pnpm build:staging:packaged",
-    "build:staging:packaged": "electron-builder -c electron-builder.staging.yml -wml",
+    "build:dev": "pnpm build:main && pnpm build:preload && pnpm build:dev:packaged",
+    "build:dev:packaged": "electron-builder -c electron-builder.dev.yml",
     "release": "pnpm build -p always",
     "lint": "eslint . --ext .ts --fix --ignore-path .gitignore",
     "format": "prettier --write src",
@@ -32,7 +32,6 @@
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.3",
     "typescript": "^5.2.2",
-    "v8-compile-cache": "^2.4.0",
-    "winreg": "^1.2.5"
+    "v8-compile-cache": "^2.4.0"
   }
 }

@@ -17,37 +17,37 @@ import os from "node:os";
 import { autoUpdater } from "electron-updater";
 import fs from "node:fs";
 import contextMenu from "electron-context-menu";
-import Registry from "winreg";
-import child_process from "node:child_process";
+
+interface IConfig {
+  startMinimized: boolean;
+  enableWgc: boolean;
+  enableVaapi: boolean;
+  enablePlatformHEVC: boolean;
+  enableMFD3D11: boolean;
+}
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
 let baseUrl = "";
 let appId = "";
 let quitting = false;
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
-let experiments: Record<string, string> = {};
-
-const reloadExperiments = () => {
-  experiments = {};
-  try {
-    experiments = JSON.parse(
-      fs.readFileSync(path.join(app.getPath("userData"), "experiments.json")).toString(),
-    );
-  } catch {
-    //
-  }
+let config: IConfig = {
+  startMinimized: true,
+  enableWgc: true,
+  enableVaapi: true,
+  enablePlatformHEVC: true,
+  enableMFD3D11: true,
 };
-reloadExperiments();
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
 
 if (pkg.name === "Hyalus") {
   baseUrl = "http://hyalus.app";
   appId = "app.hyalus";
 }
 
-if (pkg.name === "HyalusStaging") {
+if (pkg.name === "HyalusDev") {
   baseUrl = "https://staging.atriplex.co";
-  appId = "app.hyalus.staging";
+  appId = "app.hyalus.dev";
 }
 
 app.setAppUserModelId(appId);
@@ -58,39 +58,23 @@ const disableFeatures = [
   "MediaCapabilitiesQueryGpuFactories",
   "SpareRendererForSitePerProcess",
   "WebRtcHideLocalIpsWithMdns",
+  ...(config.enableVaapi ? ["VaapiVideoDecoder", "VaapiVideoEncoder"] : []),
+  ...(config.enablePlatformHEVC
+    ? ["PlatformHEVCDecoderSupport", "PlatformHEVCEncoderSupport"]
+    : []),
+  ...(config.enableMFD3D11
+    ? ["MediaFoundationD3D11VideoCapture", "MediaFoundationD3D11VideoCaptureZeroCopy"]
+    : []),
 ];
 const enableFeatures = [
   // enabled features list:
   "TurnOffStreamingMediaCachingOnBattery",
 ];
 
-if (os.platform() === "win32" && experiments["enable_wgc_screen_capture"] !== "off") {
+if (config.enableWgc) {
   enableFeatures.push("AllowWgcScreenCapturer");
-}
-if (os.platform() === "win32" && experiments["enable_wgc_window_capture"] !== "off") {
   enableFeatures.push("AllowWgcWindowCapturer");
-}
-if (os.platform() === "win32" && experiments["enable_wgc_zero_hz"] !== "off") {
   enableFeatures.push("AllowWgcZeroHz");
-}
-if (os.platform() === "linux" && experiments["linux_enable_vaapi"] !== "off") {
-  enableFeatures.push("VaapiVideoDecoder");
-  enableFeatures.push("VaapiVideoEncoder");
-}
-if (experiments["platform_hevc_decoder"] !== "off") {
-  enableFeatures.push("PlatformHEVCDecoderSupport");
-}
-if (experiments["platform_hevc_encoder"] !== "off") {
-  enableFeatures.push("PlatformHEVCEncoderSupport");
-}
-if (os.platform() === "win32" && experiments["mf_d3d11_video_capture"] !== "off") {
-  enableFeatures.push("MediaFoundationD3D11VideoCapture");
-}
-if (os.platform() === "win32" && experiments["mf_d3d11_video_capture_zero_copy"] !== "off") {
-  enableFeatures.push("MediaFoundationD3D11VideoCaptureZeroCopy");
-}
-if (os.platform() === "win32" && experiments["windows_scrolling_personality"] === "on") {
-  enableFeatures.push("WindowsScrollingPersonality");
 }
 
 app.commandLine.appendSwitch("disable-features", disableFeatures.join(","));
@@ -129,31 +113,20 @@ contextMenu({
 
 const getStartupSettings = async () => {
   const settings = app.getLoginItemSettings();
-
   let enabled = settings.openAtLogin;
-  let minimized = settings.openAsHidden;
-
+  let minimized = false;
   if (os.platform() === "win32") {
-    enabled = !!settings.launchItems[0]?.enabled;
-
-    const reg = new Registry({
-      hive: Registry.HKCU,
-      key: "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-    });
-
-    await new Promise((resolve) => {
-      reg.get(appId, (err, v) => {
-        if (err) {
-          minimized = false;
-        } else {
-          minimized = v.value.includes("--minimized");
-        }
-
-        resolve(0);
-      });
-    });
+    if (settings.launchItems[0]) {
+      enabled = settings.launchItems[0].enabled;
+      minimized = settings.launchItems[0].args.join().includes("--minimized");
+    } else {
+      enabled = false;
+      minimized = false;
+    }
   }
-
+  if (os.platform() === "darwin") {
+    minimized = settings.openAsHidden;
+  }
   return {
     enabled,
     minimized,
@@ -161,27 +134,22 @@ const getStartupSettings = async () => {
 };
 
 const setStartupSettings = async (opts: { enabled: boolean; minimized: boolean }) => {
-  app.setLoginItemSettings({
-    openAtLogin: os.platform() === "win32" ? true : opts.enabled,
-    openAsHidden: opts.minimized,
-    enabled: opts.enabled,
-  });
-
   if (os.platform() === "win32") {
-    const reg = new Registry({
-      hive: Registry.HKCU,
-      key: "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-    });
-
-    await new Promise((resolve) => {
-      reg.set(
-        appId,
-        Registry.REG_SZ,
-        `"${process.execPath}"${opts.minimized ? " --minimized" : ""}`,
-        resolve,
-      );
+    return app.setLoginItemSettings({
+      openAtLogin: true,
+      enabled: opts.enabled,
+      args: opts.minimized ? ["--minimized"] : [],
     });
   }
+  if (os.platform() === "darwin") {
+    return app.setLoginItemSettings({
+      openAtLogin: opts.enabled,
+      openAsHidden: opts.minimized,
+    });
+  }
+  app.setLoginItemSettings({
+    openAtLogin: opts.enabled,
+  });
 };
 
 const restart = () => {
@@ -284,11 +252,6 @@ app.on("ready", async () => {
       preload: path.join(__dirname, "preload.js"),
       sandbox: false, // we know what we're doing, it's fine.
       v8CacheOptions: "bypassHeatCheck",
-      ...(experiments["disable_background_throttling"] === "on"
-        ? {
-            backgroundThrottling: false,
-          }
-        : {}),
     },
     show: false,
     backgroundColor: "#121212",
@@ -338,6 +301,10 @@ app.on("ready", async () => {
   });
 
   mainWindow.on("ready-to-show", () => {
+    if (app.getLoginItemSettings().wasOpenedAsHidden || process.argv.includes("--minimized")) {
+      return;
+    }
+
     if (mainWindow && !maximized) {
       mainWindow.show();
     }
@@ -376,10 +343,6 @@ app.on("ready", async () => {
       mainWindow.reload();
     }
   });
-
-  if (app.getLoginItemSettings().wasOpenedAsHidden || process.argv.includes("--minimized")) {
-    mainWindow.hide();
-  }
 
   const resumeArg = process.argv.find((arg) => arg.startsWith("--resume="));
 
@@ -499,31 +462,7 @@ ipcMain.handle("moveTop", () => {
 });
 
 ipcMain.handle("setExperiments", (e, val: Record<string, string>) => {
-  if (!val) {
-    return;
-  }
-  fs.writeFileSync(path.join(app.getPath("userData"), "experiments.json"), JSON.stringify(val));
-  if (
-    os.platform() === "win32" &&
-    val["win32_enable_segment_heap"] !== experiments["win32_enable_segment_heap"]
-  ) {
-    if (val["win32_enable_segment_heap"] === "on") {
-      const tmp = path.resolve(os.tmpdir(), "HyalusSegmentHeapEnable.reg");
-      fs.writeFileSync(
-        tmp,
-        fs.readFileSync(path.resolve(__dirname, "../../build/resources/SegmentHeapEnable.reg")),
-      );
-      child_process.exec(`c:\\windows\\regedit.exe "${tmp}"`);
-    } else {
-      const tmp = path.resolve(os.tmpdir(), "HyalusSegmentHeapDisable.reg");
-      fs.writeFileSync(
-        tmp,
-        fs.readFileSync(path.resolve(__dirname, "../../build/resources/SegmentHeapDisable.reg")),
-      );
-      child_process.exec(`c:\\windows\\regedit.exe "${tmp}"`);
-    }
-  }
-  reloadExperiments();
+  // deprecated
 });
 
 ipcMain.handle("flushStorageData", () => {
