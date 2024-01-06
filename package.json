@@ -10,7 +10,7 @@
     "build:preload": "esbuild --bundle src/preload.ts --outdir=dist/app --platform=node --minify --external:electron",
     "build:packaged": "electron-builder -wml",
     "build:dev": "pnpm build:main && pnpm build:preload && pnpm build:dev:packaged",
-    "build:dev:packaged": "electron-builder -c electron-builder.dev.yml",
+    "build:dev:packaged": "electron-builder -c electron-builder.dev.yml -w",
     "release": "pnpm build -p always",
     "lint": "eslint . --ext .ts --fix --ignore-path .gitignore",
     "format": "prettier --write src",

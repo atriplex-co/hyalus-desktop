@@ -46,7 +46,7 @@ if (pkg.name === "Hyalus") {
 }
 
 if (pkg.name === "HyalusDev") {
-  baseUrl = "https://staging.atriplex.co";
+  baseUrl = "https://dev.atriplex.co";
   appId = "app.hyalus.dev";
 }
 
