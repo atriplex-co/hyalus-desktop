@@ -19,12 +19,14 @@ import fs from "node:fs";
 import contextMenu from "electron-context-menu";
 
 interface IConfig {
-  startMinimized: boolean;
-  enableWgc: boolean;
-  enableVaapi: boolean;
-  enablePlatformHEVC: boolean;
-  enableMFD3D11: boolean;
+  v: number;
+  autostartArgs: string[];
+  enabledFeatures: string[];
+  disabledFeatures: string[];
 }
+
+const ConfigPath = path.join(app.getPath("userData"), "config.json");
+const Package = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
 
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -32,20 +34,36 @@ let baseUrl = "";
 let appId = "";
 let quitting = false;
 let config: IConfig = {
-  startMinimized: true,
-  enableWgc: true,
-  enableVaapi: true,
-  enablePlatformHEVC: true,
-  enableMFD3D11: true,
+  v: 0,
+  autostartArgs: ["--minimized"],
+  enabledFeatures: [],
+  disabledFeatures: [],
 };
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json")).toString());
 
-if (pkg.name === "Hyalus") {
+const loadConfig = () => {
+  if (!fs.existsSync(ConfigPath)) {
+    return;
+  }
+  try {
+    config = {
+      ...config,
+      ...JSON.parse(fs.readFileSync(ConfigPath).toString()),
+    };
+  } catch {
+    //
+  }
+};
+
+const saveConfig = () => {
+  fs.writeFileSync(ConfigPath, JSON.stringify(ConfigPath));
+};
+
+if (Package.name === "Hyalus") {
   baseUrl = "http://hyalus.app";
   appId = "app.hyalus";
 }
 
-if (pkg.name === "HyalusDev") {
+if (Package.name === "HyalusDev") {
   baseUrl = "https://dev.atriplex.co";
   appId = "app.hyalus.dev";
 }
@@ -58,24 +76,22 @@ const disableFeatures = [
   "MediaCapabilitiesQueryGpuFactories",
   "SpareRendererForSitePerProcess",
   "WebRtcHideLocalIpsWithMdns",
-  ...(config.enableVaapi ? ["VaapiVideoDecoder", "VaapiVideoEncoder"] : []),
-  ...(config.enablePlatformHEVC
-    ? ["PlatformHEVCDecoderSupport", "PlatformHEVCEncoderSupport"]
-    : []),
-  ...(config.enableMFD3D11
-    ? ["MediaFoundationD3D11VideoCapture", "MediaFoundationD3D11VideoCaptureZeroCopy"]
-    : []),
 ];
 const enableFeatures = [
   // enabled features list:
   "TurnOffStreamingMediaCachingOnBattery",
+  "VaapiVideoDecoder",
+  "VaapiVideoEncoder",
+  "PlatformHEVCDecoderSupport",
+  "PlatformHEVCEncoderSupport",
+  "MediaFoundationD3D11VideoCapture",
+  "MediaFoundationD3D11VideoCaptureZeroCopy",
+  "AllowWgcScreenCapturer",
+  "AllowWgcWindowCapturer",
+  "AllowWgcZeroHz",
 ];
 
-if (config.enableWgc) {
-  enableFeatures.push("AllowWgcScreenCapturer");
-  enableFeatures.push("AllowWgcWindowCapturer");
-  enableFeatures.push("AllowWgcZeroHz");
-}
+loadConfig();
 
 app.commandLine.appendSwitch("disable-features", disableFeatures.join(","));
 app.commandLine.appendSwitch("enable-features", enableFeatures.join(","));
@@ -112,17 +128,14 @@ contextMenu({
 });
 
 const getStartupSettings = async () => {
-  const settings = app.getLoginItemSettings();
+  const settings = app.getLoginItemSettings({
+    args: ["--autostart"],
+  });
   let enabled = settings.openAtLogin;
   let minimized = false;
   if (os.platform() === "win32") {
-    if (settings.launchItems[0]) {
-      enabled = settings.launchItems[0].enabled;
-      minimized = settings.launchItems[0].args.join().includes("--minimized");
-    } else {
-      enabled = false;
-      minimized = false;
-    }
+    enabled = settings.launchItems[0] ? settings.launchItems[0].enabled : false;
+    minimized = config.autostartArgs.includes("--minimized");
   }
   if (os.platform() === "darwin") {
     minimized = settings.openAsHidden;
@@ -135,10 +148,15 @@ const getStartupSettings = async () => {
 
 const setStartupSettings = async (opts: { enabled: boolean; minimized: boolean }) => {
   if (os.platform() === "win32") {
+    config.autostartArgs = [];
+    if (opts.minimized) {
+      config.autostartArgs.push("--minimized");
+    }
+    saveConfig();
     return app.setLoginItemSettings({
       openAtLogin: true,
       enabled: opts.enabled,
-      args: opts.minimized ? ["--minimized"] : [],
+      args: ["--autostart"],
     });
   }
   if (os.platform() === "darwin") {
@@ -226,10 +244,7 @@ app.on("ready", async () => {
     }
   });
 
-  const initPath = path.join(app.getPath("userData"), "init2");
-  if (!fs.existsSync(initPath)) {
-    fs.writeFileSync(initPath, ""); // so this only runs on the first start.
-
+  if (!fs.existsSync(ConfigPath)) {
     try {
       await setStartupSettings({
         enabled: true,
@@ -238,6 +253,8 @@ app.on("ready", async () => {
     } catch {
       //
     }
+
+    saveConfig(); // should only run on first boot.
   }
 
   let maximized = false;
@@ -301,7 +318,10 @@ app.on("ready", async () => {
   });
 
   mainWindow.on("ready-to-show", () => {
-    if (app.getLoginItemSettings().wasOpenedAsHidden || process.argv.includes("--minimized")) {
+    if (
+      app.getLoginItemSettings().wasOpenedAsHidden ||
+      (process.argv.includes("--autostart") && config.autostartArgs.includes("--minimized"))
+    ) {
       return;
     }
 
@@ -371,7 +391,7 @@ app.on("web-contents-created", (e, contents) => {
   contents.on("will-navigate", (e, url) => {
     const parsedURL = new URL(url);
 
-    if (parsedURL.origin !== baseUrl && pkg.name === "Hyalus") {
+    if (parsedURL.origin !== baseUrl && Package.name === "Hyalus") {
       e.preventDefault();
     }
   });
@@ -459,10 +479,6 @@ ipcMain.handle("moveTop", () => {
   }
   mainWindow?.focus();
   mainWindow?.moveTop();
-});
-
-ipcMain.handle("setExperiments", (e, val: Record<string, string>) => {
-  // deprecated
 });
 
 ipcMain.handle("flushStorageData", () => {

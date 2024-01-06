@@ -10,10 +10,10 @@ win:
   target:
     - target: nsis
       arch: ia32
-    - target: nsis
-      arch: x64
-    - target: nsis
-      arch: arm64
+#    - target: nsis
+#      arch: x64
+#    - target: nsis
+#      arch: arm64
   files:
     - from: build/platform-win32
       to: build/platform
