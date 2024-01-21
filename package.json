@@ -18,11 +18,11 @@
   },
   "devDependencies": {
     "@electron/notarize": "^2.2.0",
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.11.5",
     "@types/winreg": "^1.2.36",
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
-    "dotenv": "^16.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "dotenv": "^16.3.2",
     "electron": "28.1.4",
     "electron-builder": "^24.9.1",
     "electron-context-menu": "^3.6.1",
@@ -30,7 +30,7 @@
     "esbuild": "^0.19.11",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
-    "prettier": "^3.1.1",
+    "prettier": "^3.2.4",
     "typescript": "^5.3.3",
     "v8-compile-cache": "^2.4.0"
   }
