@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import os from "os";
 import path from "node:path";
-import fs from "node:fs";
 
 declare const addEventListener: (arg0: string, arg1: () => void) => void; // gets TS to shut up.
 
@@ -77,22 +76,6 @@ contextBridge.exposeInMainWorld("HyalusDesktop", {
   osRelease: os.release(),
   win32: win32Utils,
   checkForUpdates: () => ipcRenderer.invoke("checkForUpdates"),
-  getBoostrapConfig() {
-    // TODO: remove @ August 2023
-    try {
-      if (
-        os.platform() === "win32" &&
-        fs.existsSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`)
-      ) {
-        const config = fs.readFileSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`).toString();
-        fs.rmSync(`${process.env.APPDATA}\\hyalus_boostrap.dat`);
-        return config;
-      }
-    } catch {
-      //
-    }
-    return "";
-  },
   setContentProtection: (val: boolean) => ipcRenderer.invoke("setContentProtection", val),
   setExperiments: () => {}, // deprecated
   moveTop: () => ipcRenderer.invoke("moveTop"),
