@@ -434,12 +434,14 @@ ipcMain.handle("quit", () => {
 ipcMain.handle("getSources", async () => {
   const sources = await desktopCapturer.getSources({
     types: ["screen", "window"],
+    fetchWindowIcons: true,
   });
 
   return sources.map((s) => ({
     id: s.id,
     name: s.name,
     thumbnail: s.thumbnail.toDataURL(),
+    appIcon: s.appIcon.toDataURL(),
   }));
 });
 
