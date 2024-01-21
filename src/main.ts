@@ -441,7 +441,7 @@ ipcMain.handle("getSources", async () => {
     id: s.id,
     name: s.name,
     thumbnail: s.thumbnail.toDataURL(),
-    appIcon: s.appIcon.toDataURL(),
+    appIcon: s.appIcon && s.appIcon.toDataURL(),
   }));
 });
 
