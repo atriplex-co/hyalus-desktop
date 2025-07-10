@@ -1,7 +1,7 @@
 ---
 appId: app.hyalus.dev
 productName: HyalusDev
-copyright: "Copyright © 2023 Atriplex Co."
+copyright: "Copyright © 2025 Atriplex Co."
 extraMetadata:
   name: HyalusDev
   description: HyalusDev
@@ -9,11 +9,9 @@ extraMetadata:
 win:
   target:
     - target: nsis
-      arch: ia32
-#    - target: nsis
-#      arch: x64
-#    - target: nsis
-#      arch: arm64
+      arch: x64
+    - target: nsis
+      arch: arm64
   files:
     - from: build/platform-win32
       to: build/platform
