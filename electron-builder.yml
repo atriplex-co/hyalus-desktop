@@ -21,11 +21,11 @@ linux:
   artifactName: HyalusDesktop-linux.AppImage
 mac:
   target:
-    - target: dmg
-      arch: universal
     - target: zip
-      arch: universal
-  artifactName: HyalusDesktop-osx.zip
+      arch: x64
+    - target: zip
+      arch: arm64
+  artifactName: HyalusDesktop-osx-${arch}.zip
   category: public.app-category.social-networking
   hardenedRuntime: true
   entitlements: build/resources-main/entitlements.mac.plist
@@ -44,6 +44,6 @@ files:
 directories:
   output: dist/packaged
   buildResources: build/resources-main
-afterSign: ./scripts/afterSign.js
+#afterSign: ./scripts/afterSign.js
 dmg:
   artifactName: HyalusDesktop-osx.dmg
